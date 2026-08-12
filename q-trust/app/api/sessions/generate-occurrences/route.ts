@@ -17,6 +17,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { startDate, endDate, sessionTemplateId } = body
 
@@ -35,7 +40,7 @@ export async function POST(request: NextRequest) {
     end.setHours(23, 59, 59, 999)
 
     // Get session templates
-    const query: Record<string, unknown> = { isActive: true }
+    const query: Record<string, unknown> = { tenantId, isActive: true }
     if (sessionTemplateId) {
       query._id = sessionTemplateId
     }
@@ -56,6 +61,7 @@ export async function POST(request: NextRequest) {
           dayEnd.setHours(23, 59, 59, 999)
 
           const exists = await SessionOccurrence.findOne({
+            tenantId,
             sessionTemplateId: template._id,
             date: { $gte: dayStart, $lt: dayEnd }
           })
@@ -77,6 +83,7 @@ export async function POST(request: NextRequest) {
             const qrClose = template.qrCloseOffsetAfterMin ?? DEFAULT_QR_SETTINGS.closeOffsetAfterMin
 
             await SessionOccurrence.create({
+              tenantId,
               sessionTemplateId: template._id,
               teacherId: template.teacherId,
               date: occDate,

@@ -26,13 +26,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const confirm = body.confirm === true
 
     await dbConnect()
 
     // Find sessions without rooms
-    const unassigned = await SessionTemplate.find({ isActive: true, $or: [{ roomId: null }, { roomId: { $exists: false } }] })
+    const unassigned = await SessionTemplate.find({ tenantId, isActive: true, $or: [{ roomId: null }, { roomId: { $exists: false } }] })
       .populate("teacherId", "fullName")
       .lean()
 
@@ -43,13 +48,13 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const rooms = await Room.find({ isActive: true }).sort({ capacity: 1 }).lean()
+    const rooms = await Room.find({ tenantId, isActive: true }).sort({ capacity: 1 }).lean()
     if (rooms.length === 0) {
       return NextResponse.json({ message: "لا توجد قاعات متاحة" }, { status: 400 })
     }
 
     // Get all sessions with rooms for conflict checking
-    const assignedSessions = await SessionTemplate.find({ isActive: true, roomId: { $ne: null } }).lean()
+    const assignedSessions = await SessionTemplate.find({ tenantId, isActive: true, roomId: { $ne: null } }).lean()
 
     // Build occupation map: roomId-day -> [{startTime, endTime}]
     const occupation: Record<string, Array<{ startTime: string; endTime: string }>> = {}
@@ -74,6 +79,7 @@ export async function POST(request: NextRequest) {
 
     for (const s of unassigned) {
       const studentCount = await StudentSession.countDocuments({
+        tenantId,
         sessionTemplateId: s._id,
         isActive: true,
       })
@@ -120,7 +126,7 @@ export async function POST(request: NextRequest) {
     // Apply if confirmed
     if (confirm && assignments.length > 0) {
       for (const a of assignments) {
-        await SessionTemplate.findByIdAndUpdate(a.sessionId, { roomId: a.roomId })
+        await SessionTemplate.findOneAndUpdate({ _id: a.sessionId, tenantId }, { roomId: a.roomId }, { runValidators: true })
       }
     }
 

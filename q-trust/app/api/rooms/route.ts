@@ -22,13 +22,19 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const rooms = await Room.find().sort({ name: 1 }).lean()
+    const rooms = await Room.find({ tenantId }).sort({ name: 1 }).lean()
 
     const roomsWithStats = await Promise.all(
       rooms.map(async (room) => {
         const sessions = await SessionTemplate.find({
+          tenantId,
           roomId: room._id,
           isActive: true,
         }).lean()
@@ -36,6 +42,7 @@ export async function GET() {
         let totalEnrolled = 0
         for (const s of sessions) {
           const count = await StudentSession.countDocuments({
+            tenantId,
             sessionTemplateId: s._id,
             isActive: true,
           })
@@ -47,6 +54,7 @@ export async function GET() {
               ...await Promise.all(
                 sessions.map((s) =>
                   StudentSession.countDocuments({
+                    tenantId,
                     sessionTemplateId: s._id,
                     isActive: true,
                   })
@@ -85,6 +93,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const validationResult = createRoomSchema.safeParse(body)
 
@@ -97,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    const existing = await Room.findOne({ name: validationResult.data.name })
+    const existing = await Room.findOne({ tenantId, name: validationResult.data.name })
     if (existing) {
       return NextResponse.json(
         { message: "يوجد قاعة بهذا الاسم بالفعل" },
@@ -105,7 +118,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const room = await Room.create(validationResult.data)
+    const room = await Room.create({ ...validationResult.data, tenantId })
 
     return NextResponse.json(room, { status: 201 })
   } catch (error) {

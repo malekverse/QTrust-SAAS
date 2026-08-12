@@ -18,6 +18,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { studentId, parentEmail, parentPhone, parentName } = body
 
@@ -31,7 +36,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     // Find the student
-    const student = await Student.findById(studentId)
+    const student = await Student.findOne({ _id: studentId, tenantId })
     if (!student) {
       return NextResponse.json(
         { message: "الطالب غير موجود" },
@@ -77,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email is already used by another user
-    const existingUser = await User.findOne({ email: loginEmail })
+    const existingUser = await User.findOne({ email: loginEmail, tenantId })
     if (existingUser) {
       return NextResponse.json(
         { message: "البريد الإلكتروني مستخدم بالفعل في حساب آخر" },
@@ -95,6 +100,7 @@ export async function POST(request: NextRequest) {
       : student.fullName || 'طالب'
 
     const newUser = await User.create({
+      tenantId,
       fullName: displayName,
       email: loginEmail,
       phone: loginPhone,
@@ -118,6 +124,7 @@ export async function POST(request: NextRequest) {
       'STUDENT_UPDATED',
       `إنشاء حساب بوابة للطالب ${displayName}`,
       {
+        tenantId,
         studentId: student._id,
         userId: session.user.id,
         metadata: { credentialType }
@@ -155,12 +162,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const hasAccess = searchParams.get("hasAccess")
 
     await dbConnect()
 
-    let query: Record<string, unknown> = { isActive: true }
+    let query: Record<string, unknown> = { isActive: true, tenantId }
     if (hasAccess === "true") {
       query.hasPortalAccess = true
     } else if (hasAccess === "false") {

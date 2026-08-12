@@ -20,11 +20,16 @@ export async function GET(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
-    const student = await Student.findById(id).lean()
+    const student = await Student.findOne({ _id: id, tenantId }).lean()
 
     if (!student) {
       return NextResponse.json(

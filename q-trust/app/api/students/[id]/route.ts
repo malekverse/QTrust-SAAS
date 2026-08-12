@@ -31,11 +31,16 @@ export async function GET(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
-    const student = await Student.findById(id).lean()
+    const student = await Student.findOne({ _id: id, tenantId }).lean()
 
     if (!student) {
       return NextResponse.json(
@@ -77,6 +82,11 @@ export async function PATCH(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
 
@@ -96,7 +106,7 @@ export async function PATCH(
     
     // Update fullName if firstName or lastName changed
     if (updateData.firstName || updateData.lastName) {
-      const existingStudent = await Student.findById(id).lean()
+      const existingStudent = await Student.findOne({ _id: id, tenantId }).lean()
       if (existingStudent) {
         const firstName = updateData.firstName || existingStudent.firstName
         const lastName = updateData.lastName || existingStudent.lastName
@@ -111,10 +121,10 @@ export async function PATCH(
       updateData.parentName = updateData.fatherName
     }
 
-    const student = await Student.findByIdAndUpdate(
-      id,
+    const student = await Student.findOneAndUpdate(
+      { _id: id, tenantId },
       { $set: updateData },
-      { new: true }
+      { new: true, runValidators: true }
     )
 
     if (!student) {
@@ -158,12 +168,17 @@ export async function DELETE(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
     // Delete student
-    const student = await Student.findByIdAndDelete(id)
+    const student = await Student.findOneAndDelete({ _id: id, tenantId })
 
     if (!student) {
       return NextResponse.json(
@@ -174,8 +189,8 @@ export async function DELETE(
 
     // Also delete related records
     await Promise.all([
-      StudentSession.deleteMany({ studentId: id }),
-      Attendance.deleteMany({ studentId: id }),
+      StudentSession.deleteMany({ tenantId, studentId: id }),
+      Attendance.deleteMany({ tenantId, studentId: id }),
     ])
 
     return NextResponse.json({ message: "تم حذف الطالب بنجاح" })

@@ -21,6 +21,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { sessionOccurrenceId, reason } = await request.json()
 
     if (!sessionOccurrenceId || !reason) {
@@ -39,13 +44,13 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
 
     // Check occurrence exists
-    const occurrence = await SessionOccurrence.findById(sessionOccurrenceId).lean()
+    const occurrence = await SessionOccurrence.findOne({ _id: sessionOccurrenceId, tenantId }).lean()
     if (!occurrence) {
       return NextResponse.json(
         { message: "الحصة غير موجودة" },
@@ -55,6 +60,7 @@ export async function POST(request: NextRequest) {
 
     // Check if claim already exists
     const existingClaim = await AttendanceClaim.findOne({
+      tenantId,
       studentId: user.studentId,
       sessionOccurrenceId
     })
@@ -67,6 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Create claim
     const claim = await AttendanceClaim.create({
+      tenantId,
       studentId: user.studentId,
       sessionOccurrenceId,
       date: occurrence.date,
@@ -102,14 +109,19 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
 
-    const claims = await AttendanceClaim.find({ studentId: user.studentId })
+    const claims = await AttendanceClaim.find({ tenantId, studentId: user.studentId })
       .populate({
         path: 'sessionOccurrenceId',
         select: 'date',

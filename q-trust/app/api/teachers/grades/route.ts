@@ -23,12 +23,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const studentId = searchParams.get("studentId")
 
     await dbConnect()
 
-    let query: Record<string, unknown> = {}
+    let query: Record<string, unknown> = { tenantId }
     
     if (session.user.role === ROLES.TEACHER) {
       query.teacherId = session.user.id
@@ -67,6 +72,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { studentId, sessionTemplateId, type, title, score, maxScore, date, notes, surah, fromVerse, toVerse, juz } = body
 
@@ -94,7 +104,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     // Verify student exists
-    const student = await Student.findById(studentId)
+    const student = await Student.findOne({ _id: studentId, tenantId })
     if (!student) {
       return NextResponse.json(
         { message: "الطالب غير موجود" },
@@ -103,6 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const grade = await Grade.create({
+      tenantId,
       studentId,
       sessionTemplateId: sessionTemplateId || undefined,
       teacherId: session.user.id,

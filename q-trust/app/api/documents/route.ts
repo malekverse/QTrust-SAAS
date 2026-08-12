@@ -19,12 +19,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
 
     await dbConnect()
 
-    const query: Record<string, unknown> = {}
+    const query: Record<string, unknown> = { tenantId }
     if (category && category !== "all") {
       query.category = category
     }
@@ -56,6 +61,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { title, description, category, fileUrl, fileType, fileSize, thumbnailUrl, isPublic, targetStudents, targetSessions } = body
 
@@ -69,6 +79,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     const document = await LearningDocument.create({
+      tenantId,
       title,
       description,
       category,

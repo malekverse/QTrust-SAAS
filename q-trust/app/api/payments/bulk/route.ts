@@ -17,6 +17,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { studentIds, month, year, isPaid, amount, notes } = body
 
@@ -26,9 +31,10 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
+    const tenantObjectId = new mongoose.Types.ObjectId(tenantId)
     const bulkOps = studentIds.map((studentId: string) => ({
       updateOne: {
-        filter: { studentId: new mongoose.Types.ObjectId(studentId), month, year },
+        filter: { studentId: new mongoose.Types.ObjectId(studentId), month, year, tenantId: tenantObjectId },
         update: {
           $set: {
             isPaid,

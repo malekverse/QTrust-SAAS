@@ -20,15 +20,20 @@ export async function GET(
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     await dbConnect()
 
-    const room = await Room.findById(id).lean()
+    const room = await Room.findOne({ _id: id, tenantId }).lean()
     if (!room) {
       return NextResponse.json({ message: "القاعة غير موجودة" }, { status: 404 })
     }
 
-    const sessions = await SessionTemplate.find({ roomId: id, isActive: true })
+    const sessions = await SessionTemplate.find({ tenantId, roomId: id, isActive: true })
       .populate("teacherId", "fullName")
       .sort({ dayOfWeek: 1, startTime: 1 })
       .lean()
@@ -36,6 +41,7 @@ export async function GET(
     const sessionsWithCount = await Promise.all(
       sessions.map(async (s) => {
         const studentCount = await StudentSession.countDocuments({
+          tenantId,
           sessionTemplateId: s._id,
           isActive: true,
         })

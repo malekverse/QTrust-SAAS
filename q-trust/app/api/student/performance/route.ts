@@ -23,9 +23,14 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
@@ -33,14 +38,14 @@ export async function GET() {
     const studentId = user.studentId
 
     // Get all grades
-    const grades = await Grade.find({ studentId })
+    const grades = await Grade.find({ tenantId, studentId })
       .populate("teacherId", "fullName")
       .populate("sessionTemplateId", "name")
       .sort({ date: -1 })
       .lean()
 
     // Get teacher feedback
-    const feedback = await TeacherFeedback.find({ studentId })
+    const feedback = await TeacherFeedback.find({ tenantId, studentId })
       .populate("teacherId", "fullName")
       .sort({ date: -1 })
       .limit(20)

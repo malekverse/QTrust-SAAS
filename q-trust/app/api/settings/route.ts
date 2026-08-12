@@ -15,13 +15,18 @@ export async function GET(request: Request) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
     const { searchParams } = new URL(request.url)
     const key = searchParams.get('key')
 
     if (key) {
-      const setting = await Settings.findOne({ key }).lean()
+      const setting = await Settings.findOne({ tenantId, key }).lean()
       
       if (!setting) {
         // Return defaults for known settings
@@ -42,7 +47,7 @@ export async function GET(request: Request) {
     }
 
     // Return all settings
-    const settings = await Settings.find().lean()
+    const settings = await Settings.find({ tenantId }).lean()
     
     // Ensure enrollment settings exist
     const hasEnrollment = settings.some(s => s.key === 'enrollment')
@@ -74,6 +79,11 @@ export async function PUT(request: Request) {
         { message: "غير مصرح لك بالوصول" },
         { status: 403 }
       )
+    }
+
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
     }
 
     await dbConnect()
@@ -108,8 +118,9 @@ export async function PUT(request: Request) {
     }
 
     const setting = await Settings.findOneAndUpdate(
-      { key },
+      { tenantId, key },
       { 
+        tenantId,
         key,
         value,
         description,

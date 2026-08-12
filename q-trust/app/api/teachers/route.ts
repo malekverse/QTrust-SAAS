@@ -21,9 +21,14 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const teachers = await User.find({ role: ROLES.TEACHER })
+    const teachers = await User.find({ role: ROLES.TEACHER, tenantId })
       .select("-passwordHash")
       .sort({ createdAt: -1 })
       .lean()
@@ -50,8 +55,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
-    
+
     // Validate input
     const validationResult = createUserSchema.safeParse(body)
     if (!validationResult.success) {
@@ -66,7 +76,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     // Check if email already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() })
+    const existingUser = await User.findOne({ email: email.toLowerCase(), tenantId })
     if (existingUser) {
       return NextResponse.json(
         { message: "البريد الإلكتروني مستخدم بالفعل" },
@@ -79,6 +89,7 @@ export async function POST(request: NextRequest) {
 
     // Create teacher
     const teacher = await User.create({
+      tenantId,
       fullName,
       email: email.toLowerCase(),
       role: ROLES.TEACHER,
@@ -92,6 +103,7 @@ export async function POST(request: NextRequest) {
       'TEACHER_CREATED',
       teacher.fullName,
       {
+        tenantId,
         userId: teacher._id,
         metadata: { email: teacher.email }
       }

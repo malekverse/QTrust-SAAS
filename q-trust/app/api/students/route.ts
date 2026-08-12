@@ -11,12 +11,13 @@ import { generateQrUuid } from "@/lib/utils"
 void Student
 
 // Generate next enrollment number (format: YYYY-XXX)
-async function generateEnrollmentNumber(): Promise<string> {
+async function generateEnrollmentNumber(tenantId: string): Promise<string> {
   const currentYear = new Date().getFullYear()
   const yearPrefix = `${currentYear}-`
-  
-  // Find the highest enrollment number for this year
+
+  // Find the highest enrollment number for this year (within this tenant)
   const lastStudent = await Student.findOne({
+    tenantId,
     enrollmentNumber: { $regex: `^${yearPrefix}` }
   })
     .sort({ enrollmentNumber: -1 })
@@ -46,9 +47,14 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const students = await Student.find({})
+    const students = await Student.find({ tenantId })
       .sort({ createdAt: -1 })
       .lean()
 
@@ -82,6 +88,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     
     // Validate input
@@ -101,12 +112,13 @@ export async function POST(request: NextRequest) {
     // Auto-generate enrollment number if not provided
     let enrollmentNumber = validationResult.data.enrollmentNumber
     if (!enrollmentNumber || enrollmentNumber.trim() === '') {
-      enrollmentNumber = await generateEnrollmentNumber()
+      enrollmentNumber = await generateEnrollmentNumber(tenantId)
     }
 
     // Prepare student data
     const studentData = {
       ...validationResult.data,
+      tenantId,
       enrollmentNumber,
       qrUuid,
       isActive: true,
@@ -124,6 +136,7 @@ export async function POST(request: NextRequest) {
       'STUDENT_CREATED',
       `${student.firstName} ${student.lastName}`,
       {
+        tenantId,
         studentId: student._id,
         userId: session.user.id
       }

@@ -21,14 +21,20 @@ export async function GET() {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const student = await Student.findOne({ userId: session.user.id }).lean()
+    const student = await Student.findOne({ userId: session.user.id, tenantId }).lean()
     if (!student) {
       return NextResponse.json({ message: "الطالب غير موجود" }, { status: 404 })
     }
 
     const enrollments = await StudentSession.find({
+      tenantId,
       studentId: student._id,
       isActive: true,
     })

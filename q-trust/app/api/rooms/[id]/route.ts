@@ -21,15 +21,20 @@ export async function GET(
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     await dbConnect()
 
-    const room = await Room.findById(id).lean()
+    const room = await Room.findOne({ _id: id, tenantId }).lean()
     if (!room) {
       return NextResponse.json({ message: "القاعة غير موجودة" }, { status: 404 })
     }
 
-    const sessions = await SessionTemplate.find({ roomId: id, isActive: true })
+    const sessions = await SessionTemplate.find({ tenantId, roomId: id, isActive: true })
       .populate("teacherId", "fullName")
       .sort({ dayOfWeek: 1, startTime: 1 })
       .lean()
@@ -37,6 +42,7 @@ export async function GET(
     const sessionsWithCount = await Promise.all(
       sessions.map(async (s) => {
         const studentCount = await StudentSession.countDocuments({
+          tenantId,
           sessionTemplateId: s._id,
           isActive: true,
         })
@@ -61,6 +67,11 @@ export async function PATCH(
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const validationResult = updateRoomSchema.safeParse(body)
@@ -76,6 +87,7 @@ export async function PATCH(
 
     if (validationResult.data.name) {
       const existing = await Room.findOne({
+        tenantId,
         name: validationResult.data.name,
         _id: { $ne: id },
       })
@@ -84,7 +96,7 @@ export async function PATCH(
       }
     }
 
-    const room = await Room.findByIdAndUpdate(id, validationResult.data, { new: true })
+    const room = await Room.findOneAndUpdate({ _id: id, tenantId }, validationResult.data, { new: true, runValidators: true })
     if (!room) {
       return NextResponse.json({ message: "القاعة غير موجودة" }, { status: 404 })
     }
@@ -106,10 +118,16 @@ export async function DELETE(
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     await dbConnect()
 
     const activeSessions = await SessionTemplate.countDocuments({
+      tenantId,
       roomId: id,
       isActive: true,
     })
@@ -121,7 +139,7 @@ export async function DELETE(
       )
     }
 
-    const room = await Room.findByIdAndUpdate(id, { isActive: false }, { new: true })
+    const room = await Room.findOneAndUpdate({ _id: id, tenantId }, { isActive: false }, { new: true, runValidators: true })
     if (!room) {
       return NextResponse.json({ message: "القاعة غير موجودة" }, { status: 404 })
     }

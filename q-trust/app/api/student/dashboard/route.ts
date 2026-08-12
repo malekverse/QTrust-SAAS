@@ -25,10 +25,15 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
     // Get user and student info
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user || !user.studentId) {
       return NextResponse.json(
         { message: "حساب الطالب غير موجود" },
@@ -36,7 +41,7 @@ export async function GET() {
       )
     }
 
-    const student = await Student.findById(user.studentId).lean()
+    const student = await Student.findOne({ _id: user.studentId, tenantId }).lean()
     if (!student) {
       return NextResponse.json(
         { message: "بيانات الطالب غير موجودة" },
@@ -48,6 +53,7 @@ export async function GET() {
 
     // Get student's sessions
     const studentSessions = await StudentSession.find({
+      tenantId,
       studentId,
       isActive: true
     }).lean()
@@ -55,6 +61,7 @@ export async function GET() {
 
     // Get session templates
     const sessionTemplates = await SessionTemplate.find({
+      tenantId,
       _id: { $in: sessionTemplateIds },
       isActive: true
     }).populate("teacherId", "fullName").lean()
@@ -105,6 +112,7 @@ export async function GET() {
 
     // Get all occurrences for student's sessions in the last 3 months
     const occurrences = await SessionOccurrence.find({
+      tenantId,
       sessionTemplateId: { $in: sessionTemplateIds },
       date: { $gte: threeMonthsAgo },
       status: { $ne: 'CANCELLED' }
@@ -114,6 +122,7 @@ export async function GET() {
 
     // Get attendance records
     const attendanceRecords = await Attendance.find({
+      tenantId,
       studentId,
       sessionOccurrenceId: { $in: occurrenceIds }
     }).lean()
@@ -173,7 +182,7 @@ export async function GET() {
     }
 
     // Get grades for performance average
-    const grades = await Grade.find({ studentId }).sort({ date: -1 }).lean()
+    const grades = await Grade.find({ tenantId, studentId }).sort({ date: -1 }).lean()
     let performanceAverage = 0
     if (grades.length > 0) {
       const totalPercentage = grades.reduce((sum, g) => sum + (g.score / g.maxScore) * 100, 0)

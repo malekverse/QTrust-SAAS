@@ -19,13 +19,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const roomId = searchParams.get("roomId")
     const teacherId = searchParams.get("teacherId")
 
     await dbConnect()
 
-    const query: any = { isActive: true }
+    const query: any = { tenantId, isActive: true }
     if (roomId) query.roomId = roomId
     if (teacherId) query.teacherId = teacherId
 
@@ -38,6 +43,7 @@ export async function GET(request: NextRequest) {
     const sessionsWithCount = await Promise.all(
       sessions.map(async (s) => {
         const studentCount = await StudentSession.countDocuments({
+          tenantId,
           sessionTemplateId: s._id,
           isActive: true,
         })
@@ -51,8 +57,8 @@ export async function GET(request: NextRequest) {
       byDay[d] = sessionsWithCount.filter((s) => s.dayOfWeek === d)
     }
 
-    const rooms = await Room.find({ isActive: true }).sort({ name: 1 }).lean()
-    const teachers = await User.find({ role: "TEACHER", isActive: true })
+    const rooms = await Room.find({ tenantId, isActive: true }).sort({ name: 1 }).lean()
+    const teachers = await User.find({ tenantId, role: "TEACHER", isActive: true })
       .select("fullName")
       .sort({ fullName: 1 })
       .lean()

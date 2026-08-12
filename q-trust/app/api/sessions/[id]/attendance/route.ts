@@ -41,13 +41,18 @@ export async function GET(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const { searchParams } = new URL(request.url)
     const dateParam = searchParams.get("date")
 
     await dbConnect()
 
-    const sessionTemplate = await SessionTemplate.findById(id)
+    const sessionTemplate = await SessionTemplate.findOne({ _id: id, tenantId })
       .populate("teacherId", "fullName")
       .populate("roomId", "name capacity location")
       .lean()
@@ -65,6 +70,7 @@ export async function GET(
 
     // Get or create session occurrence
     let occurrence = await SessionOccurrence.findOne({
+      tenantId,
       sessionTemplateId: id,
       date: targetDate,
     }).lean()
@@ -87,6 +93,7 @@ export async function GET(
       const qrCloseDateTime = new Date(endDateTime.getTime() + qrCloseOffset * 60 * 1000)
 
       const newOccurrence = await SessionOccurrence.create({
+        tenantId,
         sessionTemplateId: id,
         teacherId: sessionTemplate.teacherId,
         date: targetDate,
@@ -102,6 +109,7 @@ export async function GET(
 
     // Get students assigned to this session
     const studentSessions = await StudentSession.find({
+      tenantId,
       sessionTemplateId: id,
       isActive: true,
     })
@@ -110,6 +118,7 @@ export async function GET(
 
     // Get attendance records for this occurrence
     const attendanceRecords = await Attendance.find({
+      tenantId,
       sessionOccurrenceId: occurrence._id,
     }).lean()
 
@@ -177,6 +186,11 @@ export async function PATCH(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const { studentId, occurrenceId, status, notes } = body
@@ -194,7 +208,7 @@ export async function PATCH(
 
     // Teachers may only modify attendance for their own sessions
     if (session.user.role === ROLES.TEACHER) {
-      const template = await SessionTemplate.findById(id).select("teacherId").lean()
+      const template = await SessionTemplate.findOne({ _id: id, tenantId }).select("teacherId").lean()
       if (!template) {
         return NextResponse.json(
           { message: "الحصة غير موجودة" },
@@ -211,6 +225,7 @@ export async function PATCH(
 
     // Find or create attendance record
     let attendance = await Attendance.findOne({
+      tenantId,
       studentId,
       sessionOccurrenceId: occurrenceId,
     })
@@ -225,6 +240,7 @@ export async function PATCH(
     } else {
       // Create new
       attendance = await Attendance.create({
+        tenantId,
         studentId,
         sessionOccurrenceId: occurrenceId,
         status,

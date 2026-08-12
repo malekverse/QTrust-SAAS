@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "20")
@@ -32,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
@@ -40,11 +45,12 @@ export async function GET(request: NextRequest) {
     const studentId = user.studentId
 
     // Get student's session template IDs
-    const studentSessions = await StudentSession.find({ studentId, isActive: true }).lean()
+    const studentSessions = await StudentSession.find({ tenantId, studentId, isActive: true }).lean()
     const sessionTemplateIds = studentSessions.map(ss => ss.sessionTemplateId)
 
     // Get all occurrences for these sessions
     const occurrences = await SessionOccurrence.find({
+      tenantId,
       sessionTemplateId: { $in: sessionTemplateIds },
       status: { $ne: 'CANCELLED' }
     })
@@ -60,17 +66,20 @@ export async function GET(request: NextRequest) {
     const occurrenceIds = occurrences.map(o => o._id)
     
     let attendanceQuery: Record<string, unknown> = {
+      tenantId,
       studentId,
       sessionOccurrenceId: { $in: occurrenceIds }
     }
     
     const attendanceRecords = await Attendance.find({
+      tenantId,
       studentId,
       sessionOccurrenceId: { $in: occurrenceIds }
     }).lean()
 
     // Get existing claims
     const claims = await AttendanceClaim.find({
+      tenantId,
       studentId,
       sessionOccurrenceId: { $in: occurrenceIds }
     }).lean()

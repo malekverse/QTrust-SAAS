@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import mongoose from "mongoose"
 import dbConnect from "@/lib/db"
 import User from "@/models/User"
 import Student from "@/models/Student"
@@ -31,6 +32,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
     const isAdmin = session.user.role === ROLES.ADMIN
@@ -47,19 +53,21 @@ export async function GET(request: NextRequest) {
       studentCount,
       sessionCount,
     ] = await Promise.all([
-      User.countDocuments({ role: ROLES.TEACHER, isActive: true }),
-      Student.countDocuments({ isActive: true }),
-      SessionTemplate.countDocuments({ isActive: true }),
+      User.countDocuments({ tenantId, role: ROLES.TEACHER, isActive: true }),
+      Student.countDocuments({ tenantId, isActive: true }),
+      SessionTemplate.countDocuments({ tenantId, isActive: true }),
     ])
 
     // Get today's attendance
     const todayOccurrences = await SessionOccurrence.find({
+      tenantId,
       date: { $gte: today, $lt: tomorrow },
     }).select("_id")
 
     const occurrenceIds = todayOccurrences.map(o => o._id)
 
     const todayAttendance = await Attendance.aggregate([
+      { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
       { $match: { sessionOccurrenceId: { $in: occurrenceIds } } },
       {
         $group: {
@@ -89,6 +97,7 @@ export async function GET(request: NextRequest) {
     sevenDaysAgo.setHours(0, 0, 0, 0)
 
     const weeklyTrend = await Attendance.aggregate([
+      { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
       {
         $lookup: {
           from: "sessionoccurrences",
@@ -123,6 +132,7 @@ export async function GET(request: NextRequest) {
     // Get today's sessions
     const dayOfWeek = today.getDay()
     const todaySessions = await SessionTemplate.find({
+      tenantId,
       dayOfWeek,
       isActive: true,
       ...(isAdmin ? {} : { teacherId: session.user.id })
@@ -135,6 +145,7 @@ export async function GET(request: NextRequest) {
     let teacherStats = null
     if (!isAdmin) {
       const teacherSessions = await SessionTemplate.find({
+        tenantId,
         teacherId: session.user.id,
         isActive: true,
       }).select("_id")
@@ -142,12 +153,14 @@ export async function GET(request: NextRequest) {
       const teacherSessionIds = teacherSessions.map(s => s._id)
 
       const teacherOccurrences = await SessionOccurrence.find({
+        tenantId,
         sessionTemplateId: { $in: teacherSessionIds }
       }).select("_id")
 
       const teacherOccurrenceIds = teacherOccurrences.map(o => o._id)
 
       const teacherAttendance = await Attendance.aggregate([
+        { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
         { $match: { sessionOccurrenceId: { $in: teacherOccurrenceIds } } },
         {
           $group: {
@@ -172,8 +185,8 @@ export async function GET(request: NextRequest) {
     let portalStats = null
     if (isAdmin) {
       const [portalAccounts, pendingClaims] = await Promise.all([
-        Student.countDocuments({ hasPortalAccess: true }),
-        AttendanceClaim.countDocuments({ status: CLAIM_STATUS.PENDING }),
+        Student.countDocuments({ tenantId, hasPortalAccess: true }),
+        AttendanceClaim.countDocuments({ tenantId, status: CLAIM_STATUS.PENDING }),
       ])
       portalStats = {
         portalAccounts,

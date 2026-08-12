@@ -24,12 +24,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
 
     await dbConnect()
 
-    let query: Record<string, unknown> = {}
+    let query: Record<string, unknown> = { tenantId }
     if (status && status !== 'all') {
       query.status = status
     }
@@ -46,10 +51,10 @@ export async function GET(request: NextRequest) {
       .lean()
 
     // Stats
-    const allClaims = await AttendanceClaim.countDocuments()
-    const pendingClaims = await AttendanceClaim.countDocuments({ status: CLAIM_STATUS.PENDING })
-    const approvedClaims = await AttendanceClaim.countDocuments({ status: CLAIM_STATUS.APPROVED })
-    const rejectedClaims = await AttendanceClaim.countDocuments({ status: CLAIM_STATUS.REJECTED })
+    const allClaims = await AttendanceClaim.countDocuments({ tenantId })
+    const pendingClaims = await AttendanceClaim.countDocuments({ tenantId, status: CLAIM_STATUS.PENDING })
+    const approvedClaims = await AttendanceClaim.countDocuments({ tenantId, status: CLAIM_STATUS.APPROVED })
+    const rejectedClaims = await AttendanceClaim.countDocuments({ tenantId, status: CLAIM_STATUS.REJECTED })
 
     return NextResponse.json({
       claims: claims.map(c => {
@@ -99,6 +104,11 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { claimId, status, reviewNotes } = await request.json()
 
     if (!claimId || !status) {
@@ -117,7 +127,7 @@ export async function PATCH(request: NextRequest) {
 
     await dbConnect()
 
-    const claim = await AttendanceClaim.findById(claimId)
+    const claim = await AttendanceClaim.findOne({ _id: claimId, tenantId })
     if (!claim) {
       return NextResponse.json(
         { message: "الاعتراض غير موجود" },
@@ -144,7 +154,8 @@ export async function PATCH(request: NextRequest) {
       await Attendance.findOneAndUpdate(
         {
           studentId: claim.studentId,
-          sessionOccurrenceId: claim.sessionOccurrenceId
+          sessionOccurrenceId: claim.sessionOccurrenceId,
+          tenantId
         },
         {
           $set: {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import mongoose from "mongoose"
 import dbConnect from "@/lib/db"
 import Attendance from "@/models/Attendance"
 import SessionOccurrence from "@/models/SessionOccurrence"
@@ -14,9 +15,10 @@ void Student
 void User
 
 // Helper function to get comprehensive attendance stats
-async function getAttendanceStats() {
+async function getAttendanceStats(tenantId: string) {
   // Get overall stats
   const overallStats = await Attendance.aggregate([
+    { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
     {
       $group: {
         _id: null,
@@ -31,6 +33,7 @@ async function getAttendanceStats() {
 
   // Get stats by day of week
   const byDayStats = await Attendance.aggregate([
+    { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
     {
       $lookup: {
         from: "sessionoccurrences",
@@ -57,6 +60,7 @@ async function getAttendanceStats() {
   twoWeeksAgo.setHours(0, 0, 0, 0)
 
   const trendStats = await Attendance.aggregate([
+    { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
     {
       $lookup: {
         from: "sessionoccurrences",
@@ -110,14 +114,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const stats = searchParams.get("stats")
-    
+
     await dbConnect()
 
     // Return comprehensive stats for dashboard
     if (stats === "true") {
-      return getAttendanceStats()
+      return getAttendanceStats(tenantId)
     }
 
     const search = searchParams.get("search")
@@ -128,7 +137,7 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("dateTo")
 
     // Build query
-    const query: any = {}
+    const query: any = { tenantId }
 
     if (status) {
       query.status = status

@@ -17,6 +17,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const now = new Date()
     const month = parseInt(searchParams.get("month") || String(now.getMonth() + 1))
@@ -24,12 +29,12 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    const activeStudents = await Student.find({ isActive: true })
+    const activeStudents = await Student.find({ isActive: true, tenantId })
       .select("firstName lastName fullName phone enrollmentNumber")
       .sort({ firstName: 1, lastName: 1 })
       .lean()
 
-    const payments = await MonthlyPayment.find({ month, year })
+    const payments = await MonthlyPayment.find({ month, year, tenantId })
       .populate("markedByUserId", "fullName")
       .lean()
 
@@ -87,6 +92,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { studentId, month, year, isPaid, amount, notes } = body
 
@@ -96,13 +106,13 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    const student = await Student.findById(studentId)
+    const student = await Student.findOne({ _id: studentId, tenantId })
     if (!student) {
       return NextResponse.json({ message: "الطالب غير موجود" }, { status: 404 })
     }
 
     const payment = await MonthlyPayment.findOneAndUpdate(
-      { studentId, month, year },
+      { studentId, month, year, tenantId },
       {
         isPaid,
         paidAt: isPaid ? new Date() : undefined,
@@ -110,7 +120,7 @@ export async function POST(request: NextRequest) {
         amount: amount || undefined,
         notes: notes || undefined,
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true, runValidators: true }
     )
 
     return NextResponse.json(payment)

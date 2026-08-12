@@ -16,6 +16,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { newPassword } = await request.json()
 
     if (!newPassword || newPassword.length < 6) {
@@ -27,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    const user = await User.findById(session.user.id)
+    const user = await User.findOne({ _id: session.user.id, tenantId })
     if (!user) {
       return NextResponse.json(
         { message: "المستخدم غير موجود" },

@@ -32,9 +32,10 @@ function occurrenceCalendarDateFromKey(dateKey: string): Date {
 // Helper to create session occurrence if needed
 async function getOrCreateSessionOccurrence(
   sessionTemplateId: string,
-  dateKey: string
+  dateKey: string,
+  tenantId: string
 ) {
-  const sessionTemplate = await SessionTemplate.findById(sessionTemplateId)
+  const sessionTemplate = await SessionTemplate.findOne({ _id: sessionTemplateId, tenantId })
   if (!sessionTemplate) {
     throw new Error("Session template not found")
   }
@@ -45,6 +46,7 @@ async function getOrCreateSessionOccurrence(
 
   // Check if occurrence already exists
   let occurrence = await SessionOccurrence.findOne({
+    tenantId,
     sessionTemplateId: sessionTemplate._id,
     date: occurrenceDate,
   })
@@ -64,6 +66,7 @@ async function getOrCreateSessionOccurrence(
     const qrCloseDateTime = new Date(endDateTime.getTime() + qrCloseOffset * 60 * 1000)
 
     occurrence = await SessionOccurrence.create({
+      tenantId,
       sessionTemplateId: sessionTemplate._id,
       teacherId: sessionTemplate.teacherId,
       date: occurrenceDate,
@@ -93,6 +96,11 @@ export async function PATCH(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const { status, notes } = body
@@ -106,15 +114,15 @@ export async function PATCH(
 
     await dbConnect()
 
-    const attendance = await Attendance.findByIdAndUpdate(
-      id,
+    const attendance = await Attendance.findOneAndUpdate(
+      { _id: id, tenantId },
       {
         status,
         notes,
         lastModifiedByUserId: new mongoose.Types.ObjectId(session.user.id),
         lastModifiedAt: new Date()
       },
-      { new: true }
+      { new: true, runValidators: true }
     )
 
     if (!attendance) {
@@ -150,6 +158,11 @@ export async function POST(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id: sessionTemplateId } = await params
     const body = await request.json()
     const { studentId, date, status, notes } = body
@@ -171,29 +184,31 @@ export async function POST(
     await dbConnect()
 
     // Get or create the session occurrence (date string must match by-date UTC key)
-    const occurrence = await getOrCreateSessionOccurrence(sessionTemplateId, date)
+    const occurrence = await getOrCreateSessionOccurrence(sessionTemplateId, date, tenantId)
 
     // Check if attendance record exists
     let attendance = await Attendance.findOne({
+      tenantId,
       studentId,
       sessionOccurrenceId: occurrence._id
     })
 
     if (attendance) {
       // Update existing
-      attendance = await Attendance.findByIdAndUpdate(
-        attendance._id,
+      attendance = await Attendance.findOneAndUpdate(
+        { _id: attendance._id, tenantId },
         {
           status,
           notes,
           lastModifiedByUserId: new mongoose.Types.ObjectId(session.user.id),
           lastModifiedAt: new Date()
         },
-        { new: true }
+        { new: true, runValidators: true }
       )
     } else {
       // Create new
       attendance = await Attendance.create({
+        tenantId,
         studentId,
         sessionOccurrenceId: occurrence._id,
         status,

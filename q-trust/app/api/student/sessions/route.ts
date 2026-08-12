@@ -24,9 +24,14 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
@@ -35,6 +40,7 @@ export async function GET() {
 
     // Get student sessions
     const studentSessions = await StudentSession.find({
+      tenantId,
       studentId,
       isActive: true
     }).lean()
@@ -43,6 +49,7 @@ export async function GET() {
 
     // Get session templates with teacher info
     const sessionTemplates = await SessionTemplate.find({
+      tenantId,
       _id: { $in: sessionTemplateIds }
     }).populate("teacherId", "fullName").lean()
 
@@ -54,6 +61,7 @@ export async function GET() {
     twoWeeksLater.setDate(twoWeeksLater.getDate() + 14)
 
     const upcomingOccurrences = await SessionOccurrence.find({
+      tenantId,
       sessionTemplateId: { $in: sessionTemplateIds },
       date: { $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()), $lte: twoWeeksLater }
     }).sort({ date: 1 }).lean()
@@ -61,6 +69,7 @@ export async function GET() {
     // Get attendance for these occurrences
     const occurrenceIds = upcomingOccurrences.map(o => o._id)
     const attendanceRecords = await Attendance.find({
+      tenantId,
       studentId,
       sessionOccurrenceId: { $in: occurrenceIds }
     }).lean()

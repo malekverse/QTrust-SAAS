@@ -14,6 +14,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "غير مصرح لك بالوصول" }, { status: 403 })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const studentIdsParam = searchParams.get("studentIds")
     const now = new Date()
@@ -33,6 +38,7 @@ export async function GET(request: NextRequest) {
       month,
       year,
       isPaid: true,
+      tenantId,
     }).lean()
 
     const paidStudentIds = new Set(

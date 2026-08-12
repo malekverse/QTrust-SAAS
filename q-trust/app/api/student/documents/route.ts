@@ -22,12 +22,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
 
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
     const studentId = user.studentId
 
     // Get student's session template IDs
-    const studentSessions = await StudentSession.find({ studentId, isActive: true }).lean()
+    const studentSessions = await StudentSession.find({ tenantId, studentId, isActive: true }).lean()
     const sessionTemplateIds = studentSessions.map(ss => ss.sessionTemplateId)
 
     // Build query - documents that are:
@@ -43,6 +48,7 @@ export async function GET(request: NextRequest) {
     // 2. Targeted to this specific student, OR
     // 3. Targeted to one of the student's sessions
     const query: Record<string, unknown> = {
+      tenantId,
       $or: [
         { isPublic: true },
         { targetStudents: studentId },
@@ -61,6 +67,7 @@ export async function GET(request: NextRequest) {
 
     // Get categories with counts
     const allDocs = await LearningDocument.find({
+      tenantId,
       $or: [
         { isPublic: true },
         { targetStudents: studentId },
@@ -111,6 +118,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { documentId } = await request.json()
 
     if (!documentId) {
@@ -122,9 +134,9 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    await LearningDocument.findByIdAndUpdate(documentId, {
+    await LearningDocument.findOneAndUpdate({ _id: documentId, tenantId }, {
       $inc: { downloadCount: 1 }
-    })
+    }, { runValidators: true })
 
     return NextResponse.json({ message: "تم تسجيل التحميل" })
   } catch (error) {

@@ -21,14 +21,19 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
 
-    const student = await Student.findById(user.studentId).lean()
+    const student = await Student.findOne({ _id: user.studentId, tenantId }).lean()
     if (!student) {
       return NextResponse.json({ message: "بيانات الطالب غير موجودة" }, { status: 404 })
     }
@@ -100,12 +105,17 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
     const { phone, address } = body
 
     await dbConnect()
 
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findOne({ _id: session.user.id, tenantId }).lean()
     if (!user?.studentId) {
       return NextResponse.json({ message: "حساب الطالب غير موجود" }, { status: 404 })
     }
@@ -125,7 +135,7 @@ export async function PATCH(request: NextRequest) {
       updates.address = address
     }
 
-    await Student.findByIdAndUpdate(user.studentId, updates)
+    await Student.findOneAndUpdate({ _id: user.studentId, tenantId }, updates, { runValidators: true })
 
     return NextResponse.json({ message: "تم تحديث البيانات بنجاح" })
   } catch (error) {
@@ -149,6 +159,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { currentPassword, newPassword } = await request.json()
 
     if (!currentPassword || !newPassword) {
@@ -167,7 +182,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    const user = await User.findById(session.user.id)
+    const user = await User.findOne({ _id: session.user.id, tenantId })
     if (!user) {
       return NextResponse.json({ message: "المستخدم غير موجود" }, { status: 404 })
     }

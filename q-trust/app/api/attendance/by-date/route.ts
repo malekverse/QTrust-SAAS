@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const dateStr = searchParams.get("date")
 
@@ -54,6 +59,7 @@ export async function GET(request: NextRequest) {
 
     // Find session templates for this day of week
     const sessionTemplates = await SessionTemplate.find({
+      tenantId,
       dayOfWeek,
       isActive: true,
       effectiveFromDate: { $lte: targetDateEnd },
@@ -71,6 +77,7 @@ export async function GET(request: NextRequest) {
       sessionTemplates.map(async (template) => {
         // Find or CREATE occurrence for this date (auto-create if it doesn't exist)
         let occurrence = await SessionOccurrence.findOne({
+          tenantId,
           sessionTemplateId: template._id,
           date: targetDate
         }).lean()
@@ -92,6 +99,7 @@ export async function GET(request: NextRequest) {
             const qrCloseDateTime = new Date(endDateTime.getTime() + qrCloseOffset * 60 * 1000)
 
             const newOccurrence = await SessionOccurrence.create({
+              tenantId,
               sessionTemplateId: template._id,
               teacherId: template.teacherId,
               date: targetDate,
@@ -110,6 +118,7 @@ export async function GET(request: NextRequest) {
 
         // Get students assigned to this session
         const studentSessions = await StudentSession.find({
+          tenantId,
           sessionTemplateId: template._id,
           isActive: true
         }).populate({
@@ -125,6 +134,7 @@ export async function GET(request: NextRequest) {
         let attendanceRecords: any[] = []
         if (occurrence) {
           attendanceRecords = await Attendance.find({
+            tenantId,
             sessionOccurrenceId: occurrence._id
           }).lean()
         }

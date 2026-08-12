@@ -27,6 +27,11 @@ export async function POST(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const { studentIds, forceOverCapacity } = body
@@ -40,7 +45,7 @@ export async function POST(
 
     await dbConnect()
 
-    const sessionTemplate = await SessionTemplate.findById(id)
+    const sessionTemplate = await SessionTemplate.findOne({ _id: id, tenantId })
     if (!sessionTemplate) {
       return NextResponse.json(
         { message: "الحصة غير موجودة" },
@@ -50,9 +55,10 @@ export async function POST(
 
     // Capacity check if room is assigned
     if (sessionTemplate.roomId && !forceOverCapacity) {
-      const room = await Room.findById(sessionTemplate.roomId).lean()
+      const room = await Room.findOne({ _id: sessionTemplate.roomId, tenantId }).lean()
       if (room) {
         const currentCount = await StudentSession.countDocuments({
+          tenantId,
           sessionTemplateId: id,
           isActive: true,
         })
@@ -77,6 +83,7 @@ export async function POST(
     for (const studentId of studentIds) {
       // Check if already assigned
       const existing = await StudentSession.findOne({
+        tenantId,
         studentId,
         sessionTemplateId: id,
       })
@@ -92,6 +99,7 @@ export async function POST(
 
       // Check for overlapping sessions on the same day
       const studentSessions = await StudentSession.find({
+        tenantId,
         studentId,
         isActive: true,
       }).populate("sessionTemplateId")
@@ -114,7 +122,7 @@ export async function POST(
             (newEnd > existingStart && newEnd <= existingEnd) ||
             (newStart <= existingStart && newEnd >= existingEnd)
           ) {
-            const student = await Student.findById(studentId).select("fullName")
+            const student = await Student.findOne({ _id: studentId, tenantId }).select("fullName")
             conflicts.push(
               `${student?.fullName}: تعارض مع حصة "${existingSession.name}"`
             )
@@ -137,6 +145,7 @@ export async function POST(
       await StudentSession.insertMany(
         validAssignments.map(a => ({
           ...a,
+          tenantId,
           isActive: true,
         }))
       )
@@ -173,6 +182,11 @@ export async function DELETE(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const { searchParams } = new URL(request.url)
     const studentId = searchParams.get("studentId")
@@ -187,9 +201,9 @@ export async function DELETE(
     await dbConnect()
 
     const result = await StudentSession.findOneAndUpdate(
-      { sessionTemplateId: id, studentId },
+      { tenantId, sessionTemplateId: id, studentId },
       { isActive: false },
-      { new: true }
+      { new: true, runValidators: true }
     )
 
     if (!result) {

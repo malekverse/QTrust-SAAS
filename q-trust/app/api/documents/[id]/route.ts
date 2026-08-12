@@ -19,6 +19,11 @@ export async function DELETE(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     if (!id) {
@@ -30,7 +35,7 @@ export async function DELETE(
 
     await dbConnect()
 
-    const document = await LearningDocument.findByIdAndDelete(id)
+    const document = await LearningDocument.findOneAndDelete({ _id: id, tenantId })
 
     if (!document) {
       return NextResponse.json(

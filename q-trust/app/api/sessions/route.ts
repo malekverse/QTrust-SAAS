@@ -76,6 +76,7 @@ async function generateOccurrencesForTemplate(
   for (const { utcDate, localDate } of dates) {
     // Check if occurrence already exists
     const exists = await SessionOccurrence.findOne({
+      tenantId: template.tenantId,
       sessionTemplateId: template._id,
       date: utcDate,
     })
@@ -98,6 +99,7 @@ async function generateOccurrencesForTemplate(
       const qrCloseDateTime = new Date(endDateTime.getTime() + qrCloseOffset * 60 * 1000)
 
       await SessionOccurrence.create({
+        tenantId: template.tenantId,
         sessionTemplateId: template._id,
         teacherId: template.teacherId,
         date: utcDate,
@@ -127,13 +129,18 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
-    let query = {}
-    
+    let query: Record<string, unknown> = { tenantId }
+
     // Teachers can only see their own sessions
     if (session.user.role === ROLES.TEACHER) {
-      query = { teacherId: session.user.id }
+      query = { tenantId, teacherId: session.user.id }
     }
 
     const sessions = await SessionTemplate.find(query)
@@ -146,6 +153,7 @@ export async function GET() {
     const sessionsWithCount = await Promise.all(
       sessions.map(async (s) => {
         const studentCount = await StudentSession.countDocuments({
+          tenantId,
           sessionTemplateId: s._id,
           isActive: true,
         })
@@ -175,8 +183,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const body = await request.json()
-    
+
     // Validate input
     const validationResult = createSessionTemplateSchema.safeParse(body)
     if (!validationResult.success) {
@@ -193,6 +206,7 @@ export async function POST(request: NextRequest) {
     // Check room time conflicts if roomId is provided
     if (data.roomId) {
       const conflicting = await SessionTemplate.find({
+        tenantId,
         roomId: data.roomId,
         dayOfWeek: data.dayOfWeek,
         isActive: true,
@@ -214,6 +228,7 @@ export async function POST(request: NextRequest) {
     // Create session template
     const sessionTemplate = await SessionTemplate.create({
       ...data,
+      tenantId,
       isActive: true,
     })
 
@@ -231,6 +246,7 @@ export async function POST(request: NextRequest) {
       'SESSION_CREATED',
       sessionTemplate.name,
       {
+        tenantId,
         sessionId: sessionTemplate._id,
         userId: session.user.id,
         metadata: { occurrencesCreated: occurrencesCreated.length }

@@ -43,11 +43,16 @@ export async function GET(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
-    const sessionTemplate = await SessionTemplate.findById(id)
+    const sessionTemplate = await SessionTemplate.findOne({ _id: id, tenantId })
       .populate("teacherId", "fullName email")
       .populate("roomId", "name capacity features location")
       .lean()
@@ -61,6 +66,7 @@ export async function GET(
 
     // Get students assigned to this session
     const studentSessions = await StudentSession.find({
+      tenantId,
       sessionTemplateId: id,
       isActive: true,
     })
@@ -102,6 +108,11 @@ export async function PATCH(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
 
@@ -119,7 +130,7 @@ export async function PATCH(
 
     // Check room time conflicts if roomId, dayOfWeek, or times are changing
     if (updateData.roomId || updateData.dayOfWeek !== undefined || updateData.startTime || updateData.endTime) {
-      const current = await SessionTemplate.findById(id).lean()
+      const current = await SessionTemplate.findOne({ _id: id, tenantId }).lean()
       if (current) {
         const checkRoomId = updateData.roomId || current.roomId?.toString()
         const checkDay = updateData.dayOfWeek ?? current.dayOfWeek
@@ -128,6 +139,7 @@ export async function PATCH(
 
         if (checkRoomId) {
           const conflicting = await SessionTemplate.find({
+            tenantId,
             roomId: checkRoomId,
             dayOfWeek: checkDay,
             isActive: true,
@@ -149,10 +161,10 @@ export async function PATCH(
       }
     }
 
-    const sessionTemplate = await SessionTemplate.findByIdAndUpdate(
-      id,
+    const sessionTemplate = await SessionTemplate.findOneAndUpdate(
+      { _id: id, tenantId },
       { $set: updateData },
-      { new: true }
+      { new: true, runValidators: true }
     ).populate("teacherId", "fullName")
      .populate("roomId", "name capacity")
 
@@ -188,11 +200,16 @@ export async function DELETE(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
-    const sessionTemplate = await SessionTemplate.findByIdAndDelete(id)
+    const sessionTemplate = await SessionTemplate.findOneAndDelete({ _id: id, tenantId })
 
     if (!sessionTemplate) {
       return NextResponse.json(
@@ -202,7 +219,7 @@ export async function DELETE(
     }
 
     // Remove all student assignments
-    await StudentSession.deleteMany({ sessionTemplateId: id })
+    await StudentSession.deleteMany({ tenantId, sessionTemplateId: id })
 
     return NextResponse.json({ message: "تم حذف الحصة بنجاح" })
   } catch (error) {

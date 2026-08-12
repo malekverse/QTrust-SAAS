@@ -61,8 +61,9 @@ async function getOrCreateSessionOccurrence(
 
   console.log(`[Occurrence] Looking for occurrence on ${occurrenceDate.toISOString()} for session ${sessionTemplate._id}`)
 
-  // Check if occurrence already exists
+  // Check if occurrence already exists (scoped to the template's tenant)
   let occurrence = await SessionOccurrence.findOne({
+    tenantId: sessionTemplate.tenantId,
     sessionTemplateId: sessionTemplate._id,
     date: occurrenceDate,
   })
@@ -100,6 +101,7 @@ async function getOrCreateSessionOccurrence(
     })
 
     occurrence = await SessionOccurrence.create({
+      tenantId: sessionTemplate.tenantId,
       sessionTemplateId: sessionTemplate._id,
       teacherId: sessionTemplate.teacherId,
       date: occurrenceDate,
@@ -199,10 +201,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // The tenant is derived from the scanned student; scope everything below to it.
+    const tenantId = student.tenantId
+
     // Get student's session assignments
     let studentSessions
     try {
       studentSessions = await StudentSession.find({
+        tenantId,
         studentId: student._id,
         isActive: true,
       }).populate("sessionTemplateId")
@@ -336,6 +342,7 @@ export async function POST(request: NextRequest) {
     let existingAttendance
     try {
       existingAttendance = await Attendance.findOne({
+        tenantId,
         studentId: student._id,
         sessionOccurrenceId: activeSession._id,
       })
@@ -367,6 +374,7 @@ export async function POST(request: NextRequest) {
     // Create attendance record
     try {
       await Attendance.create({
+        tenantId,
         studentId: student._id,
         sessionOccurrenceId: activeSession._id,
         status,
@@ -398,6 +406,7 @@ export async function POST(request: NextRequest) {
         'ATTENDANCE_CHECK_IN',
         studentDisplayName,
         {
+          tenantId,
           details: sessionTemplate.name,
           studentId: student._id,
           sessionId: sessionTemplate._id,
@@ -411,7 +420,7 @@ export async function POST(request: NextRequest) {
     // Update session status if needed (non-blocking)
     try {
       if (activeSession.status === SESSION_STATUS.SCHEDULED) {
-        await SessionOccurrence.findByIdAndUpdate(activeSession._id, {
+        await SessionOccurrence.findOneAndUpdate({ _id: activeSession._id, tenantId }, {
           status: SESSION_STATUS.IN_PROGRESS,
         })
       }

@@ -29,11 +29,16 @@ export async function GET(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
-    const teacher = await User.findOne({ _id: id, role: ROLES.TEACHER })
+    const teacher = await User.findOne({ _id: id, role: ROLES.TEACHER, tenantId })
       .select("-passwordHash")
       .lean()
 
@@ -48,16 +53,18 @@ export async function GET(
     const sessionsCount = await SessionTemplate.countDocuments({
       teacherId: id,
       isActive: true,
+      tenantId,
     })
 
     // Get unique students count across all sessions
-    const sessionIds = await SessionTemplate.find({ teacherId: id, isActive: true })
+    const sessionIds = await SessionTemplate.find({ teacherId: id, isActive: true, tenantId })
       .select("_id")
       .lean()
     
     const studentsCount = await StudentSession.distinct("studentId", {
       sessionTemplateId: { $in: sessionIds.map(s => s._id) },
       isActive: true,
+      tenantId,
     }).then(ids => ids.length)
 
     return NextResponse.json({
@@ -89,6 +96,11 @@ export async function PATCH(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
 
@@ -108,6 +120,7 @@ export async function PATCH(
       const existingUser = await User.findOne({
         email: validationResult.data.email.toLowerCase(),
         _id: { $ne: id },
+        tenantId,
       })
       if (existingUser) {
         return NextResponse.json(
@@ -118,9 +131,9 @@ export async function PATCH(
     }
 
     const teacher = await User.findOneAndUpdate(
-      { _id: id, role: ROLES.TEACHER },
+      { _id: id, role: ROLES.TEACHER, tenantId },
       { $set: validationResult.data },
-      { new: true }
+      { new: true, runValidators: true }
     ).select("-passwordHash")
 
     if (!teacher) {
@@ -155,11 +168,16 @@ export async function DELETE(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
-    const teacher = await User.findOneAndDelete({ _id: id, role: ROLES.TEACHER })
+    const teacher = await User.findOneAndDelete({ _id: id, role: ROLES.TEACHER, tenantId })
 
     if (!teacher) {
       return NextResponse.json(

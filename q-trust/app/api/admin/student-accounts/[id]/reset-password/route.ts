@@ -21,12 +21,17 @@ export async function POST(
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     const { id } = await params
 
     await dbConnect()
 
     // Find student
-    const student = await Student.findById(id)
+    const student = await Student.findOne({ _id: id, tenantId })
     if (!student) {
       return NextResponse.json(
         { message: "الطالب غير موجود" },
@@ -42,7 +47,7 @@ export async function POST(
     }
 
     // Find user account
-    const user = await User.findById(student.userId)
+    const user = await User.findOne({ _id: student.userId, tenantId })
     if (!user) {
       return NextResponse.json(
         { message: "حساب المستخدم غير موجود" },
@@ -68,6 +73,7 @@ export async function POST(
       'STUDENT_UPDATED',
       `إعادة تعيين كلمة مرور الطالب ${displayName}`,
       {
+        tenantId,
         studentId: student._id,
         userId: session.user.id
       }

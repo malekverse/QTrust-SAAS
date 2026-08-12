@@ -22,10 +22,15 @@ export async function GET() {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
+    }
+
     await dbConnect()
 
     // Get enrollment settings
-    const settingsDoc = await Settings.findOne({ key: 'enrollment' }).lean()
+    const settingsDoc = await Settings.findOne({ tenantId, key: 'enrollment' }).lean()
     const settings: IEnrollmentSettings = (settingsDoc?.value as unknown as IEnrollmentSettings) || DEFAULT_ENROLLMENT_SETTINGS
     
     const currentYear = new Date().getFullYear()
@@ -44,9 +49,9 @@ export async function GET() {
       
       // Update settings with new year
       await Settings.findOneAndUpdate(
-        { key: 'enrollment' },
-        { 
-          $set: { 
+        { tenantId, key: 'enrollment' },
+        {
+          $set: {
             'value.lastResetYear': currentYear,
             'value.currentSequence': 1
           }
@@ -56,18 +61,18 @@ export async function GET() {
     } else {
       // Find the highest enrollment number using the current format
       // Build a regex pattern to match enrollment numbers from this year (if yearly reset) or all time
-      let query: { enrollmentNumber: { $regex: string } } | Record<string, never> = {}
-      
+      const query: Record<string, unknown> = { tenantId }
+
       if (settings.resetSequenceYearly) {
         // Only search for this year's enrollments
         const yearStr = currentYear.toString()
         const yearShortStr = yearStr.slice(-2)
-        
+
         // Create a pattern that matches current year in the enrollment number
         if (settings.format.includes('{YEAR}')) {
-          query = { enrollmentNumber: { $regex: yearStr } }
+          query.enrollmentNumber = { $regex: yearStr }
         } else if (settings.format.includes('{YEAR_SHORT}')) {
-          query = { enrollmentNumber: { $regex: yearShortStr } }
+          query.enrollmentNumber = { $regex: yearShortStr }
         }
       }
       

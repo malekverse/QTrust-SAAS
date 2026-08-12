@@ -1,0 +1,6 @@
+
+# Separate prod project (its own GitHub repo) — intentionally excluded
+q-trust-saas/
+
+# Safety net (each sub-app also declares its own .gitignore)
+node_modules/

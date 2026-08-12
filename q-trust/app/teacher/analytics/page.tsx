@@ -20,10 +20,24 @@ import {
 import { IslamicDivider } from "@/components/layout/islamic-divider"
 
 async function getTeacherAnalytics(teacherId: string) {
+  const tenantId = (await auth())?.user?.tenantId
+  if (!tenantId) {
+    return {
+      totalStudents: 0,
+      totalSessions: 0,
+      totalOccurrences: 0,
+      overallRate: 0,
+      presentCount: 0,
+      lateCount: 0,
+      absentCount: 0,
+      sessionStats: [],
+    }
+  }
   await dbConnect()
 
   // Get teacher's sessions
   const sessions = await SessionTemplate.find({
+    tenantId,
     teacherId,
     isActive: true,
   }).lean()
@@ -32,6 +46,7 @@ async function getTeacherAnalytics(teacherId: string) {
 
   // Get all students in teacher's sessions
   const studentSessions = await StudentSession.find({
+    tenantId,
     sessionTemplateId: { $in: sessionIds },
     isActive: true,
   })
@@ -42,6 +57,7 @@ async function getTeacherAnalytics(teacherId: string) {
 
   // Get all occurrences for these sessions
   const occurrences = await SessionOccurrence.find({
+    tenantId,
     sessionTemplateId: { $in: sessionIds },
   }).lean()
 
@@ -49,6 +65,7 @@ async function getTeacherAnalytics(teacherId: string) {
 
   // Get attendance records
   const attendanceRecords = await Attendance.find({
+    tenantId,
     sessionOccurrenceId: { $in: occurrenceIds },
   }).lean()
 
@@ -81,6 +98,7 @@ async function getTeacherAnalytics(teacherId: string) {
       ).length
       
       const studentCount = await StudentSession.countDocuments({
+        tenantId,
         sessionTemplateId: session._id,
         isActive: true,
       })

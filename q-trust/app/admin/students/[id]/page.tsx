@@ -8,6 +8,7 @@ import SessionTemplate from "@/models/SessionTemplate"
 import MonthlyPayment from "@/models/MonthlyPayment"
 // Required for populate() - must be imported to register the model
 import "@/models/SessionOccurrence"
+import { auth } from "@/lib/auth"
 import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -40,15 +41,18 @@ import Image from "next/image"
 
 async function getStudentData(id: string) {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return null
     await dbConnect()
 
-    const student = await Student.findById(id).lean()
+    const student = await Student.findOne({ _id: id, tenantId }).lean()
     if (!student) return null
 
     // Get student's sessions
-    const studentSessions = await StudentSession.find({ 
+    const studentSessions = await StudentSession.find({
       studentId: id,
-      isActive: true 
+      isActive: true,
+      tenantId
     })
       .populate({
         path: "sessionTemplateId",
@@ -57,7 +61,7 @@ async function getStudentData(id: string) {
       .lean()
 
     // Get attendance records
-    const attendanceRecords = await Attendance.find({ studentId: id })
+    const attendanceRecords = await Attendance.find({ studentId: id, tenantId })
       .populate({
         path: "sessionOccurrenceId",
         populate: { path: "sessionTemplateId", select: "name" }
@@ -67,10 +71,11 @@ async function getStudentData(id: string) {
       .lean()
 
     // Calculate stats
-    const totalAttendance = await Attendance.countDocuments({ studentId: id })
-    const presentCount = await Attendance.countDocuments({ 
-      studentId: id, 
-      status: { $in: ["PRESENT", "LATE"] } 
+    const totalAttendance = await Attendance.countDocuments({ studentId: id, tenantId })
+    const presentCount = await Attendance.countDocuments({
+      studentId: id,
+      tenantId,
+      status: { $in: ["PRESENT", "LATE"] }
     })
     const attendanceRate = totalAttendance > 0 
       ? Math.round((presentCount / totalAttendance) * 100) 
@@ -81,6 +86,7 @@ async function getStudentData(id: string) {
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
     const paymentRecords = await MonthlyPayment.find({
       studentId: id,
+      tenantId,
       $or: [
         { year: { $gt: sixMonthsAgo.getFullYear() } },
         {

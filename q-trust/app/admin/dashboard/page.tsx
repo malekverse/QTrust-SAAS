@@ -43,6 +43,8 @@ import ActivityLog from "@/models/ActivityLog"
 import MonthlyPayment from "@/models/MonthlyPayment"
 import Room from "@/models/Room"
 import StudentSession from "@/models/StudentSession"
+import mongoose from "mongoose"
+import { auth } from "@/lib/auth"
 import { ROLES, ATTENDANCE_STATUS, SESSION_STATUS, CLAIM_STATUS, DEFAULT_QR_SETTINGS, MONTH_LABELS } from "@/lib/constants"
 import { AttendanceCharts } from "./attendance-charts"
 import { formatDistanceToNow } from "date-fns"
@@ -51,6 +53,8 @@ import { getDayName } from "@/lib/utils"
 
 async function DashboardStats() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return <StatsLoading />
     await dbConnect()
 
     const today = new Date()
@@ -59,10 +63,11 @@ async function DashboardStats() {
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     const [teacherCount, studentCount, sessionCount, todayAttendance] = await Promise.all([
-      User.countDocuments({ role: ROLES.TEACHER, isActive: true }),
-      Student.countDocuments({ isActive: true }),
-      SessionTemplate.countDocuments({ isActive: true }),
+      User.countDocuments({ tenantId, role: ROLES.TEACHER, isActive: true }),
+      Student.countDocuments({ tenantId, isActive: true }),
+      SessionTemplate.countDocuments({ tenantId, isActive: true }),
       Attendance.aggregate([
+        { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
         {
           $lookup: {
             from: "sessionoccurrences",
@@ -143,6 +148,8 @@ async function DashboardStats() {
 
 async function getWeeklyAttendanceData() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return { weeklyData: [], distribution: [] }
     await dbConnect()
 
     const sevenDaysAgo = new Date()
@@ -150,6 +157,7 @@ async function getWeeklyAttendanceData() {
     sevenDaysAgo.setHours(0, 0, 0, 0)
 
     const weeklyData = await Attendance.aggregate([
+      { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
       {
         $lookup: {
           from: "sessionoccurrences",
@@ -185,6 +193,7 @@ async function getWeeklyAttendanceData() {
     ])
 
     const distribution = await Attendance.aggregate([
+      { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
       {
         $group: {
           _id: "$status",
@@ -234,12 +243,14 @@ function StatsLoading() {
 // Quick Actions Component
 async function PortalOverview() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return null
     await dbConnect()
 
     const [portalAccounts, pendingClaims, totalStudents] = await Promise.all([
-      Student.countDocuments({ hasPortalAccess: true }),
-      AttendanceClaim.countDocuments({ status: CLAIM_STATUS.PENDING }),
-      Student.countDocuments({ isActive: true }),
+      Student.countDocuments({ tenantId, hasPortalAccess: true }),
+      AttendanceClaim.countDocuments({ tenantId, status: CLAIM_STATUS.PENDING }),
+      Student.countDocuments({ tenantId, isActive: true }),
     ])
 
     // Force model registration
@@ -296,6 +307,8 @@ async function PortalOverview() {
 
 async function PaymentOverview() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return null
     await dbConnect()
 
     void MonthlyPayment
@@ -305,8 +318,9 @@ async function PaymentOverview() {
     const currentYear = now.getFullYear()
 
     const [totalStudents, paidCount] = await Promise.all([
-      Student.countDocuments({ isActive: true }),
+      Student.countDocuments({ tenantId, isActive: true }),
       MonthlyPayment.countDocuments({
+        tenantId,
         month: currentMonth,
         year: currentYear,
         isPaid: true,
@@ -365,6 +379,8 @@ async function PaymentOverview() {
 
 async function RoomOverview() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return null
     await dbConnect()
 
     void Room
@@ -372,16 +388,18 @@ async function RoomOverview() {
     void StudentSession
 
     const [totalRooms, activeSessions] = await Promise.all([
-      Room.countDocuments({ isActive: true }),
-      SessionTemplate.countDocuments({ isActive: true }),
+      Room.countDocuments({ tenantId, isActive: true }),
+      SessionTemplate.countDocuments({ tenantId, isActive: true }),
     ])
 
     const roomsWithSessions = await SessionTemplate.distinct("roomId", {
+      tenantId,
       isActive: true,
       roomId: { $ne: null },
     })
     const usedRooms = roomsWithSessions.length
     const sessionsWithoutRoom = await SessionTemplate.countDocuments({
+      tenantId,
       isActive: true,
       $or: [{ roomId: null }, { roomId: { $exists: false } }],
     })
@@ -512,6 +530,8 @@ function QuickActions() {
 
 async function TodaysSessions() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return <SessionsLoading />
     await dbConnect()
 
     const today = new Date()
@@ -528,6 +548,7 @@ async function TodaysSessions() {
     const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
 
     const sessions = await SessionTemplate.find({
+      tenantId,
       dayOfWeek,
       isActive: true,
     })
@@ -550,6 +571,7 @@ async function TodaysSessions() {
     for (const session of sessions) {
       try {
         const existingOccurrence = await SessionOccurrence.findOne({
+          tenantId,
           sessionTemplateId: session._id,
           date: todayStart,
         })
@@ -572,6 +594,7 @@ async function TodaysSessions() {
           const qrCloseDateTime = new Date(endDateTime.getTime() + qrCloseOffset * 60 * 1000)
 
           await SessionOccurrence.create({
+            tenantId,
             sessionTemplateId: session._id,
             teacherId: session.teacherId,
             date: todayStart,
@@ -699,9 +722,11 @@ const activityTypeConfig: Record<string, { color: string; label: string; icon: a
 
 async function RecentActivity() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return <ActivityLoading />
     await dbConnect()
 
-    const activities = await ActivityLog.find()
+    const activities = await ActivityLog.find({ tenantId })
       .sort({ createdAt: -1 })
       .limit(8)
       .lean()
@@ -748,11 +773,13 @@ async function RecentActivity() {
 // Alerts Component
 async function SystemAlerts() {
   try {
+    const tenantId = (await auth())?.user?.tenantId
+    if (!tenantId) return null
     await dbConnect()
-    
+
     const [inactiveStudents, inactiveTeachers, lowAttendanceSessions] = await Promise.all([
-      Student.countDocuments({ isActive: false }),
-      User.countDocuments({ role: ROLES.TEACHER, isActive: false }),
+      Student.countDocuments({ tenantId, isActive: false }),
+      User.countDocuments({ tenantId, role: ROLES.TEACHER, isActive: false }),
       // Could add more complex queries for sessions with low attendance
       Promise.resolve(0)
     ])

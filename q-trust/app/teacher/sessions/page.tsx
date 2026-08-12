@@ -18,9 +18,12 @@ import { DAYS_OF_WEEK } from "@/lib/constants"
 import Link from "next/link"
 
 async function getTeacherSessions(teacherId: string) {
+  const tenantId = (await auth())?.user?.tenantId
+  if (!tenantId) return { sessions: [], groupedByDay: {} }
   await dbConnect()
 
   const sessions = await SessionTemplate.find({
+    tenantId,
     teacherId,
     isActive: true,
   })
@@ -31,6 +34,7 @@ async function getTeacherSessions(teacherId: string) {
   const sessionsWithCount = await Promise.all(
     sessions.map(async (session: any) => {
       const studentCount = await StudentSession.countDocuments({
+        tenantId,
         sessionTemplateId: session._id,
         isActive: true,
       })

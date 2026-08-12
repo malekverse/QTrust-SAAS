@@ -20,17 +20,20 @@ import { SESSION_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
 import Link from "next/link"
 
 async function TeacherStats({ teacherId }: { teacherId: string }) {
+  const tenantId = (await auth())?.user?.tenantId
+  if (!tenantId) return <StatsLoading />
   await dbConnect()
 
   // Get session template IDs first
-  const sessionIds = await SessionTemplate.find({ teacherId, isActive: true })
+  const sessionIds = await SessionTemplate.find({ tenantId, teacherId, isActive: true })
     .select("_id")
     .lean()
     .then(sessions => sessions.map(s => s._id))
 
   const [sessionCount, studentIds] = await Promise.all([
-    SessionTemplate.countDocuments({ teacherId, isActive: true }),
+    SessionTemplate.countDocuments({ tenantId, teacherId, isActive: true }),
     StudentSession.distinct("studentId", {
+      tenantId,
       sessionTemplateId: { $in: sessionIds },
       isActive: true,
     }),
@@ -43,6 +46,7 @@ async function TeacherStats({ teacherId }: { teacherId: string }) {
   today.setHours(0, 0, 0, 0)
   
   const todayOccurrences = await SessionOccurrence.find({
+    tenantId,
     teacherId,
     date: today,
   })
@@ -51,9 +55,11 @@ async function TeacherStats({ teacherId }: { teacherId: string }) {
   if (todayOccurrences.length > 0) {
     const occurrenceIds = todayOccurrences.map(o => o._id)
     const totalAttendance = await Attendance.countDocuments({
+      tenantId,
       sessionOccurrenceId: { $in: occurrenceIds },
     })
     const presentCount = await Attendance.countDocuments({
+      tenantId,
       sessionOccurrenceId: { $in: occurrenceIds },
       status: { $in: ["PRESENT", "LATE"] },
     })
@@ -85,6 +91,8 @@ async function TeacherStats({ teacherId }: { teacherId: string }) {
 }
 
 async function TodaysSessions({ teacherId }: { teacherId: string }) {
+  const tenantId = (await auth())?.user?.tenantId
+  if (!tenantId) return <SessionsLoading />
   await dbConnect()
 
   const today = new Date()
@@ -101,6 +109,7 @@ async function TodaysSessions({ teacherId }: { teacherId: string }) {
   const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
 
   const sessions = await SessionTemplate.find({
+    tenantId,
     teacherId,
     dayOfWeek,
     isActive: true,
@@ -112,12 +121,14 @@ async function TodaysSessions({ teacherId }: { teacherId: string }) {
   const sessionsWithData = await Promise.all(
     sessions.map(async (session: any) => {
       const studentCount = await StudentSession.countDocuments({
+        tenantId,
         sessionTemplateId: session._id,
         isActive: true,
       })
 
       // Get today's occurrence - create if it doesn't exist
       let occurrence = await SessionOccurrence.findOne({
+        tenantId,
         sessionTemplateId: session._id,
         date: todayStart,
       })
@@ -142,6 +153,7 @@ async function TodaysSessions({ teacherId }: { teacherId: string }) {
           const qrCloseDateTime = new Date(endDateTime.getTime() + qrCloseOffset * 60 * 1000)
 
           occurrence = await SessionOccurrence.create({
+            tenantId,
             sessionTemplateId: session._id,
             teacherId: session.teacherId,
             date: todayStart,
@@ -159,6 +171,7 @@ async function TodaysSessions({ teacherId }: { teacherId: string }) {
       let presentCount = 0
       if (occurrence) {
         presentCount = await Attendance.countDocuments({
+          tenantId,
           sessionOccurrenceId: occurrence._id,
           status: { $in: ["PRESENT", "LATE"] },
         })

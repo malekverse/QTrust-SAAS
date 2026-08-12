@@ -25,7 +25,8 @@ export interface IEnrollmentSettings {
 
 export interface ISettings extends Document {
   _id: mongoose.Types.ObjectId
-  key: string              // Unique setting key
+  tenantId: mongoose.Types.ObjectId
+  key: string              // Setting key (unique per tenant)
   value: Record<string, unknown>  // JSON value
   description?: string
   updatedBy?: mongoose.Types.ObjectId
@@ -35,12 +36,11 @@ export interface ISettings extends Document {
 
 const SettingsSchema = new Schema<ISettings>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     key: {
       type: String,
       required: true,
-      unique: true,
-      trim: true,
-      index: true
+      trim: true
     },
     value: {
       type: Schema.Types.Mixed,
@@ -59,6 +59,9 @@ const SettingsSchema = new Schema<ISettings>(
     timestamps: true
   }
 )
+
+// Setting key is unique per tenant (each tenant has its own enrollment config, etc.)
+SettingsSchema.index({ tenantId: 1, key: 1 }, { unique: true })
 
 // Default enrollment settings
 export const DEFAULT_ENROLLMENT_SETTINGS: IEnrollmentSettings = {

@@ -3,6 +3,7 @@ import { GRADE_TYPE } from '@/lib/constants'
 
 export interface IGrade extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   studentId: mongoose.Types.ObjectId
   sessionTemplateId?: mongoose.Types.ObjectId
   teacherId: mongoose.Types.ObjectId
@@ -22,6 +23,7 @@ export interface IGrade extends Document {
 
 const GradeSchema = new Schema<IGrade>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: {
       type: Schema.Types.ObjectId,
       ref: 'Student',
@@ -90,9 +92,9 @@ const GradeSchema = new Schema<IGrade>(
   }
 )
 
-GradeSchema.index({ studentId: 1, date: -1 })
-GradeSchema.index({ studentId: 1, type: 1 })
-GradeSchema.index({ teacherId: 1 })
+GradeSchema.index({ tenantId: 1, studentId: 1, date: -1 })
+GradeSchema.index({ tenantId: 1, studentId: 1, type: 1 })
+GradeSchema.index({ tenantId: 1, teacherId: 1 })
 
 const Grade: Model<IGrade> = mongoose.models.Grade || mongoose.model<IGrade>('Grade', GradeSchema)
 

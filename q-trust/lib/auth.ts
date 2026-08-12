@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import dbConnect from './db'
 import User from '@/models/User'
+import Tenant from '@/models/Tenant'
 import { loginSchema } from './validations'
 import { ROLES, type Role } from './constants'
 
@@ -14,8 +15,11 @@ declare module 'next-auth' {
     fullName: string
     mustChangePassword?: boolean
     studentId?: string
+    tenantId?: string
+    tenantSlug?: string
+    tenantPlan?: string
   }
-  
+
   interface Session {
     user: {
       id: string
@@ -24,15 +28,21 @@ declare module 'next-auth' {
       fullName: string
       mustChangePassword?: boolean
       studentId?: string
+      tenantId?: string
+      tenantSlug?: string
+      tenantPlan?: string
     }
   }
-  
+
   interface JWT {
     id: string
     role: Role
     fullName: string
     mustChangePassword?: boolean
     studentId?: string
+    tenantId?: string
+    tenantSlug?: string
+    tenantPlan?: string
   }
 }
 
@@ -89,13 +99,29 @@ export const authConfig: NextAuthConfig = {
             throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة')
           }
 
+          // Load tenant context (absent for SUPER_ADMIN, which has no tenantId)
+          let tenantId: string | undefined
+          let tenantSlug: string | undefined
+          let tenantPlan: string | undefined
+          if (user.tenantId) {
+            tenantId = user.tenantId.toString()
+            const tenant = await Tenant.findById(user.tenantId)
+              .select('slug plan')
+              .lean<{ slug: string; plan: string }>()
+            tenantSlug = tenant?.slug
+            tenantPlan = tenant?.plan
+          }
+
           return {
             id: user._id.toString(),
             email: user.email,
             role: user.role,
             fullName: user.fullName,
             mustChangePassword: user.mustChangePassword,
-            studentId: user.studentId?.toString()
+            studentId: user.studentId?.toString(),
+            tenantId,
+            tenantSlug,
+            tenantPlan,
           }
         } catch (error) {
           if (error instanceof Error) {
@@ -114,6 +140,9 @@ export const authConfig: NextAuthConfig = {
         token.fullName = user.fullName
         token.mustChangePassword = user.mustChangePassword
         token.studentId = user.studentId
+        token.tenantId = user.tenantId
+        token.tenantSlug = user.tenantSlug
+        token.tenantPlan = user.tenantPlan
       }
       // Handle session update (e.g., after password change)
       if (trigger === 'update' && session) {
@@ -133,6 +162,9 @@ export const authConfig: NextAuthConfig = {
         session.user.fullName = token.fullName as string
         session.user.mustChangePassword = token.mustChangePassword as boolean | undefined
         session.user.studentId = token.studentId as string | undefined
+        session.user.tenantId = token.tenantId as string | undefined
+        session.user.tenantSlug = token.tenantSlug as string | undefined
+        session.user.tenantPlan = token.tenantPlan as string | undefined
       }
       return session
     },

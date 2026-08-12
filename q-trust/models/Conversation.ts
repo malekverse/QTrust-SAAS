@@ -28,6 +28,7 @@ export interface IPendingAction {
 
 export interface IConversation extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   userId: mongoose.Types.ObjectId
   title: string
   messages: IConversationMessage[]
@@ -82,6 +83,7 @@ const PendingActionSchema = new Schema<IPendingAction>(
 
 const ConversationSchema = new Schema<IConversation>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -110,7 +112,7 @@ const ConversationSchema = new Schema<IConversation>(
   { timestamps: true }
 )
 
-ConversationSchema.index({ userId: 1, status: 1, updatedAt: -1 })
+ConversationSchema.index({ tenantId: 1, userId: 1, status: 1, updatedAt: -1 })
 
 const Conversation: Model<IConversation> =
   mongoose.models.Conversation ||

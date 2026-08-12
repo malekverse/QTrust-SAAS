@@ -3,6 +3,7 @@ import { ATTENDANCE_STATUS, ATTENDANCE_CREATOR, type AttendanceStatus, type Atte
 
 export interface IAttendance extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   studentId: mongoose.Types.ObjectId
   sessionOccurrenceId: mongoose.Types.ObjectId
   status: AttendanceStatus
@@ -17,6 +18,7 @@ export interface IAttendance extends Document {
 
 const AttendanceSchema = new Schema<IAttendance>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: {
       type: Schema.Types.ObjectId,
       ref: 'Student',
@@ -64,13 +66,13 @@ AttendanceSchema.index(
 )
 
 // Index for session attendance reports
-AttendanceSchema.index({ sessionOccurrenceId: 1, status: 1 })
+AttendanceSchema.index({ tenantId: 1, sessionOccurrenceId: 1, status: 1 })
 
 // Index for student attendance history
-AttendanceSchema.index({ studentId: 1, createdAt: -1 })
+AttendanceSchema.index({ tenantId: 1, studentId: 1, createdAt: -1 })
 
 // Index for date-based reports
-AttendanceSchema.index({ createdAt: 1, status: 1 })
+AttendanceSchema.index({ tenantId: 1, createdAt: 1, status: 1 })
 
 const Attendance: Model<IAttendance> = 
   mongoose.models.Attendance || mongoose.model<IAttendance>('Attendance', AttendanceSchema)

@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface ILearningDocument extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   title: string
   description?: string
   category: string
@@ -24,6 +25,7 @@ const DOCUMENT_CATEGORIES = Object.values(DOC_CATS)
 
 const LearningDocumentSchema = new Schema<ILearningDocument>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     title: {
       type: String,
       required: [true, 'عنوان المستند مطلوب'],
@@ -84,9 +86,9 @@ const LearningDocumentSchema = new Schema<ILearningDocument>(
   }
 )
 
-LearningDocumentSchema.index({ category: 1 })
-LearningDocumentSchema.index({ isPublic: 1 })
-LearningDocumentSchema.index({ createdAt: -1 })
+LearningDocumentSchema.index({ tenantId: 1, category: 1 })
+LearningDocumentSchema.index({ tenantId: 1, isPublic: 1 })
+LearningDocumentSchema.index({ tenantId: 1, createdAt: -1 })
 
 const LearningDocument: Model<ILearningDocument> = mongoose.models.LearningDocument || mongoose.model<ILearningDocument>('LearningDocument', LearningDocumentSchema)
 

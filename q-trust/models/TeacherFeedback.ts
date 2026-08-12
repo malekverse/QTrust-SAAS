@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface ITeacherFeedback extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   studentId: mongoose.Types.ObjectId
   teacherId: mongoose.Types.ObjectId
   sessionOccurrenceId?: mongoose.Types.ObjectId
@@ -14,6 +15,7 @@ export interface ITeacherFeedback extends Document {
 
 const TeacherFeedbackSchema = new Schema<ITeacherFeedback>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: {
       type: Schema.Types.ObjectId,
       ref: 'Student',
@@ -50,8 +52,8 @@ const TeacherFeedbackSchema = new Schema<ITeacherFeedback>(
   }
 )
 
-TeacherFeedbackSchema.index({ studentId: 1, date: -1 })
-TeacherFeedbackSchema.index({ teacherId: 1 })
+TeacherFeedbackSchema.index({ tenantId: 1, studentId: 1, date: -1 })
+TeacherFeedbackSchema.index({ tenantId: 1, teacherId: 1 })
 
 const TeacherFeedback: Model<ITeacherFeedback> = mongoose.models.TeacherFeedback || mongoose.model<ITeacherFeedback>('TeacherFeedback', TeacherFeedbackSchema)
 

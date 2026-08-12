@@ -3,6 +3,7 @@ import { SESSION_STATUS, type SessionStatus } from '@/lib/constants'
 
 export interface ISessionOccurrence extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   sessionTemplateId: mongoose.Types.ObjectId
   teacherId: mongoose.Types.ObjectId
   date: Date // The specific date of this occurrence
@@ -18,6 +19,7 @@ export interface ISessionOccurrence extends Document {
 
 const SessionOccurrenceSchema = new Schema<ISessionOccurrence>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     sessionTemplateId: {
       type: Schema.Types.ObjectId,
       ref: 'SessionTemplate',
@@ -63,17 +65,18 @@ const SessionOccurrenceSchema = new Schema<ISessionOccurrence>(
   }
 )
 
-// Indexes for efficient querying
-SessionOccurrenceSchema.index({ sessionTemplateId: 1, date: 1 })
-SessionOccurrenceSchema.index({ teacherId: 1, date: 1 })
-SessionOccurrenceSchema.index({ date: 1, status: 1 })
-SessionOccurrenceSchema.index({ qrOpenDateTime: 1, qrCloseDateTime: 1 })
+// Indexes for efficient querying (tenant-scoped)
+SessionOccurrenceSchema.index({ tenantId: 1, sessionTemplateId: 1, date: 1 })
+SessionOccurrenceSchema.index({ tenantId: 1, teacherId: 1, date: 1 })
+SessionOccurrenceSchema.index({ tenantId: 1, date: 1, status: 1 })
+SessionOccurrenceSchema.index({ tenantId: 1, qrOpenDateTime: 1, qrCloseDateTime: 1 })
 
 // Compound index for finding active sessions during QR scanning
-SessionOccurrenceSchema.index({ 
-  qrOpenDateTime: 1, 
-  qrCloseDateTime: 1, 
-  status: 1 
+SessionOccurrenceSchema.index({
+  tenantId: 1,
+  qrOpenDateTime: 1,
+  qrCloseDateTime: 1,
+  status: 1
 })
 
 const SessionOccurrence: Model<ISessionOccurrence> = 

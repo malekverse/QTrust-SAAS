@@ -21,7 +21,8 @@ export type Gender = keyof typeof GENDER
 
 export interface IStudent extends Document {
   _id: mongoose.Types.ObjectId
-  
+  tenantId: mongoose.Types.ObjectId
+
   // Section A — المعلومات الشخصية
   enrollmentNumber?: string      // رقم الانخراط
   cin?: string                   // رقم ب. ت. و (8 digits)
@@ -73,6 +74,7 @@ export interface IStudent extends Document {
 
 const StudentSchema = new Schema<IStudent>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     // Section A — المعلومات الشخصية
     enrollmentNumber: {
       type: String,
@@ -262,11 +264,11 @@ StudentSchema.pre('save', function() {
   }
 })
 
-// Indexes
+// Indexes (qrUuid stays globally unique — see schema field — to keep scanner lookup simple)
 StudentSchema.index({ firstName: 'text', lastName: 'text', fullName: 'text' })
-StudentSchema.index({ isActive: 1 })
-StudentSchema.index({ cin: 1 }, { sparse: true })
-StudentSchema.index({ enrollmentNumber: 1 }, { sparse: true })
+StudentSchema.index({ tenantId: 1, isActive: 1 })
+StudentSchema.index({ tenantId: 1, cin: 1 }, { sparse: true })
+StudentSchema.index({ tenantId: 1, enrollmentNumber: 1 }, { sparse: true })
 
 const Student: Model<IStudent> = mongoose.models.Student || mongoose.model<IStudent>('Student', StudentSchema)
 

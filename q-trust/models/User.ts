@@ -3,6 +3,7 @@ import { ROLES, type Role } from '@/lib/constants'
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId?: mongoose.Types.ObjectId
   fullName: string
   email: string
   phone?: string
@@ -18,6 +19,15 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
+    // Tenant this user belongs to. Absent only for SUPER_ADMIN (platform staff).
+    tenantId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Tenant',
+      required: function (this: IUser) {
+        return this.role !== ROLES.SUPER_ADMIN
+      },
+      index: true,
+    },
     fullName: {
       type: String,
       required: [true, 'الاسم الكامل مطلوب'],
@@ -28,7 +38,6 @@ const UserSchema = new Schema<IUser>(
     email: {
       type: String,
       required: [true, 'البريد الإلكتروني مطلوب'],
-      unique: true,
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'البريد الإلكتروني غير صالح']
@@ -74,8 +83,9 @@ const UserSchema = new Schema<IUser>(
   }
 )
 
-// Index for faster queries
-UserSchema.index({ role: 1, isActive: 1 })
+// Email is unique per tenant (not globally) so different associations can reuse an address.
+UserSchema.index({ tenantId: 1, email: 1 }, { unique: true })
+UserSchema.index({ tenantId: 1, role: 1, isActive: 1 })
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
 

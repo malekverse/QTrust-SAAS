@@ -43,3 +43,9 @@ export type { IRoom } from './Room'
 
 export { default as Conversation } from './Conversation'
 export type { IConversation, IConversationMessage, IPendingAction, IToolCall } from './Conversation'
+
+export { default as Tenant } from './Tenant'
+export type { ITenant } from './Tenant'
+
+export { default as Branch } from './Branch'
+export type { IBranch } from './Branch'

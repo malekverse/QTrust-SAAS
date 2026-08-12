@@ -1,11 +1,58 @@
 // Role constants
 export const ROLES = {
-  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN', // platform operator — cross-tenant, not bound to a Tenant
+  ADMIN: 'ADMIN',             // tenant admin (the association's director/staff)
   TEACHER: 'TEACHER',
   STUDENT: 'STUDENT'
 } as const
 
 export type Role = typeof ROLES[keyof typeof ROLES]
+
+// ─── Multi-tenant SaaS constants (Phase 1) ───
+
+// Subscription plans (tenant tier)
+export const PLANS = {
+  STARTER: 'STARTER',
+  STANDARD: 'STANDARD',
+  PREMIUM: 'PREMIUM',
+} as const
+
+export type Plan = typeof PLANS[keyof typeof PLANS]
+
+// Plan ordering for entitlement checks (higher index = higher tier)
+export const PLAN_HIERARCHY: Plan[] = [PLANS.STARTER, PLANS.STANDARD, PLANS.PREMIUM]
+
+// Per-plan default limits, applied when provisioning a tenant
+export const PLAN_LIMITS: Record<Plan, { maxStudents: number; aiQuotaMonthly: number }> = {
+  STARTER: { maxStudents: 50, aiQuotaMonthly: 0 },
+  STANDARD: { maxStudents: 300, aiQuotaMonthly: 0 },
+  PREMIUM: { maxStudents: Number.MAX_SAFE_INTEGER, aiQuotaMonthly: 500 },
+}
+
+// Tenant lifecycle status
+export const TENANT_STATUS = {
+  TRIAL: 'TRIAL',
+  ACTIVE: 'ACTIVE',
+  PAST_DUE: 'PAST_DUE',
+  SUSPENDED: 'SUSPENDED',
+  CANCELLED: 'CANCELLED',
+} as const
+
+export type TenantStatus = typeof TENANT_STATUS[keyof typeof TENANT_STATUS]
+
+// Tenant billing payment methods (local Tunisian market: virement / chèque / cash)
+export const PAYMENT_METHODS = {
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  CHECK: 'CHECK',
+  CASH: 'CASH',
+  CARD: 'CARD',
+} as const
+
+export type PaymentMethod = typeof PAYMENT_METHODS[keyof typeof PAYMENT_METHODS]
+
+// Supported UI locales (per-tenant default branding)
+export const LOCALES = ['ar', 'fr', 'en'] as const
+export type Locale = typeof LOCALES[number]
 
 // Gender constants
 export const GENDER = {

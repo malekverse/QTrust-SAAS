@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IMonthlyPayment extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   studentId: mongoose.Types.ObjectId
   month: number
   year: number
@@ -16,6 +17,7 @@ export interface IMonthlyPayment extends Document {
 
 const MonthlyPaymentSchema = new Schema<IMonthlyPayment>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: {
       type: Schema.Types.ObjectId,
       ref: 'Student',
@@ -59,8 +61,8 @@ const MonthlyPaymentSchema = new Schema<IMonthlyPayment>(
 )
 
 MonthlyPaymentSchema.index({ studentId: 1, month: 1, year: 1 }, { unique: true })
-MonthlyPaymentSchema.index({ month: 1, year: 1, isPaid: 1 })
-MonthlyPaymentSchema.index({ studentId: 1, isPaid: 1 })
+MonthlyPaymentSchema.index({ tenantId: 1, month: 1, year: 1, isPaid: 1 })
+MonthlyPaymentSchema.index({ tenantId: 1, studentId: 1, isPaid: 1 })
 
 const MonthlyPayment: Model<IMonthlyPayment> =
   mongoose.models.MonthlyPayment ||

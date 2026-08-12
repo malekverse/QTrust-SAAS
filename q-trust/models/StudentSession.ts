@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IStudentSession extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   studentId: mongoose.Types.ObjectId
   sessionTemplateId: mongoose.Types.ObjectId
   isActive: boolean
@@ -11,6 +12,7 @@ export interface IStudentSession extends Document {
 
 const StudentSessionSchema = new Schema<IStudentSession>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: {
       type: Schema.Types.ObjectId,
       ref: 'Student',
@@ -38,10 +40,10 @@ StudentSessionSchema.index(
 )
 
 // Index for finding students in a session
-StudentSessionSchema.index({ sessionTemplateId: 1, isActive: 1 })
+StudentSessionSchema.index({ tenantId: 1, sessionTemplateId: 1, isActive: 1 })
 
 // Index for finding sessions for a student
-StudentSessionSchema.index({ studentId: 1, isActive: 1 })
+StudentSessionSchema.index({ tenantId: 1, studentId: 1, isActive: 1 })
 
 const StudentSession: Model<IStudentSession> = 
   mongoose.models.StudentSession || mongoose.model<IStudentSession>('StudentSession', StudentSessionSchema)

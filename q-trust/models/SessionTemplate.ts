@@ -3,6 +3,8 @@ import { DEFAULT_QR_SETTINGS } from '@/lib/constants'
 
 export interface ISessionTemplate extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
+  branchId?: mongoose.Types.ObjectId
   name: string
   teacherId: mongoose.Types.ObjectId
   roomId?: mongoose.Types.ObjectId
@@ -21,6 +23,8 @@ export interface ISessionTemplate extends Document {
 
 const SessionTemplateSchema = new Schema<ISessionTemplate>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch' },
     name: {
       type: String,
       required: [true, 'اسم الحصة مطلوب'],
@@ -86,11 +90,11 @@ const SessionTemplateSchema = new Schema<ISessionTemplate>(
   }
 )
 
-// Indexes
-SessionTemplateSchema.index({ teacherId: 1, isActive: 1 })
-SessionTemplateSchema.index({ dayOfWeek: 1, isActive: 1 })
-SessionTemplateSchema.index({ effectiveFromDate: 1, effectiveToDate: 1 })
-SessionTemplateSchema.index({ roomId: 1, dayOfWeek: 1, isActive: 1 })
+// Indexes (tenant-scoped)
+SessionTemplateSchema.index({ tenantId: 1, teacherId: 1, isActive: 1 })
+SessionTemplateSchema.index({ tenantId: 1, dayOfWeek: 1, isActive: 1 })
+SessionTemplateSchema.index({ tenantId: 1, effectiveFromDate: 1, effectiveToDate: 1 })
+SessionTemplateSchema.index({ tenantId: 1, roomId: 1, dayOfWeek: 1, isActive: 1 })
 
 const SessionTemplate: Model<ISessionTemplate> = 
   mongoose.models.SessionTemplate || mongoose.model<ISessionTemplate>('SessionTemplate', SessionTemplateSchema)

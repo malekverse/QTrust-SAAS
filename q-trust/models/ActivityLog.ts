@@ -12,6 +12,7 @@ export type ActivityType =
 
 export interface IActivityLog extends Document {
   _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
   type: ActivityType
   description: string
   details?: string
@@ -24,6 +25,7 @@ export interface IActivityLog extends Document {
 
 const ActivityLogSchema = new Schema<IActivityLog>(
   {
+    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     type: {
       type: String,
       required: true,
@@ -64,9 +66,9 @@ const ActivityLogSchema = new Schema<IActivityLog>(
   }
 )
 
-// Index for recent activities query
-ActivityLogSchema.index({ createdAt: -1 })
-ActivityLogSchema.index({ type: 1, createdAt: -1 })
+// Index for recent activities query (tenant-scoped)
+ActivityLogSchema.index({ tenantId: 1, createdAt: -1 })
+ActivityLogSchema.index({ tenantId: 1, type: 1, createdAt: -1 })
 
 const ActivityLog: Model<IActivityLog> = 
   mongoose.models.ActivityLog || mongoose.model<IActivityLog>('ActivityLog', ActivityLogSchema)
@@ -78,6 +80,7 @@ export async function logActivity(
   type: ActivityType,
   description: string,
   options?: {
+    tenantId?: mongoose.Types.ObjectId | string
     details?: string
     userId?: mongoose.Types.ObjectId | string
     studentId?: mongoose.Types.ObjectId | string
@@ -89,6 +92,7 @@ export async function logActivity(
     await ActivityLog.create({
       type,
       description,
+      tenantId: options?.tenantId ? new mongoose.Types.ObjectId(options.tenantId) : undefined,
       details: options?.details,
       userId: options?.userId ? new mongoose.Types.ObjectId(options.userId) : undefined,
       studentId: options?.studentId ? new mongoose.Types.ObjectId(options.studentId) : undefined,

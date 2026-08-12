@@ -64,10 +64,42 @@ const DEFAULT_QR_OPEN = 60
 const DEFAULT_QR_CLOSE = 60
 
 // --- Inline schemas (standalone script; must match app models) ---
+const TenantSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    plan: { type: String, enum: ['STARTER', 'STANDARD', 'PREMIUM'], default: 'PREMIUM' },
+    status: { type: String, enum: ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'CANCELLED'], default: 'ACTIVE' },
+    maxStudents: { type: Number, default: 50 },
+    aiQuotaMonthly: { type: Number, default: 0 },
+    aiUsageCurrentMonth: { type: Number, default: 0 },
+    aiUsageResetAt: { type: Date, default: Date.now },
+    isDemo: { type: Boolean, default: false },
+    branding: {
+      displayName: String,
+      logoUrl: String,
+      primaryColor: { type: String, default: '#136F4E' },
+      secondaryColor: { type: String, default: '#F4C76C' },
+      locale: { type: String, enum: ['ar', 'fr', 'en'], default: 'ar' },
+    },
+    contact: { email: String, phone: String, address: String },
+    billing: {
+      setupFeePaid: { type: Boolean, default: false },
+      setupFeeAmountTND: { type: Number, default: 0 },
+      annualFeeAmountTND: { type: Number, default: 0 },
+      currentPeriodStart: Date,
+      currentPeriodEnd: Date,
+      paymentMethod: { type: String, enum: ['BANK_TRANSFER', 'CHECK', 'CASH', 'CARD'], default: 'BANK_TRANSFER' },
+    },
+  },
+  { timestamps: true }
+)
+
 const UserSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     fullName: String,
-    email: { type: String, unique: true, trim: true, lowercase: true },
+    email: { type: String, trim: true, lowercase: true },
     phone: { type: String, trim: true, sparse: true },
     role: { type: String, enum: ROLES, default: 'TEACHER' },
     passwordHash: String,
@@ -81,6 +113,7 @@ const UserSchema = new mongoose.Schema(
 
 const StudentSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     enrollmentNumber: String,
     cin: String,
     firstName: { type: String, required: true },
@@ -116,7 +149,8 @@ const StudentSchema = new mongoose.Schema(
 
 const RoomSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true, unique: true },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
+    name: { type: String, required: true, trim: true },
     capacity: { type: Number, required: true, min: 1, max: 500 },
     description: String,
     location: String,
@@ -128,6 +162,7 @@ const RoomSchema = new mongoose.Schema(
 
 const SessionTemplateSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     name: { type: String, required: true },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'Room' },
@@ -146,6 +181,7 @@ const SessionTemplateSchema = new mongoose.Schema(
 
 const StudentSessionSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     sessionTemplateId: { type: mongoose.Schema.Types.ObjectId, ref: 'SessionTemplate', required: true },
     isActive: { type: Boolean, default: true },
@@ -156,6 +192,7 @@ StudentSessionSchema.index({ studentId: 1, sessionTemplateId: 1 }, { unique: tru
 
 const SessionOccurrenceSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     sessionTemplateId: { type: mongoose.Schema.Types.ObjectId, ref: 'SessionTemplate', required: true },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     date: { type: Date, required: true },
@@ -171,6 +208,7 @@ const SessionOccurrenceSchema = new mongoose.Schema(
 
 const AttendanceSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     sessionOccurrenceId: { type: mongoose.Schema.Types.ObjectId, ref: 'SessionOccurrence', required: true },
     status: { type: String, enum: ATTENDANCE_STATUS, default: 'ABSENT' },
@@ -186,6 +224,7 @@ AttendanceSchema.index({ studentId: 1, sessionOccurrenceId: 1 }, { unique: true 
 
 const ActivityLogSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     type: { type: String, required: true, enum: ACTIVITY_TYPES },
     description: { type: String, required: true },
     details: String,
@@ -199,6 +238,7 @@ const ActivityLogSchema = new mongoose.Schema(
 
 const GradeSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     sessionTemplateId: { type: mongoose.Schema.Types.ObjectId, ref: 'SessionTemplate' },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -218,6 +258,7 @@ const GradeSchema = new mongoose.Schema(
 
 const TeacherFeedbackSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     sessionOccurrenceId: { type: mongoose.Schema.Types.ObjectId, ref: 'SessionOccurrence' },
@@ -230,6 +271,7 @@ const TeacherFeedbackSchema = new mongoose.Schema(
 
 const LearningDocumentSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     title: { type: String, required: true },
     description: String,
     category: { type: String, enum: DOCUMENT_CATEGORIES, required: true },
@@ -248,6 +290,7 @@ const LearningDocumentSchema = new mongoose.Schema(
 
 const MonthlyPaymentSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     month: { type: Number, required: true, min: 1, max: 12 },
     year: { type: Number, required: true, min: 2020 },
@@ -263,6 +306,7 @@ MonthlyPaymentSchema.index({ studentId: 1, month: 1, year: 1 }, { unique: true }
 
 const AttendanceClaimSchema = new mongoose.Schema(
   {
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     sessionOccurrenceId: { type: mongoose.Schema.Types.ObjectId, ref: 'SessionOccurrence', required: true },
     date: { type: Date, required: true },
@@ -278,7 +322,8 @@ AttendanceClaimSchema.index({ studentId: 1, sessionOccurrenceId: 1 }, { unique: 
 
 const SettingsSchema = new mongoose.Schema(
   {
-    key: { type: String, required: true, unique: true, trim: true },
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
+    key: { type: String, required: true, trim: true },
     value: { type: mongoose.Schema.Types.Mixed, required: true },
     description: String,
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -348,6 +393,7 @@ const MonthlyPayment = mongoose.models.MonthlyPayment || mongoose.model('Monthly
 const AttendanceClaim = mongoose.models.AttendanceClaim || mongoose.model('AttendanceClaim', AttendanceClaimSchema)
 const Settings = mongoose.models.Settings || mongoose.model('Settings', SettingsSchema)
 const Conversation = mongoose.models.Conversation || mongoose.model('Conversation', ConversationSchema)
+const Tenant = mongoose.models.Tenant || mongoose.model('Tenant', TenantSchema)
 
 // --- Helpers ---
 function stripTime(d: Date) {
@@ -550,6 +596,7 @@ async function seed() {
 
     console.log('🧹 Clearing collections...')
     await Promise.all([
+      Tenant.deleteMany({}),
       AttendanceClaim.deleteMany({}),
       Attendance.deleteMany({}),
       MonthlyPayment.deleteMany({}),
@@ -567,12 +614,28 @@ async function seed() {
       Settings.deleteMany({}),
     ])
 
+    console.log('🏢 Creating demo tenant...')
+    const tenant = await Tenant.create({
+      name: 'جمعية المحافظة على القرآن الكريم - صفاقس',
+      slug: 'quran-sfax',
+      plan: 'PREMIUM',
+      status: 'ACTIVE',
+      maxStudents: 1000,
+      aiQuotaMonthly: 500,
+      isDemo: true,
+      branding: { displayName: 'جمعية المحافظة على القرآن الكريم', locale: 'ar' },
+      contact: { email: 'admin@quran-sfax.org', phone: '+21690000001', address: 'صفاقس، تونس' },
+    })
+    const tenantId = tenant._id
+    console.log(`   ✅ Tenant "${tenant.slug}" (${tenantId})`)
+
     const adminPass = await bcrypt.hash('admin123', 12)
     const teacherPass = await bcrypt.hash('teacher123', 12)
     const studentPass = await bcrypt.hash('student123', 12)
 
     console.log('👤 Creating admin...')
     const admin = await User.create({
+      tenantId,
       fullName: 'المدير العام',
       email: 'admin@quran-sfax.org',
       phone: '+21690000001',
@@ -595,6 +658,7 @@ async function seed() {
     ]
     const teachers = await User.insertMany(
       teacherNames.map((fullName, i) => ({
+        tenantId,
         fullName,
         email: `teacher${i + 1}@quran-sfax.org`,
         phone: `+21691${String(100000 + i).slice(-6)}`,
@@ -608,6 +672,7 @@ async function seed() {
 
     const year = new Date().getFullYear()
     await Settings.create({
+      tenantId,
       key: 'enrollment',
       value: {
         format: '{YEAR}-{SEQ}',
@@ -624,6 +689,7 @@ async function seed() {
     console.log('🚪 Creating 7 rooms...')
     const rooms = await Room.insertMany(
       ROOM_SEED.map((r, i) => ({
+        tenantId,
         name: r.name,
         capacity: r.cap,
         description: `قاعة دراسة قرآنية مجهزة — ${r.loc}`,
@@ -683,6 +749,7 @@ async function seed() {
         const unique = [...new Set(areas)].slice(0, 3) as string[]
         return {
           ...s,
+          tenantId,
           profession: 'طالب',
           dateOfBirth: new Date(2005 + (i % 10), (i % 12), 1 + (i % 20)),
           placeOfBirth: PLACES[i % PLACES.length],
@@ -709,6 +776,7 @@ async function seed() {
     for (let i = 0; i < portalCount; i++) {
       const st = students[i]!
       const u = await User.create({
+        tenantId,
         fullName: `${st.firstName} ${st.lastName}`,
         email: `student${i + 1}@quran-sfax.org`,
         phone: st.phone,
@@ -738,6 +806,7 @@ async function seed() {
         const qrOpen = 15 + (tIdx % 4) * 10
         const qrClose = 30 + (tIdx % 3) * 15
         templatesPayload.push({
+          tenantId,
           name: `حلقة ${['حفظ', 'تجويد', 'مراجعة', 'علوم', 'تحضير مسابقة'][slot % 5]} — ${DAY_NAMES_AR[dow]} ${times.label}`,
           teacherId: teacher._id,
           roomId: room._id,
@@ -799,7 +868,7 @@ async function seed() {
       }
     }
 
-    await StudentSession.insertMany(assignments)
+    await StudentSession.insertMany(assignments.map((a) => ({ ...a, tenantId })))
     console.log(`   ✅ ${assignments.length} enrollments`)
 
     const assignmentByTemplate = new Map<string, mongoose.Types.ObjectId[]>()
@@ -848,6 +917,7 @@ async function seed() {
         }
 
         occurrences.push({
+          tenantId,
           sessionTemplateId: tmpl._id,
           teacherId: tmpl.teacherId,
           date,
@@ -898,6 +968,7 @@ async function seed() {
               : undefined
 
         attendanceBatch.push({
+          tenantId,
           studentId,
           sessionOccurrenceId: occ._id,
           status,
@@ -938,6 +1009,7 @@ async function seed() {
         const toVerse = fromVerse + 3 + (g % 4)
         const juz = 1 + ((si + g) % 30)
         grades.push({
+          tenantId,
           studentId: st._id,
           sessionTemplateId: tmpl._id,
           teacherId: teacher._id,
@@ -967,6 +1039,7 @@ async function seed() {
       const content = positive ? pick(FEEDBACK_POSITIVE) : pick(FEEDBACK_NEGATIVE)
       const occ = finishedOccs.length ? pick(finishedOccs) : null
       feedbacks.push({
+        tenantId,
         studentId: st._id,
         teacherId: teacher._id,
         sessionOccurrenceId: occ?._id,
@@ -997,6 +1070,7 @@ async function seed() {
         const isPaid = rng() < paidBase
         const amount = 30 + randomInt(0, 20)
         payments.push({
+          tenantId,
           studentId: st._id,
           month: my.month,
           year: my.year,
@@ -1070,7 +1144,7 @@ async function seed() {
         status: 'PENDING',
       })
     }
-    await AttendanceClaim.insertMany(claims)
+    await AttendanceClaim.insertMany(claims.map((c) => ({ ...c, tenantId })))
     console.log(`   ✅ ${claims.length} claims`)
 
     console.log('📚 Creating learning documents...')
@@ -1105,6 +1179,7 @@ async function seed() {
 
     const documents = await LearningDocument.insertMany(
       docSpecs.map((d, i) => ({
+        tenantId,
         title: d.title,
         description: `وثيقة تعليمية — ${d.category}. رفع تلقائي للعرض التجريبي.`,
         category: d.category,
@@ -1206,11 +1281,14 @@ async function seed() {
       })
     }
 
-    await ActivityLog.collection.insertMany(logs as unknown as Record<string, unknown>[])
+    await ActivityLog.collection.insertMany(
+      logs.map((l) => ({ ...l, tenantId })) as unknown as Record<string, unknown>[]
+    )
     console.log(`   ✅ ${logs.length} activity logs`)
 
     console.log('\n✨ Seed completed successfully!')
     console.log('\n📋 Summary:')
+    console.log(`   Tenant:          ${tenant.name} (slug: ${tenant.slug}, plan: ${tenant.plan})`)
     console.log(`   Users:           1 admin + 7 teachers + ${portalCount} students = ${1 + 7 + portalCount}`)
     console.log(`   Rooms:           ${rooms.length}`)
     console.log(`   Students:        ${students.length}`)

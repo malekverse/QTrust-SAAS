@@ -13,12 +13,11 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Users } from "lucide-react"
 import {
   ROLES,
-  PLAN_LABELS,
   TENANT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
   INVOICE_TYPE_LABELS,
-  INVOICE_STATUS_LABELS,
 } from "@/lib/constants"
+import { PlanStatusForm, InvoicePaymentControl } from "./tenant-actions"
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -72,22 +71,27 @@ export default async function TenantDetailPage({
           <CardHeader>
             <CardTitle className="text-base">الاشتراك</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <Field label="الباقة" value={PLAN_LABELS[tenant.plan] ?? tenant.plan} />
-            <Field label="الحالة" value={TENANT_STATUS_LABELS[tenant.status] ?? tenant.status} />
-            <Field
-              label="عدد الطلاب"
-              value={
-                <span className="flex items-center gap-1">
-                  <Users className="h-3.5 w-3.5" />
-                  {studentCount}
-                  {tenant.maxStudents <= 100000 ? ` / ${tenant.maxStudents}` : ""}
-                </span>
-              }
+          <CardContent className="space-y-4">
+            <PlanStatusForm
+              tenantId={tenant._id.toString()}
+              plan={tenant.plan}
+              status={tenant.status}
             />
-            <Field label="حصة الذكاء الاصطناعي / شهر" value={tenant.aiQuotaMonthly} />
-            <Field label="بداية الفترة" value={fmtDate(tenant.billing?.currentPeriodStart)} />
-            <Field label="نهاية الفترة" value={fmtDate(tenant.billing?.currentPeriodEnd)} />
+            <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              <Field
+                label="عدد الطلاب"
+                value={
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5" />
+                    {studentCount}
+                    {tenant.maxStudents <= 100000 ? ` / ${tenant.maxStudents}` : ""}
+                  </span>
+                }
+              />
+              <Field label="حصة الذكاء الاصطناعي / شهر" value={tenant.aiQuotaMonthly} />
+              <Field label="بداية الفترة" value={fmtDate(tenant.billing?.currentPeriodStart)} />
+              <Field label="نهاية الفترة" value={fmtDate(tenant.billing?.currentPeriodEnd)} />
+            </div>
           </CardContent>
         </Card>
 
@@ -132,18 +136,17 @@ export default async function TenantDetailPage({
                 {invoices.map((inv: any) => (
                   <div
                     key={inv._id.toString()}
-                    className="flex items-center justify-between border-b pb-2 last:border-0"
+                    className="flex items-start justify-between gap-2 border-b pb-2 last:border-0"
                   >
                     <div>
                       <p className="text-sm font-medium">{INVOICE_TYPE_LABELS[inv.type] ?? inv.type}</p>
                       <p className="text-xs text-muted-foreground">استحقاق {fmtDate(inv.dueDate)}</p>
                     </div>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold">{inv.amountTND} د.ت</p>
-                      <Badge variant="outline" className="text-xs">
-                        {INVOICE_STATUS_LABELS[inv.status] ?? inv.status}
-                      </Badge>
-                    </div>
+                    <InvoicePaymentControl
+                      invoiceId={inv._id.toString()}
+                      status={inv.status}
+                      amountTND={inv.amountTND}
+                    />
                   </div>
                 ))}
               </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
 import Student from "@/models/Student"
+import Tenant from "@/models/Tenant"
 import { logActivity } from "@/models/ActivityLog"
 import { auth } from "@/lib/auth"
 import { createStudentSchema } from "@/lib/validations"
@@ -105,6 +106,21 @@ export async function POST(request: NextRequest) {
     }
 
     await dbConnect()
+
+    // Enforce the tenant's plan seat limit before creating.
+    const tenant = await Tenant.findById(tenantId).select("maxStudents").lean<{ maxStudents: number }>()
+    if (!tenant) {
+      return NextResponse.json({ message: "المؤسسة غير موجودة" }, { status: 403 })
+    }
+    const activeCount = await Student.countDocuments({ tenantId, isActive: true })
+    if (activeCount >= tenant.maxStudents) {
+      return NextResponse.json(
+        {
+          message: `لقد بلغت الحدّ الأقصى لعدد الطلاب في باقتك (${tenant.maxStudents} طالب). يرجى ترقية الاشتراك لإضافة المزيد.`,
+        },
+        { status: 403 }
+      )
+    }
 
     // Generate unique QR UUID
     const qrUuid = generateQrUuid()

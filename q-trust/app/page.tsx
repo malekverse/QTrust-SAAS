@@ -10,7 +10,7 @@ export default async function HomePage() {
   }
 
   if (session.user.role === ROLES.SUPER_ADMIN) {
-    redirect("/super-admin")
+    redirect("/super-admin/tenants")
   }
 
   if (session.user.role === ROLES.ADMIN) {

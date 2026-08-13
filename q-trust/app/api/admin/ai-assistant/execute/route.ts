@@ -19,6 +19,7 @@ import {
 import type { IConversationMessage, IToolCall } from '@/models/Conversation'
 import { aiLimiter, aiTenantLimiter, enforceRateLimit } from '@/lib/rate-limit'
 import { recordAiRound } from '@/lib/ai/usage'
+import { logActivity } from '@/models/ActivityLog'
 
 const MAX_TOOL_ROUNDS = 5
 const TOOL_TIMEOUT_MS = 15_000
@@ -203,6 +204,17 @@ export async function POST(request: NextRequest) {
       }
 
       await resolvePendingAction(conversationId, actionId, true, resultData, resultError)
+
+      // Audit trail: one source-marked entry per AI-executed write action. Every
+      // AI write funnels through this approval path, so logging here is complete.
+      if (!resultError) {
+        await logActivity('AI_ACTION_EXECUTED', action.description, {
+          tenantId,
+          userId: adminId,
+          source: 'ai_assistant',
+          metadata: { toolName: action.toolName, params: finalParams },
+        })
+      }
 
       const modNote = modifiedParams ? ' (مع تعديلات من المدير)' : ''
       allNewMessages.push({

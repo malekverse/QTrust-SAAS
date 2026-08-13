@@ -209,7 +209,6 @@ export async function executeTool(
     if (!tenantId) return { success: false, error: 'لا يوجد سياق مؤسسة' }
 
     const models = await getModels()
-    const { logActivity } = await import('@/models/ActivityLog')
 
     switch (toolName) {
       // ─── Students ───
@@ -315,9 +314,6 @@ export async function executeTool(
         }
 
         const student = oneDoc(await models.Student.create(studentData))
-        await logActivity('STUDENT_CREATED', `${args.firstName} ${args.lastName}`, {
-          tenantId, studentId: student._id, userId: adminUserId,
-        })
         return { success: true, data: { _id: student._id, enrollmentNumber, name: `${args.firstName} ${args.lastName}` } }
       }
 
@@ -327,9 +323,6 @@ export async function executeTool(
         if (updateData.dateOfBirth) updateData.dateOfBirth = new Date(updateData.dateOfBirth as string)
         const student = await models.Student.findOneAndUpdate({ _id: id, tenantId } as any, updateData, { new: true, runValidators: true }).lean()
         if (!student) return { success: false, error: 'الطالب غير موجود' }
-        await logActivity('STUDENT_UPDATED', `${student.firstName} ${student.lastName}`, {
-          tenantId, studentId: student._id, userId: adminUserId,
-        })
         return { success: true, data: { _id: student._id, name: `${student.firstName} ${student.lastName}` } }
       }
 
@@ -435,7 +428,6 @@ export async function executeTool(
           mustChangePassword: !args.password,
         }
         const teacher = oneDoc(await models.User.create(teacherData))
-        await logActivity('TEACHER_CREATED', args.fullName as string, { tenantId, userId: adminUserId })
         return { success: true, data: { _id: teacher._id, fullName: args.fullName, email: args.email, tempPassword: args.password ? undefined : password } }
       }
 
@@ -448,7 +440,6 @@ export async function executeTool(
           { new: true, runValidators: true }
         ).select('-passwordHash').lean()
         if (!teacher) return { success: false, error: 'المعلم غير موجود' }
-        await logActivity('TEACHER_UPDATED', teacher.fullName, { tenantId, userId: adminUserId })
         return { success: true, data: { _id: teacher._id, fullName: teacher.fullName } }
       }
 
@@ -539,9 +530,6 @@ export async function executeTool(
           isActive: true,
         }
         const session = oneDoc(await models.SessionTemplate.create(sessionData))
-        await logActivity('SESSION_CREATED', args.name as string, {
-          tenantId, sessionId: session._id, userId: adminUserId,
-        })
         return { success: true, data: { _id: session._id, name: args.name } }
       }
 
@@ -575,7 +563,6 @@ export async function executeTool(
         if (sUpdate.effectiveToDate) sUpdate.effectiveToDate = new Date(sUpdate.effectiveToDate as string)
         const session = await models.SessionTemplate.findOneAndUpdate({ _id: sid, tenantId }, sUpdate, { new: true, runValidators: true }).lean()
         if (!session) return { success: false, error: 'الحصة غير موجودة' }
-        await logActivity('SESSION_UPDATED', session.name, { tenantId, sessionId: session._id, userId: adminUserId })
         return { success: true, data: { _id: session._id, name: session.name } }
       }
 

@@ -9,6 +9,7 @@ export type ActivityType =
   | 'SESSION_CREATED'
   | 'SESSION_UPDATED'
   | 'ATTENDANCE_UPDATED'
+  | 'AI_ACTION_EXECUTED'
 
 export interface IActivityLog extends Document {
   _id: mongoose.Types.ObjectId
@@ -20,6 +21,8 @@ export interface IActivityLog extends Document {
   studentId?: mongoose.Types.ObjectId
   sessionId?: mongoose.Types.ObjectId
   metadata?: Record<string, unknown>
+  // Distinguishes AI-assistant-triggered actions from UI-driven ones in the feed.
+  source: 'ai_assistant' | 'manual'
   createdAt: Date
 }
 
@@ -37,7 +40,8 @@ const ActivityLogSchema = new Schema<IActivityLog>(
         'TEACHER_UPDATED',
         'SESSION_CREATED',
         'SESSION_UPDATED',
-        'ATTENDANCE_UPDATED'
+        'ATTENDANCE_UPDATED',
+        'AI_ACTION_EXECUTED'
       ]
     },
     description: {
@@ -59,6 +63,11 @@ const ActivityLogSchema = new Schema<IActivityLog>(
     },
     metadata: {
       type: Schema.Types.Mixed
+    },
+    source: {
+      type: String,
+      enum: ['ai_assistant', 'manual'],
+      default: 'manual'
     }
   },
   {
@@ -86,6 +95,7 @@ export async function logActivity(
     studentId?: mongoose.Types.ObjectId | string
     sessionId?: mongoose.Types.ObjectId | string
     metadata?: Record<string, unknown>
+    source?: 'ai_assistant' | 'manual'
   }
 ) {
   try {
@@ -97,7 +107,8 @@ export async function logActivity(
       userId: options?.userId ? new mongoose.Types.ObjectId(options.userId) : undefined,
       studentId: options?.studentId ? new mongoose.Types.ObjectId(options.studentId) : undefined,
       sessionId: options?.sessionId ? new mongoose.Types.ObjectId(options.sessionId) : undefined,
-      metadata: options?.metadata
+      metadata: options?.metadata,
+      source: options?.source ?? 'manual'
     })
   } catch (error) {
     console.error('Failed to log activity:', error)

@@ -19,6 +19,7 @@ import {
 import type { IConversationMessage, IToolCall } from '@/models/Conversation'
 import { aiLimiter, aiTenantLimiter, enforceRateLimit } from '@/lib/rate-limit'
 import { recordAiRound } from '@/lib/ai/usage'
+import { validateToolArgs } from '@/lib/ai/tool-schemas'
 import { logActivity } from '@/models/ActivityLog'
 
 const MAX_TOOL_ROUNDS = 5
@@ -191,16 +192,23 @@ export async function POST(request: NextRequest) {
         ? { ...action.params, ...modifiedParams }
         : action.params
 
-      try {
-        const result = await withTimeout(
-          executeTool(action.toolName, finalParams, adminId, tenantId),
-          TOOL_TIMEOUT_MS,
-          action.toolName
-        )
-        resultData = result.data
-        resultError = result.success ? undefined : result.error
-      } catch (err) {
-        resultError = err instanceof Error ? err.message : 'خطأ غير معروف أثناء التنفيذ'
+      // Re-validate the (possibly admin-edited) params — modifiedParams from the
+      // approval card are otherwise merged and executed with no re-check.
+      const paramCheck = validateToolArgs(action.toolName, finalParams)
+      if (!paramCheck.ok) {
+        resultError = paramCheck.error
+      } else {
+        try {
+          const result = await withTimeout(
+            executeTool(action.toolName, paramCheck.data, adminId, tenantId),
+            TOOL_TIMEOUT_MS,
+            action.toolName
+          )
+          resultData = result.data
+          resultError = result.success ? undefined : result.error
+        } catch (err) {
+          resultError = err instanceof Error ? err.message : 'خطأ غير معروف أثناء التنفيذ'
+        }
       }
 
       await resolvePendingAction(conversationId, actionId, true, resultData, resultError)

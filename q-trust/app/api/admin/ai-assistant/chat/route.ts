@@ -21,6 +21,7 @@ import {
 import type { IConversationMessage, IToolCall } from '@/models/Conversation'
 import { aiLimiter, aiTenantLimiter, enforceRateLimit } from '@/lib/rate-limit'
 import { ensureAiQuota, recordAiRound } from '@/lib/ai/usage'
+import { validateToolArgs } from '@/lib/ai/tool-schemas'
 
 const MAX_TOOL_ROUNDS = 5
 const MAX_RETRIES = 2
@@ -512,7 +513,25 @@ export async function POST(request: NextRequest) {
                 rawArgs = {}
               }
               const cleanedArgs = (cleanArgs(rawArgs) as Record<string, unknown>) || {}
-              const toolArgs = coerceToolArgs(toolName, cleanedArgs)
+              let toolArgs = coerceToolArgs(toolName, cleanedArgs)
+
+              // Validate the LLM's tool args against the tool schema before doing
+              // anything with them — a parse failure otherwise becomes {} and an
+              // out-of-schema value flows straight into Mongoose.
+              const validation = validateToolArgs(toolName, toolArgs)
+              if (!validation.ok) {
+                const errStr = JSON.stringify({ success: false, error: validation.error })
+                send('tool', { name: toolName, label: TOOL_NAME_AR[toolName] || toolName, status: 'done' })
+                allNewMessages.push({
+                  role: 'tool',
+                  content: errStr,
+                  toolCalls: [{ id: tc.id, name: toolName, arguments: toolArgs }],
+                  timestamp: new Date(),
+                })
+                groqMessages.push({ role: 'tool' as const, tool_call_id: tc.id, content: errStr })
+                continue
+              }
+              toolArgs = validation.data
 
               if (READ_ONLY_TOOLS.has(toolName)) {
                 send('tool', { name: toolName, label: TOOL_NAME_AR[toolName] || toolName, status: 'running' })

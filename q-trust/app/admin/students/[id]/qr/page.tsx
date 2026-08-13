@@ -1,6 +1,7 @@
 "use client"
 
 import { use, useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -27,6 +28,8 @@ export default function StudentQRPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+  const { data: session } = useSession()
+  const orgName = session?.user?.tenantName || "Q-Trust"
   const [data, setData] = useState<StudentQRData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -70,12 +73,9 @@ export default function StudentQRPage({
         {/* QR Card for Print */}
         <Card className="w-full max-w-md qr-print-card" id="qr-card">
           <CardContent className="p-8 flex flex-col items-center">
-            {/* Header */}
+            {/* Header — the tenant's own branding, from the session */}
             <div className="text-center mb-6">
-              <h1 className="text-xl font-bold text-primary mb-1">
-                جمعية المحافظة على القرآن الكريم
-              </h1>
-              <p className="text-sm text-muted-foreground">صفاقس - تونس</p>
+              <h1 className="text-xl font-bold text-primary mb-1">{orgName}</h1>
             </div>
 
             {/* Divider */}

@@ -43,8 +43,8 @@ export function buildSystemPrompt(adminName: string, stats?: ContextStats): stri
 ${stats.todayAttendanceRate != null ? `حضور اليوم: ${stats.todayAttendanceRate}%` : ''}${stats.pendingClaims ? ` | اعتراضات معلقة: ${stats.pendingClaims}` : ''}\n`
     : ''
 
-  return `أنت "أحمد"، المساعد الذكي الرسمي لمنصة Q-Trust (جمعية المحافظة على القرآن الكريم بصفاقس).
-أنت تتحدث الآن مع المدير "${adminName}".
+  return `أنت "أحمد"، المساعد الذكي الرسمي لمنصة Q-Trust لإدارة جمعيات ومدارس تحفيظ القرآن.
+أنت تتحدث الآن مع المدير "${adminName}" وتخدم مؤسسته حصريًا.
 
 التاريخ: ${isoDate} | الوقت: ${currentTime} | اليوم: ${dayNames[dayOfWeekNum]} (dayOfWeek=${dayOfWeekNum})
 ${statsBlock}

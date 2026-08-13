@@ -615,16 +615,17 @@ async function seed() {
     ])
 
     console.log('🏢 Creating demo tenant...')
+    // Fictional association — demo/sales data only, never a real organization.
     const tenant = await Tenant.create({
-      name: 'جمعية المحافظة على القرآن الكريم - صفاقس',
-      slug: 'quran-sfax',
+      name: 'جمعية النور لتحفيظ القرآن الكريم',
+      slug: 'demo',
       plan: 'PREMIUM',
       status: 'ACTIVE',
       maxStudents: 1000,
       aiQuotaMonthly: 500,
       isDemo: true,
-      branding: { displayName: 'جمعية المحافظة على القرآن الكريم', locale: 'ar' },
-      contact: { email: 'admin@quran-sfax.org', phone: '+21690000001', address: 'صفاقس، تونس' },
+      branding: { displayName: 'جمعية النور لتحفيظ القرآن الكريم', locale: 'ar' },
+      contact: { email: 'demo@q-trust.tn', phone: '+21690000001', address: 'أريانة، تونس' },
     })
     const tenantId = tenant._id
     console.log(`   ✅ Tenant "${tenant.slug}" (${tenantId})`)
@@ -637,7 +638,7 @@ async function seed() {
     const admin = await User.create({
       tenantId,
       fullName: 'المدير العام',
-      email: 'admin@quran-sfax.org',
+      email: 'admin@demo.q-trust.tn',
       phone: '+21690000001',
       role: 'ADMIN',
       passwordHash: adminPass,
@@ -660,7 +661,7 @@ async function seed() {
       teacherNames.map((fullName, i) => ({
         tenantId,
         fullName,
-        email: `teacher${i + 1}@quran-sfax.org`,
+        email: `teacher${i + 1}@demo.q-trust.tn`,
         phone: `+21691${String(100000 + i).slice(-6)}`,
         role: 'TEACHER',
         passwordHash: teacherPass,
@@ -757,7 +758,7 @@ async function seed() {
           address: `${pick(STREETS)}، ${pick(PLACES)}`,
           activityAreas: unique,
           declarationAccepted: true,
-          signatureLocation: 'صفاقس',
+          signatureLocation: 'أريانة',
           signatureDate: addDays(new Date(), -randomInt(30, 200)),
           photoUrl: `https://placehold.co/200x200?text=${encodeURIComponent(s.firstName)}`,
           cinFrontUrl: `https://placehold.co/400x250?text=CIN+Front+${i + 1}`,
@@ -778,7 +779,7 @@ async function seed() {
       const u = await User.create({
         tenantId,
         fullName: `${st.firstName} ${st.lastName}`,
-        email: `student${i + 1}@quran-sfax.org`,
+        email: `student${i + 1}@demo.q-trust.tn`,
         phone: st.phone,
         role: 'STUDENT',
         passwordHash: studentPass,
@@ -1305,10 +1306,10 @@ async function seed() {
     console.log(`   Settings:        enrollment (sequence 60)`)
 
     console.log('\n🔑 Staff login:')
-    console.log('   Admin:   admin@quran-sfax.org / admin123')
-    console.log('   Teacher: teacher1@quran-sfax.org … teacher7@quran-sfax.org / teacher123')
+    console.log('   Admin:   admin@demo.q-trust.tn / admin123')
+    console.log('   Teacher: teacher1@demo.q-trust.tn … teacher7@demo.q-trust.tn / teacher123')
     console.log('\n🎓 Student portal (first 10 students):')
-    console.log('   student1@quran-sfax.org … student10@quran-sfax.org / student123')
+    console.log('   student1@demo.q-trust.tn … student10@demo.q-trust.tn / student123')
   } catch (error) {
     console.error('❌ Seed failed:', error)
     process.exit(1)

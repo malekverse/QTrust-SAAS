@@ -1,6 +1,6 @@
-# Q-Trust - جمعية المحافظة على القرآن الكريم - صفاقس
+# Q-Trust — منصة إدارة جمعيات ومدارس تحفيظ القرآن
 
-منصة إدارة الطلاب والحضور لجمعية المحافظة على القرآن الكريم بصفاقس، تونس.
+منصة SaaS متعددة المؤسسات لإدارة جمعيات ومدارس تحفيظ القرآن: الحضور بمسح QR، المدفوعات، والمتابعة — مطوَّرة في تونس.
 
 ## ✨ المميزات
 
@@ -89,7 +89,7 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 
 # App
-NEXT_PUBLIC_APP_NAME=جمعية المحافظة على القرآن الكريم
+NEXT_PUBLIC_APP_NAME=Q-Trust
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -108,10 +108,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 | الدور | البريد | كلمة المرور |
 |-------|--------|-------------|
-| مدير | admin@quran-sfax.org | admin123 |
-| معلم | ahmed@quran-sfax.org | teacher123 |
-| معلم | fatima@quran-sfax.org | teacher123 |
-| معلم | omar@quran-sfax.org | teacher123 |
+| مدير | admin@demo.q-trust.tn | admin123 |
+| معلم | ahmed@demo.q-trust.tn | teacher123 |
+| معلم | fatima@demo.q-trust.tn | teacher123 |
+| معلم | omar@demo.q-trust.tn | teacher123 |
 
 ## 📱 استخدام الماسح
 
@@ -217,6 +217,6 @@ pnpm test-db      # اختبار اتصال قاعدة البيانات
     ﴿ إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ ﴾
   </p>
   <p>
-    صُنع بـ ❤️ لجمعية المحافظة على القرآن الكريم - صفاقس
+    صُنع بـ ❤️ في تونس — Q-Trust
   </p>
 </div>

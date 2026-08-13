@@ -8,11 +8,11 @@
 export const PROOF_STATS: { label: string; value: number; suffix?: string }[] | null = null
 // e.g. [{ label: 'طالب مسجّل', value: 480 }, { label: 'تسجيل حضور', value: 52000, suffix: '+' }]
 
-export const FOUNDING_ASSOCIATION: { name: string; logoSrc?: string } | null = null
-// Requires written permission (§8.2.8) before it appears on the page.
+export const TRUSTED_BY: { name: string; logoSrc?: string } | null = null
+// A real client association, shown with their WRITTEN permission (§8.2.8) — or nothing.
 
 export const TESTIMONIAL: { quote: string; name: string; role: string } | null = null
-// One real quote from the founding association's director — or nothing.
+// One real quote from a real client's director, with permission — or nothing.
 
 // ── Product screenshots (§8.2.8 founder assets — captures from the seeded
 // demo tenant only, never real students' data). Drop files in /public and

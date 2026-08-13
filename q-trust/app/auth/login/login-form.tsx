@@ -92,7 +92,7 @@ export function LoginForm({
           {tenantName ? (
             <p className="text-foreground font-semibold text-base">{tenantName}</p>
           ) : (
-            <p className="text-muted-foreground text-sm">صفاقس - تونس</p>
+            <p className="text-muted-foreground text-sm">منصة إدارة جمعيات ومدارس تحفيظ القرآن</p>
           )}
         </div>
 

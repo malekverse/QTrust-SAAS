@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -24,15 +25,12 @@ async function fetchStudents(): Promise<Student[]> {
   return res.json()
 }
 
-function QRCard({ student, qrDataUrl }: { student: Student; qrDataUrl: string }) {
+function QRCard({ student, qrDataUrl, orgName }: { student: Student; qrDataUrl: string; orgName: string }) {
   return (
     <div className="qr-card p-4 border rounded-xl bg-white text-black break-inside-avoid mb-4">
-      {/* Header */}
+      {/* Header — the tenant's own branding, from the session */}
       <div className="text-center mb-3">
-        <h3 className="text-sm font-bold text-emerald-700">
-          جمعية المحافظة على القرآن الكريم
-        </h3>
-        <p className="text-xs text-gray-500">صفاقس - تونس</p>
+        <h3 className="text-sm font-bold text-emerald-700">{orgName}</h3>
       </div>
 
       {/* Divider */}
@@ -68,6 +66,8 @@ function QRCard({ student, qrDataUrl }: { student: Student; qrDataUrl: string })
 }
 
 export default function BulkQRCardsPage() {
+  const { data: session } = useSession()
+  const orgName = session?.user?.tenantName || "Q-Trust"
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [qrCodes, setQrCodes] = useState<Map<string, string>>(new Map())
   const [generating, setGenerating] = useState(false)
@@ -231,7 +231,7 @@ export default function BulkQRCardsPage() {
               const qrDataUrl = qrCodes.get(id)
               if (!student || !qrDataUrl) return null
               return (
-                <QRCard key={id} student={student} qrDataUrl={qrDataUrl} />
+                <QRCard key={id} student={student} qrDataUrl={qrDataUrl} orgName={orgName} />
               )
             })}
           </div>

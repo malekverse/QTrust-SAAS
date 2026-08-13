@@ -441,8 +441,8 @@ export default function ScannerPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-3 text-center text-xs text-muted-foreground">
-        جمعية المحافظة على القرآن الكريم - صفاقس
+      <footer className="py-3 text-center text-xs text-muted-foreground" dir="ltr">
+        Q-Trust
       </footer>
     </div>
   )

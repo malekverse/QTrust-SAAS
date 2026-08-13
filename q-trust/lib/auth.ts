@@ -18,6 +18,7 @@ declare module 'next-auth' {
     tenantId?: string
     tenantSlug?: string
     tenantPlan?: string
+    tenantName?: string
   }
 
   interface Session {
@@ -31,6 +32,7 @@ declare module 'next-auth' {
       tenantId?: string
       tenantSlug?: string
       tenantPlan?: string
+      tenantName?: string
     }
   }
 
@@ -43,6 +45,7 @@ declare module 'next-auth' {
     tenantId?: string
     tenantSlug?: string
     tenantPlan?: string
+    tenantName?: string
   }
 }
 
@@ -119,13 +122,15 @@ export const authConfig: NextAuthConfig = {
           let tenantId: string | undefined
           let tenantSlug: string | undefined
           let tenantPlan: string | undefined
+          let tenantName: string | undefined
           if (user.tenantId) {
             tenantId = user.tenantId.toString()
             const tenant = await Tenant.findById(user.tenantId)
-              .select('slug plan')
-              .lean<{ slug: string; plan: string }>()
+              .select('slug plan name branding.displayName')
+              .lean<{ slug: string; plan: string; name: string; branding?: { displayName?: string } }>()
             tenantSlug = tenant?.slug
             tenantPlan = tenant?.plan
+            tenantName = tenant?.branding?.displayName || tenant?.name
           }
 
           return {
@@ -138,6 +143,7 @@ export const authConfig: NextAuthConfig = {
             tenantId,
             tenantSlug,
             tenantPlan,
+            tenantName,
           }
         } catch (error) {
           if (error instanceof Error) {
@@ -159,6 +165,7 @@ export const authConfig: NextAuthConfig = {
         token.tenantId = user.tenantId
         token.tenantSlug = user.tenantSlug
         token.tenantPlan = user.tenantPlan
+        token.tenantName = user.tenantName
       }
       // Handle session update (e.g., after password change)
       if (trigger === 'update' && session) {
@@ -181,6 +188,7 @@ export const authConfig: NextAuthConfig = {
         session.user.tenantId = token.tenantId as string | undefined
         session.user.tenantSlug = token.tenantSlug as string | undefined
         session.user.tenantPlan = token.tenantPlan as string | undefined
+        session.user.tenantName = token.tenantName as string | undefined
       }
       return session
     },

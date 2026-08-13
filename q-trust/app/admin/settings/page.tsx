@@ -615,25 +615,18 @@ export default function AdminSettingsPage() {
                 معلومات الجمعية
               </CardTitle>
               <CardDescription>
-                بيانات جمعية المحافظة على القرآن الكريم
+                بيانات مؤسستك كما تظهر في المنصة والبطاقات المطبوعة
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>اسم الجمعية</Label>
+                  <Label>اسم المؤسسة</Label>
                   <Input
-                    defaultValue="جمعية المحافظة على القرآن الكريم"
+                    value={session?.user?.tenantName || ""}
                     className="bg-muted"
                     disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>المدينة</Label>
-                  <Input
-                    defaultValue="صفاقس - تونس"
-                    className="bg-muted"
-                    disabled
+                    readOnly
                   />
                 </div>
               </div>

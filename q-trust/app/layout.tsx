@@ -20,11 +20,11 @@ const faviconBase = "/q-trust_logo/q-trust_favicon"
 
 export const metadata: Metadata = {
   title: {
-    default: "جمعية المحافظة على القرآن الكريم - صفاقس",
-    template: "%s | جمعية القرآن"
+    default: "Q-Trust — منصة إدارة جمعيات تحفيظ القرآن",
+    template: "%s | Q-Trust"
   },
-  description: "منصة إدارة الطلاب والحضور لجمعية المحافظة على القرآن الكريم بصفاقس",
-  keywords: ["قرآن", "تحفيظ", "صفاقس", "جمعية", "حضور"],
+  description: "منصة إدارة جمعيات ومدارس تحفيظ القرآن: الحضور بمسح QR، المدفوعات، والمتابعة في مكان واحد.",
+  keywords: ["قرآن", "تحفيظ", "جمعية", "حضور", "إدارة", "تونس"],
   manifest: `${faviconBase}/site.webmanifest`,
   icons: {
     icon: [
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "جمعية القرآن",
+    title: "Q-Trust",
     statusBarStyle: "default",
   },
 }

@@ -22,7 +22,7 @@ const intrinsic = {
   fullWithTitleWhiteBg: { width: 1200, height: 360 },
 } as const
 
-const defaultAlt = "جمعية المحافظة على القرآن الكريم — صفاقس"
+const defaultAlt = "Q-Trust"
 
 export function BrandLogo({ variant, className, priority }: BrandLogoProps) {
   const { width, height } = intrinsic[variant]

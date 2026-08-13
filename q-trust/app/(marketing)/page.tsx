@@ -12,7 +12,7 @@ import {
   HERO,
   PILLARS,
   PROOF_STATS,
-  FOUNDING_ASSOCIATION,
+  TRUSTED_BY,
   TESTIMONIAL,
   AI_SPOTLIGHT,
   SCANNER,
@@ -93,7 +93,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 3. Proof strip — renders ONLY with verifiably real numbers (§8.2.7) ── */}
-      {(PROOF_STATS || FOUNDING_ASSOCIATION) && (
+      {(PROOF_STATS || TRUSTED_BY) && (
         <section className="border-y border-foreground/8 bg-foreground/2">
           <div className="mk-container">
             <div className="flex flex-wrap items-center justify-center gap-x-14 gap-y-6 py-10">
@@ -105,9 +105,9 @@ export default function LandingPage() {
                   <p className="mt-1 text-sm text-foreground/60">{stat.label}</p>
                 </div>
               ))}
-              {FOUNDING_ASSOCIATION && (
+              {TRUSTED_BY && (
                 <p className="text-sm text-foreground/60">
-                  موثوق من <span className="font-semibold text-foreground">{FOUNDING_ASSOCIATION.name}</span>
+                  موثوق من <span className="font-semibold text-foreground">{TRUSTED_BY.name}</span>
                 </p>
               )}
             </div>

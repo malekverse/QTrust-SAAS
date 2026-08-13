@@ -61,28 +61,44 @@ export const authConfig: NextAuthConfig = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        tenantSlug: { label: 'Tenant', type: 'text' }
       },
       async authorize(credentials) {
         try {
           // Validate input
           const { email, password } = loginSchema.parse(credentials)
+          const loginTenantSlug =
+            typeof credentials?.tenantSlug === 'string' && credentials.tenantSlug.trim()
+              ? credentials.tenantSlug.toLowerCase().trim()
+              : undefined
 
           // Connect to database
           await dbConnect()
 
+          // Resolve the tenant from the login slug (path-slug login). Absent for
+          // the platform super-admin and the legacy single-tenant global login.
+          let scopeTenantId: string | undefined
+          if (loginTenantSlug) {
+            const scopeTenant = await Tenant.findOne({ slug: loginTenantSlug }).select('_id').lean()
+            if (!scopeTenant) {
+              throw new Error('المؤسسة غير موجودة')
+            }
+            scopeTenantId = scopeTenant._id.toString()
+          }
+
           // Check if input is phone number format (+216XXXXXXXX)
           const isPhone = /^\+216\d{8}$/.test(email)
-          
-          let user
-          if (isPhone) {
-            // Search by phone number
-            user = await User.findOne({ phone: email })
-          } else {
-            // Search by email
-            user = await User.findOne({ email: email.toLowerCase() })
-          }
-          
+          const identityFilter = isPhone
+            ? { phone: email }
+            : { email: email.toLowerCase() }
+
+          // When a tenant slug is present, scope the lookup to it so the same
+          // email can exist in different associations.
+          const user = await User.findOne(
+            scopeTenantId ? { ...identityFilter, tenantId: scopeTenantId } : identityFilter
+          )
+
           if (!user) {
             throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة')
           }

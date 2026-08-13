@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { cloudinary, uploadOptions, type UploadType } from '@/lib/cloudinary'
+import { cloudinary, getUploadOptions, tenantFolderPrefix, type UploadType } from '@/lib/cloudinary'
 import { ROLES } from '@/lib/constants'
 
 // Maximum file size per type (in bytes)
@@ -21,6 +21,11 @@ export async function POST(request: NextRequest) {
         { message: 'غير مصرح لك بالوصول' },
         { status: 403 }
       )
+    }
+
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: 'لا يوجد سياق مؤسسة' }, { status: 403 })
     }
 
     // Check if Cloudinary is configured
@@ -52,10 +57,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get upload options based on type
-    const options = uploadType && uploadOptions[uploadType] 
-      ? uploadOptions[uploadType] 
-      : uploadOptions.document
+    // Get upload options based on type, scoped to the caller's tenant folder
+    const validType: UploadType =
+      uploadType === 'photo' || uploadType === 'cin_front' || uploadType === 'cin_back'
+        ? uploadType
+        : 'document'
+    const options = getUploadOptions(validType, tenantId)
 
     // Convert file to base64
     const bytes = await file.arrayBuffer()
@@ -112,6 +119,11 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ message: 'لا يوجد سياق مؤسسة' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const publicId = searchParams.get('publicId')
 
@@ -122,10 +134,9 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Only allow deleting assets within this application's own Cloudinary
-    // namespace, so an arbitrary or guessed public ID outside it cannot be
-    // removed. (Phase 1 tightens this to a per-tenant folder prefix.)
-    if (!publicId.startsWith('q-trust/')) {
+    // Only allow deleting assets within the caller's OWN tenant folder, so a
+    // guessed or foreign public ID (including another tenant's) cannot be removed.
+    if (!publicId.startsWith(tenantFolderPrefix(tenantId))) {
       return NextResponse.json(
         { message: 'معرف الملف غير صالح' },
         { status: 400 }

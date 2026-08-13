@@ -5,7 +5,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes that don't require auth
-  const publicRoutes = ['/auth/login', '/auth/error', '/scanner', '/auth/onboarding']
+  // '/t/' is the public path-slug tenant-login entry (/t/<slug> → branded login)
+  const publicRoutes = ['/auth/login', '/auth/error', '/scanner', '/auth/onboarding', '/t/']
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
   
   // Static files and API routes that don't need auth check in middleware

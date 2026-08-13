@@ -9,44 +9,59 @@ cloudinary.config({
 
 export { cloudinary }
 
-// Upload options for different file types
-export const uploadOptions = {
+// Base (tenant-agnostic) upload options per file type. The concrete Cloudinary
+// folder is built per-tenant by getUploadOptions(), so no two tenants ever share
+// a folder and one tenant's assets can't be enumerated/deleted by another.
+const baseUploadOptions = {
   photo: {
-    folder: 'q-trust/students/photos',
+    subfolder: 'students/photos',
     transformation: [
       { width: 400, height: 400, crop: 'fill', gravity: 'face' },
       { quality: 'auto' },
-      { fetch_format: 'auto' }
+      { fetch_format: 'auto' },
     ],
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
   },
   cin_front: {
-    folder: 'q-trust/students/cin',
+    subfolder: 'students/cin',
     transformation: [
       { width: 1200, height: 800, crop: 'limit' },
       { quality: 'auto' },
-      { fetch_format: 'auto' }
+      { fetch_format: 'auto' },
     ],
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
   },
   cin_back: {
-    folder: 'q-trust/students/cin',
+    subfolder: 'students/cin',
     transformation: [
       { width: 1200, height: 800, crop: 'limit' },
       { quality: 'auto' },
-      { fetch_format: 'auto' }
+      { fetch_format: 'auto' },
     ],
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
   },
   document: {
-    folder: 'q-trust/documents',
+    subfolder: 'documents',
     resource_type: 'auto' as const,
     allowed_formats: [
       'jpg', 'jpeg', 'png', 'webp', 'gif',
       'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt',
-      'mp3', 'mp4', 'ogg', 'wav', 'webm'
+      'mp3', 'mp4', 'ogg', 'wav', 'webm',
     ],
-  }
+  },
 }
 
-export type UploadType = keyof typeof uploadOptions
+export type UploadType = keyof typeof baseUploadOptions
+
+// Every asset owned by a tenant lives under this prefix. Used to scope uploads
+// and to authorize deletes (a public ID outside the caller's prefix is rejected).
+export function tenantFolderPrefix(tenantId: string): string {
+  return `q-trust/tenants/${tenantId}/`
+}
+
+// Build Cloudinary upload options for a file type, scoped to the tenant's folder.
+export function getUploadOptions(uploadType: UploadType, tenantId: string) {
+  const base = baseUploadOptions[uploadType] ?? baseUploadOptions.document
+  const { subfolder, ...rest } = base
+  return { ...rest, folder: `${tenantFolderPrefix(tenantId)}${subfolder}` }
+}

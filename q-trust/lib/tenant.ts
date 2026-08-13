@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import dbConnect from '@/lib/db'
 import Tenant, { type ITenant } from '@/models/Tenant'
+import { ROLES } from '@/lib/constants'
 
 // Thrown by the tenant/entitlement guards; callers map `.status` to an HTTP response.
 export class TenantAuthError extends Error {
@@ -37,6 +38,17 @@ export async function requireTenantSession(): Promise<TenantContext> {
     tenantPlan: user.tenantPlan,
     fullName: user.fullName,
   }
+}
+
+// Require the caller to be a platform SUPER_ADMIN (cross-tenant, no tenant context).
+// Used by the super-admin console; its queries are intentionally NOT tenant-scoped.
+export async function requireSuperAdmin() {
+  const session = await auth()
+  if (!session?.user) throw new TenantAuthError('يجب تسجيل الدخول', 401)
+  if (session.user.role !== ROLES.SUPER_ADMIN) {
+    throw new TenantAuthError('غير مصرح — هذه الصفحة لمدير المنصة فقط', 403)
+  }
+  return session.user
 }
 
 // Look up a tenant by its URL slug (used at login time to scope the credential check).

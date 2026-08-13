@@ -54,6 +54,54 @@ export type PaymentMethod = typeof PAYMENT_METHODS[keyof typeof PAYMENT_METHODS]
 export const LOCALES = ['ar', 'fr', 'en'] as const
 export type Locale = typeof LOCALES[number]
 
+// Platform billing (the super-admin billing the tenant — distinct from a
+// tenant's own MonthlyPayment tracking of student families).
+export const INVOICE_TYPES = {
+  SETUP: 'SETUP',
+  ANNUAL_RENEWAL: 'ANNUAL_RENEWAL',
+  ADDON: 'ADDON',
+} as const
+export type InvoiceType = typeof INVOICE_TYPES[keyof typeof INVOICE_TYPES]
+
+export const INVOICE_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  OVERDUE: 'OVERDUE',
+  CANCELLED: 'CANCELLED',
+} as const
+export type InvoiceStatus = typeof INVOICE_STATUS[keyof typeof INVOICE_STATUS]
+
+// Arabic display labels for the super-admin console
+export const PLAN_LABELS: Record<string, string> = {
+  STARTER: 'مبتدئ',
+  STANDARD: 'احترافي',
+  PREMIUM: 'متقدم',
+}
+export const TENANT_STATUS_LABELS: Record<string, string> = {
+  TRIAL: 'تجريبي',
+  ACTIVE: 'نشط',
+  PAST_DUE: 'متأخر السداد',
+  SUSPENDED: 'معلّق',
+  CANCELLED: 'ملغى',
+}
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  BANK_TRANSFER: 'تحويل بنكي',
+  CHECK: 'شيك',
+  CASH: 'نقداً',
+  CARD: 'بطاقة',
+}
+export const INVOICE_TYPE_LABELS: Record<string, string> = {
+  SETUP: 'رسوم التركيب والإعداد',
+  ANNUAL_RENEWAL: 'تجديد سنوي',
+  ADDON: 'خدمة إضافية',
+}
+export const INVOICE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'قيد الانتظار',
+  PAID: 'مدفوع',
+  OVERDUE: 'متأخر',
+  CANCELLED: 'ملغى',
+}
+
 // Gender constants
 export const GENDER = {
   MALE: 'MALE',

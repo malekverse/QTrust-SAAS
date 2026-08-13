@@ -49,3 +49,6 @@ export type { ITenant } from './Tenant'
 
 export { default as Branch } from './Branch'
 export type { IBranch } from './Branch'
+
+export { default as Invoice } from './Invoice'
+export type { IInvoice } from './Invoice'

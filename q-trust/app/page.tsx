@@ -9,6 +9,10 @@ export default async function HomePage() {
     redirect("/auth/login")
   }
 
+  if (session.user.role === ROLES.SUPER_ADMIN) {
+    redirect("/super-admin")
+  }
+
   if (session.user.role === ROLES.ADMIN) {
     redirect("/admin/dashboard")
   }

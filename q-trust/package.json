@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
+    "create-super-admin": "tsx scripts/create-super-admin.ts",
     "test-db": "tsx scripts/test-db.ts"
   },
   "dependencies": {

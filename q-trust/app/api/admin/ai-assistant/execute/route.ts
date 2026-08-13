@@ -3,7 +3,6 @@ import { auth } from '@/lib/auth'
 import { ROLES, PLANS } from '@/lib/constants'
 import { tenantHasTier } from '@/lib/entitlements'
 import {
-  getGroqClient,
   AI_MODEL,
   AI_CONFIG,
   buildSystemPrompt,
@@ -21,104 +20,17 @@ import { aiLimiter, aiTenantLimiter, enforceRateLimit } from '@/lib/rate-limit'
 import { recordAiRound } from '@/lib/ai/usage'
 import { validateToolArgs } from '@/lib/ai/tool-schemas'
 import { logActivity } from '@/models/ActivityLog'
-
-const MAX_TOOL_ROUNDS = 5
-const TOOL_TIMEOUT_MS = 15_000
-
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-}
-
-function cleanArgs(obj: unknown): unknown {
-  if (Array.isArray(obj)) {
-    return obj.map(cleanArgs).filter((v) => v !== undefined)
-  }
-  if (isPlainObject(obj)) {
-    const cleaned: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(obj)) {
-      const c = cleanArgs(v)
-      if (c === undefined) continue
-      if (typeof c === 'string' && c.trim() === '') continue
-      if (Array.isArray(c) && c.length === 0) continue
-      if (isPlainObject(c) && Object.keys(c).length === 0) continue
-      cleaned[k] = c
-    }
-    return cleaned
-  }
-  if (obj === null || obj === undefined) return undefined
-  return obj
-}
-
-const TOOL_NAME_AR: Record<string, string> = {
-  list_students: 'البحث عن الطلاب',
-  get_student: 'عرض بيانات طالب',
-  list_teachers: 'البحث عن المعلمين',
-  get_teacher: 'عرض بيانات معلم',
-  list_sessions: 'عرض الحصص',
-  get_session: 'عرض تفاصيل حصة',
-  list_rooms: 'عرض القاعات',
-  get_room: 'عرض تفاصيل قاعة',
-  check_room_availability: 'التحقق من توفر القاعة',
-  view_schedule: 'عرض الجدول الزمني',
-  check_conflicts: 'كشف التعارضات',
-  view_attendance: 'عرض سجلات الحضور',
-  get_attendance_stats: 'عرض إحصائيات الحضور',
-  view_payments: 'عرض المدفوعات',
-  list_claims: 'عرض الاعتراضات',
-  list_documents: 'عرض المستندات',
-  get_dashboard_stats: 'عرض إحصائيات لوحة التحكم',
-  get_activity_log: 'عرض سجل النشاطات',
-  get_settings: 'عرض الإعدادات',
-}
-
-function describeAction(toolName: string, args: Record<string, unknown>): string {
-  const descriptionMap: Record<string, string> = {
-    create_student: `إنشاء طالب جديد: ${args.firstName || ''} ${args.lastName || ''}`,
-    update_student: `تحديث بيانات طالب`,
-    delete_student: `إلغاء تنشيط طالب`,
-    create_student_account: `إنشاء حساب بوابة لطالب`,
-    reset_student_password: `إعادة تعيين كلمة مرور طالب`,
-    create_teacher: `إنشاء معلم جديد: ${args.fullName || ''}`,
-    update_teacher: `تحديث بيانات معلم`,
-    delete_teacher: `إلغاء تنشيط معلم`,
-    create_session: `إنشاء حصة جديدة: ${args.name || ''}`,
-    update_session: `تحديث حصة`,
-    delete_session: `إلغاء تنشيط حصة`,
-    enroll_student: `تسجيل طالب في حصة`,
-    unenroll_student: `إلغاء تسجيل طالب من حصة`,
-    generate_occurrences: `إنشاء حصص فعلية من ${args.startDate || ''} إلى ${args.endDate || ''}`,
-    create_room: `إنشاء قاعة جديدة: ${args.name || ''}`,
-    update_room: `تحديث بيانات قاعة`,
-    delete_room: `إلغاء تنشيط قاعة`,
-    auto_assign_rooms: `تعيين القاعات تلقائياً`,
-    update_attendance: `تحديث حالة حضور`,
-    mark_payment: `تسجيل دفعة شهرية`,
-    bulk_mark_payments: `تسجيل دفعات جماعية لـ ${(args.studentIds as string[] || []).length} طلاب`,
-    review_claim: `مراجعة اعتراض حضور`,
-    delete_document: `حذف مستند`,
-    update_settings: `تحديث إعدادات النظام`,
-  }
-  return descriptionMap[toolName] || `تنفيذ: ${toolName}`
-}
-
-function sseEvent(type: string, data: Record<string, unknown>): string {
-  return `data: ${JSON.stringify({ type, ...data })}\n\n`
-}
-
-async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return await Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Tool "${label}" timed out after ${ms}ms`)), ms)
-    ),
-  ])
-}
-
-interface AssembledToolCall {
-  id: string
-  name: string
-  arguments: string
-}
+import { streamChat, type ChatMessages } from '@/lib/ai/llm-provider'
+import {
+  MAX_TOOL_ROUNDS,
+  TOOL_TIMEOUT_MS,
+  cleanArgs,
+  TOOL_NAME_AR,
+  describeAction,
+  sseEvent,
+  withTimeout,
+  type AssembledToolCall,
+} from '@/lib/ai/shared'
 
 export async function POST(request: NextRequest) {
   try {
@@ -254,12 +166,10 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const groq = getGroqClient()
     const systemPrompt = buildSystemPrompt(session.user.fullName)
     const history = getMessageHistoryForGroq(updatedConversation)
 
-    type GroqMessages = Parameters<typeof groq.chat.completions.create>[0]['messages']
-    const groqMessages: GroqMessages = [
+    const groqMessages: ChatMessages = [
       { role: 'system', content: systemPrompt },
       ...history,
       ...allNewMessages.map((m) => ({ role: m.role as 'user', content: m.content })),
@@ -297,26 +207,14 @@ export async function POST(request: NextRequest) {
             const toolCallBuffer = new Map<number, { id?: string; name?: string; arguments: string }>()
             let finishReason: string | null = null
 
-            // Passed as a variable (not an inline literal) so the extra
-            // `stream_options` — valid at the Groq API but absent from the SDK
-            // types — doesn't trip the excess-property check.
-            const streamBody = {
-              model: AI_MODEL,
+            const groqStream = await streamChat({
               messages: groqMessages,
               tools: AI_TOOLS,
-              tool_choice: 'auto' as const,
-              parallel_tool_calls: false,
-              temperature: AI_CONFIG.temperature,
-              max_tokens: AI_CONFIG.max_tokens_final,
-              top_p: AI_CONFIG.top_p,
-              stream: true as const,
-              stream_options: { include_usage: true },
-            }
-            const groqStream = await groq.chat.completions.create(streamBody)
+              maxTokens: AI_CONFIG.max_tokens_final,
+            })
 
             for await (const chunk of groqStream) {
-              const chunkUsage = (chunk as unknown as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null }).usage
-              if (chunkUsage) roundUsage = chunkUsage
+              if (chunk.usage) roundUsage = chunk.usage
               const choice = chunk.choices[0]
               if (!choice) continue
               const delta = choice.delta
@@ -472,12 +370,9 @@ export async function POST(request: NextRequest) {
               send('status', { text: 'يُعدّ أحمد الملخص...' })
 
               let summaryContent = ''
-              const summaryStream = await groq.chat.completions.create({
-                model: AI_MODEL,
+              const summaryStream = await streamChat({
                 messages: groqMessages,
-                temperature: AI_CONFIG.temperature,
-                max_tokens: AI_CONFIG.max_tokens_final,
-                stream: true,
+                maxTokens: AI_CONFIG.max_tokens_final,
               })
 
               for await (const chunk of summaryStream) {

@@ -154,15 +154,13 @@ export async function generateSmartTitle(
   assistantReply: string
 ): Promise<void> {
   try {
-    const { getGroqClient, AI_MODEL_FAST } = await import('./groq-client')
-    const groq = getGroqClient()
+    const { createFastChat } = await import('./llm-provider')
 
     const replyContext = assistantReply
       ? `\nرد المساعد: ${assistantReply.slice(0, 120)}`
       : ''
 
-    const completion = await groq.chat.completions.create({
-      model: AI_MODEL_FAST,
+    const raw = await createFastChat({
       messages: [
         {
           role: 'system',
@@ -173,11 +171,8 @@ export async function generateSmartTitle(
           content: `طلب المستخدم: ${userMessage.slice(0, 150)}${replyContext}\n\nالعنوان:`,
         },
       ],
-      temperature: 0.2,
-      max_tokens: 30,
+      maxTokens: 30,
     })
-
-    const raw = completion.choices[0]?.message?.content?.trim()
     if (raw) {
       const title = raw
         .replace(/["'«»""\-:\.]/g, '')

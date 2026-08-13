@@ -17,6 +17,8 @@ import {
   getMessageHistoryForGroq,
 } from '@/lib/ai'
 import type { IConversationMessage, IToolCall } from '@/models/Conversation'
+import { aiLimiter, aiTenantLimiter, enforceRateLimit } from '@/lib/rate-limit'
+import { recordAiRound } from '@/lib/ai/usage'
 
 const MAX_TOOL_ROUNDS = 5
 const TOOL_TIMEOUT_MS = 15_000
@@ -139,6 +141,11 @@ export async function POST(request: NextRequest) {
         { status: 402, headers: { 'Content-Type': 'application/json' } }
       )
     }
+
+    const rl = await enforceRateLimit(aiLimiter, `ai:${session.user.id}`)
+    if (rl) return rl
+    const trl = await enforceRateLimit(aiTenantLimiter, `ai:tenant:${tenantId}`)
+    if (trl) return trl
 
     const { conversationId, actionId, approved, modifiedParams } = await request.json()
 
@@ -266,22 +273,30 @@ export async function POST(request: NextRequest) {
 
           for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
             let assistantContent = ''
+            let roundUsage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null = null
             const toolCallBuffer = new Map<number, { id?: string; name?: string; arguments: string }>()
             let finishReason: string | null = null
 
-            const groqStream = await groq.chat.completions.create({
+            // Passed as a variable (not an inline literal) so the extra
+            // `stream_options` — valid at the Groq API but absent from the SDK
+            // types — doesn't trip the excess-property check.
+            const streamBody = {
               model: AI_MODEL,
               messages: groqMessages,
               tools: AI_TOOLS,
-              tool_choice: 'auto',
+              tool_choice: 'auto' as const,
               parallel_tool_calls: false,
               temperature: AI_CONFIG.temperature,
               max_tokens: AI_CONFIG.max_tokens_final,
               top_p: AI_CONFIG.top_p,
-              stream: true,
-            })
+              stream: true as const,
+              stream_options: { include_usage: true },
+            }
+            const groqStream = await groq.chat.completions.create(streamBody)
 
             for await (const chunk of groqStream) {
+              const chunkUsage = (chunk as unknown as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null }).usage
+              if (chunkUsage) roundUsage = chunkUsage
               const choice = chunk.choices[0]
               if (!choice) continue
               const delta = choice.delta
@@ -306,6 +321,14 @@ export async function POST(request: NextRequest) {
                 finishReason = choice.finish_reason
               }
             }
+
+            // Count this completed round against the monthly quota + log token usage.
+            await recordAiRound({
+              tenantId, userId: adminId, conversationId, route: 'execute', model: AI_MODEL,
+              promptTokens: roundUsage?.prompt_tokens,
+              completionTokens: roundUsage?.completion_tokens,
+              totalTokens: roundUsage?.total_tokens,
+            })
 
             const assembledToolCalls: AssembledToolCall[] = Array.from(toolCallBuffer.entries())
               .sort(([a], [b]) => a - b)

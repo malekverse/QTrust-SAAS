@@ -35,6 +35,7 @@ async function registerModels() {
     await import('@/models/Tenant')
     await import('@/models/Branch')
     await import('@/models/Invoice')
+    await import('@/models/AiUsageLog')
 
     modelsRegistered = true
     console.log('✅ All Mongoose models registered')

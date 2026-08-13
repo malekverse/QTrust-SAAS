@@ -52,3 +52,5 @@ export type { IBranch } from './Branch'
 
 export { default as Invoice } from './Invoice'
 export type { IInvoice } from './Invoice'
+export { default as AiUsageLog } from './AiUsageLog'
+export type { IAiUsageLog } from './AiUsageLog'

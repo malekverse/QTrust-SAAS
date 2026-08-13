@@ -19,7 +19,8 @@ import {
   popAfterLastUserMessage,
 } from '@/lib/ai'
 import type { IConversationMessage, IToolCall } from '@/models/Conversation'
-import { aiLimiter, enforceRateLimit } from '@/lib/rate-limit'
+import { aiLimiter, aiTenantLimiter, enforceRateLimit } from '@/lib/rate-limit'
+import { ensureAiQuota, recordAiRound } from '@/lib/ai/usage'
 
 const MAX_TOOL_ROUNDS = 5
 const MAX_RETRIES = 2
@@ -253,9 +254,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Cost/abuse control: cap AI chat requests per admin.
+    // Cost/abuse control: cap AI chat requests per admin and per tenant.
     const limited = await enforceRateLimit(aiLimiter, `ai:${session.user.id}`)
     if (limited) return limited
+    const tenantLimited = await enforceRateLimit(aiTenantLimiter, `ai:tenant:${tenantId}`)
+    if (tenantLimited) return tenantLimited
+
+    // Monthly AI usage quota (a Premium entitlement). Checked at the start of
+    // each turn; a single turn may then consume several tool-calling rounds.
+    const quota = await ensureAiQuota(tenantId)
+    if (!quota.allowed) {
+      const resetStr = quota.resetAt.toLocaleDateString('ar-TN', { year: 'numeric', month: 'long', day: 'numeric' })
+      return new Response(
+        JSON.stringify({ message: `لقد بلغت مؤسستك الحدّ الشهري لاستخدام المساعد الذكي (${quota.quota}). يتجدّد في ${resetStr}.` }),
+        { status: 402, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
 
     const body = await request.json()
     const { conversationId, regenerate } = body
@@ -357,6 +371,7 @@ export async function POST(request: NextRequest) {
 
           for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
             let assistantContent = ''
+            let roundUsage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null = null
             const toolCallBuffer = new Map<number, { id?: string; name?: string; arguments: string }>()
             let finishReason: string | null = null
             let retryCount = 0
@@ -364,19 +379,26 @@ export async function POST(request: NextRequest) {
 
             while (retryCount <= MAX_RETRIES && !streamSucceeded) {
               try {
-                const groqStream = await groq.chat.completions.create({
+                // Passed as a variable (not an inline literal) so the extra
+                // `stream_options` — valid at the Groq API but absent from the SDK
+                // types — doesn't trip the excess-property check.
+                const streamBody = {
                   model: AI_MODEL,
                   messages: groqMessages,
                   tools: AI_TOOLS,
-                  tool_choice: 'auto',
+                  tool_choice: 'auto' as const,
                   parallel_tool_calls: false,
                   temperature: AI_CONFIG.temperature,
                   max_tokens: AI_CONFIG.max_tokens_tool_round,
                   top_p: AI_CONFIG.top_p,
-                  stream: true,
-                })
+                  stream: true as const,
+                  stream_options: { include_usage: true },
+                }
+                const groqStream = await groq.chat.completions.create(streamBody)
 
                 for await (const chunk of groqStream) {
+                  const chunkUsage = (chunk as unknown as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null }).usage
+                  if (chunkUsage) roundUsage = chunkUsage
                   const choice = chunk.choices[0]
                   if (!choice) continue
                   const delta = choice.delta
@@ -422,6 +444,14 @@ export async function POST(request: NextRequest) {
             }
 
             if (!streamSucceeded) break
+
+            // Count this completed round against the monthly quota + log token usage.
+            await recordAiRound({
+              tenantId, userId: adminId, conversationId: convId, route: 'chat', model: AI_MODEL,
+              promptTokens: roundUsage?.prompt_tokens,
+              completionTokens: roundUsage?.completion_tokens,
+              totalTokens: roundUsage?.total_tokens,
+            })
 
             const assembledToolCalls: AssembledToolCall[] = Array.from(toolCallBuffer.entries())
               .sort(([a], [b]) => a - b)

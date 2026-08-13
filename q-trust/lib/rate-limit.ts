@@ -33,6 +33,12 @@ export const aiLimiter = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(20, '1 m'), prefix: 'qtrust:ai' })
   : null
 
+// AI assistant chat — hard per-tenant cap (independent of the per-admin limit
+// and the monthly quota) so a runaway client or script can't hammer Groq.
+export const aiTenantLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(40, '1 m'), prefix: 'qtrust:ai:tenant' })
+  : null
+
 // Best-effort client IP extraction from proxy headers (Vercel sets these).
 export function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')

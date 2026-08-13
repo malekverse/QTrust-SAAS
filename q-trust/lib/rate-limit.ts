@@ -39,6 +39,12 @@ export const aiTenantLimiter = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(40, '1 m'), prefix: 'qtrust:ai:tenant' })
   : null
 
+// Public demo-request form — strict, keyed by client IP (spam control on an
+// unauthenticated endpoint; the honeypot field handles the dumb bots).
+export const leadLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '10 m'), prefix: 'qtrust:lead' })
+  : null
+
 // Best-effort client IP extraction from proxy headers (Vercel sets these).
 export function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')

@@ -2,7 +2,9 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
 
-export default async function HomePage() {
+// Role-based router for authenticated users. The public root `/` now serves
+// the marketing landing page; middleware sends signed-in visitors here.
+export default async function HomeRouter() {
   const session = await auth()
 
   if (!session?.user) {

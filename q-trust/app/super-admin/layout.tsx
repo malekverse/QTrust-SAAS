@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
-import { ShieldCheck, Building2 } from "lucide-react"
+import { ShieldCheck, Building2, Inbox } from "lucide-react"
 import { SignOutButton } from "./sign-out-button"
 
 export default async function SuperAdminLayout({
@@ -44,6 +44,13 @@ export default async function SuperAdminLayout({
           >
             <Building2 className="h-4 w-4" />
             المؤسسات
+          </Link>
+          <Link
+            href="/super-admin/leads"
+            className="px-3 py-2 text-sm rounded-md hover:bg-muted flex items-center gap-2 transition-colors"
+          >
+            <Inbox className="h-4 w-4" />
+            طلبات العروض
           </Link>
         </div>
       </nav>

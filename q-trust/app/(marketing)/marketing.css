@@ -1,0 +1,343 @@
+/* ============================================================
+   Q-Trust marketing surface — (marketing) route group only.
+   Every color/radius/font sources from the app token system in
+   globals.css (§3.5.1: one design system, not five).
+   Grammar (§8.2.3): elements enter opacity 0→1 + 24px rise,
+   600ms, cubic-bezier(0.22,1,0.36,1), 60–90ms sibling stagger,
+   once only. Only transform + opacity are animated.
+   ============================================================ */
+
+.mk {
+  --mk-max: 1200px;
+  --mk-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Section vertical rhythm: ~64–96px mobile → 120–160px desktop */
+  --mk-section-y: clamp(4.5rem, 4rem + 6vw, 10rem);
+  font-family: var(--font-mk-sans, var(--font-sans));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  overflow-x: clip;
+}
+
+/* ---------- Type ---------- */
+.mk-display {
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.mk-h1 { font-size: clamp(2.5rem, 1.4rem + 4.6vw, 5.5rem); } /* 40 → 88 */
+.mk-h2 { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.25rem); }
+.mk-h3 { font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem); }
+.mk-lead {
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  line-height: 1.8;
+  color: hsl(var(--foreground) / 0.72);
+}
+.mk-body { line-height: 1.8; color: hsl(var(--foreground) / 0.8); }
+.mk-eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: hsl(var(--primary));
+}
+
+/* Gold used only as a thin accent (§8.2.1 #4): hairlines + a subtle
+   underline behind a key phrase — never a large fill. */
+.mk-underline-gold {
+  background-image: linear-gradient(to top, hsl(var(--secondary) / 0.55) 0.18em, transparent 0.18em);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  padding-inline: 0.05em;
+}
+.mk-hairline-gold { border-block-start: 1px solid hsl(var(--secondary) / 0.6); }
+
+/* ---------- Layout ---------- */
+.mk-container {
+  max-width: var(--mk-max);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+.mk-section { padding-block: var(--mk-section-y); }
+
+/* ---------- Reveal grammar ----------
+   Hidden state applies only when JS is confirmed (data-js flipped by an
+   inline script before paint) so no-JS visitors always see content. */
+[data-js="true"] .mk-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 600ms var(--mk-ease),
+    transform 600ms var(--mk-ease);
+  transition-delay: var(--mk-delay, 0ms);
+  will-change: opacity, transform;
+}
+[data-js="true"] .mk-reveal.is-in {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* ---------- Hero ---------- */
+.mk-hero-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(24px);
+  animation: mk-rise 700ms var(--mk-ease) forwards;
+  animation-delay: calc(var(--mk-line, 0) * 110ms);
+}
+@keyframes mk-rise {
+  to { opacity: 1; transform: none; }
+}
+
+/* Extremely slow hero-screenshot drift (§8.2.2 #2) — CSS scroll-driven
+   where supported; everyone else gets a perfectly still image. */
+@supports (animation-timeline: view()) {
+  .mk-hero-drift {
+    animation: mk-drift linear both;
+    animation-timeline: view();
+    animation-range: entry 80% exit 20%;
+  }
+  @keyframes mk-drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-36px); }
+  }
+}
+
+/* ---------- Buttons (pill, §8.2.2 #1 / §8.2.3 micro-interactions) ---------- */
+.mk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.875rem 1.75rem;
+  transition: transform 150ms var(--mk-ease), box-shadow 150ms var(--mk-ease), background-color 150ms var(--mk-ease);
+  cursor: pointer;
+}
+.mk-btn:active { transform: scale(0.98); }
+.mk-btn-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 1px 2px hsl(var(--primary) / 0.3);
+}
+.mk-btn-primary:hover {
+  background: hsl(var(--primary) / 0.92);
+  box-shadow: 0 4px 16px hsl(var(--primary) / 0.28);
+}
+.mk-btn-ghost {
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--foreground) / 0.16);
+  background: transparent;
+}
+.mk-btn-ghost:hover { background: hsl(var(--foreground) / 0.05); }
+.mk-btn .mk-btn-arrow { transition: translate 150ms var(--mk-ease); }
+.mk-btn:hover .mk-btn-arrow { translate: -4px 0; } /* forward = -X in RTL */
+[dir="ltr"] .mk-btn:hover .mk-btn-arrow { translate: 4px 0; }
+
+/* ---------- Nav ---------- */
+.mk-nav {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  transition: background-color 250ms var(--mk-ease), box-shadow 250ms var(--mk-ease), border-color 250ms var(--mk-ease);
+  border-block-end: 1px solid transparent;
+}
+.mk-nav--scrolled {
+  background: hsl(var(--background) / 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-block-end-color: hsl(var(--foreground) / 0.08);
+}
+.mk-nav-inner {
+  height: 4.5rem;
+  transition: height 250ms var(--mk-ease);
+}
+.mk-nav--scrolled .mk-nav-inner { height: 3.75rem; }
+.mk-nav-link {
+  font-size: 0.9375rem;
+  color: hsl(var(--foreground) / 0.72);
+  transition: color 150ms;
+}
+.mk-nav-link:hover { color: hsl(var(--foreground)); }
+
+/* ---------- Cards (§8.2.2 #5: gentle hover lift) ---------- */
+.mk-card {
+  background: hsl(var(--card, var(--background)));
+  border: 1px solid hsl(var(--foreground) / 0.08);
+  border-radius: calc(var(--radius, 0.5rem) + 6px);
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.03),
+    0 4px 16px hsl(var(--foreground) / 0.04);
+  transition: transform 120ms var(--mk-ease), box-shadow 120ms var(--mk-ease);
+}
+.mk-card--lift:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 2px 6px hsl(var(--foreground) / 0.05),
+    0 12px 32px hsl(var(--foreground) / 0.08);
+}
+
+/* ---------- Device frames (§8.2.1 #5: layered soft shadows + 1px borders) ---------- */
+.mk-browser-frame {
+  border-radius: 14px;
+  border: 1px solid hsl(var(--foreground) / 0.1);
+  background: hsl(var(--card, var(--background)));
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.05),
+    0 12px 40px hsl(var(--foreground) / 0.09),
+    0 32px 80px hsl(var(--foreground) / 0.07);
+  overflow: hidden;
+}
+.mk-browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-block-end: 1px solid hsl(var(--foreground) / 0.07);
+  background: hsl(var(--foreground) / 0.025);
+}
+.mk-browser-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: hsl(var(--foreground) / 0.14);
+}
+.mk-browser-url {
+  margin-inline: auto;
+  font-size: 0.6875rem;
+  color: hsl(var(--foreground) / 0.4);
+  background: hsl(var(--foreground) / 0.05);
+  border-radius: 999px;
+  padding: 0.2rem 1.25rem;
+  direction: ltr;
+}
+.mk-phone-frame {
+  border-radius: 2.25rem;
+  border: 1px solid hsl(var(--foreground) / 0.12);
+  background: hsl(var(--foreground));
+  padding: 0.5rem;
+  box-shadow:
+    0 2px 6px hsl(var(--foreground) / 0.08),
+    0 24px 64px hsl(var(--foreground) / 0.14);
+}
+.mk-phone-screen {
+  border-radius: 1.85rem;
+  overflow: hidden;
+  background: hsl(var(--background));
+}
+
+/* Honest screenshot slot: shown until the real product capture from the
+   demo tenant replaces it (§8.2.8) — never a fake dashboard drawing. */
+.mk-shot-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background:
+    radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, hsl(var(--secondary) / 0.06) 1px, transparent 1px),
+    hsl(var(--foreground) / 0.02);
+  background-size: 24px 24px, 24px 24px, auto;
+  color: hsl(var(--foreground) / 0.35);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Dark section (AI spotlight) ---------- */
+.mk-dark-section {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* ---------- Pattern watermark (§8.2.1 #5: notice it only when looking) ---------- */
+.mk-pattern {
+  position: relative;
+}
+.mk-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.045;
+}
+
+/* ---------- Final CTA ---------- */
+.mk-cta-band {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* ---------- Chat mockup (AI spotlight) ---------- */
+.mk-chat-bubble {
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  max-width: 85%;
+}
+.mk-caret {
+  display: inline-block;
+  inline-size: 2px;
+  block-size: 1em;
+  vertical-align: -0.15em;
+  background: currentColor;
+  animation: mk-caret 1s steps(1) infinite;
+}
+@keyframes mk-caret { 50% { opacity: 0; } }
+
+/* ---------- Scanner success pulse (mirrors the product's check-in beat) ---------- */
+.mk-scan-line {
+  position: absolute;
+  inset-inline: 12%;
+  block-size: 2px;
+  background: hsl(var(--primary) / 0.85);
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.55);
+  animation: mk-scan 2.6s var(--mk-ease) infinite;
+}
+@keyframes mk-scan {
+  0%, 12% { transform: translateY(0); opacity: 0; }
+  18% { opacity: 1; }
+  46% { transform: translateY(150px); opacity: 1; }
+  52%, 100% { transform: translateY(150px); opacity: 0; }
+}
+.mk-scan-check {
+  animation: mk-scan-pop 2.6s var(--mk-ease) infinite;
+  transform-origin: center;
+}
+@keyframes mk-scan-pop {
+  0%, 52% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.06); }
+  66%, 92% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* ---------- Product tour ---------- */
+.mk-tour-sticky {
+  position: sticky;
+  top: 0;
+  block-size: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- Reduced motion: reveals become instant, loops freeze on the
+   readable end-state, drift/caret stop (§8.2.3 hard rules) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  [data-js="true"] .mk-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .mk-hero-line { animation: none; opacity: 1; transform: none; }
+  .mk-hero-drift { animation: none; }
+  .mk-scan-line { animation: none; opacity: 0; }
+  .mk-scan-check { animation: none; opacity: 1; transform: none; }
+  .mk-caret { animation: none; opacity: 0; }
+  .mk-btn, .mk-card { transition: none; }
+}

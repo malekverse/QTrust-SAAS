@@ -6,7 +6,11 @@ export async function middleware(request: NextRequest) {
 
   // Public routes that don't require auth
   // '/t/' is the public path-slug tenant-login entry (/t/<slug> → branded login)
-  const publicRoutes = ['/auth/login', '/auth/error', '/scanner', '/auth/onboarding', '/t/']
+  // The (marketing) route group pages are the public face of the product.
+  const publicRoutes = [
+    '/auth/login', '/auth/error', '/scanner', '/auth/onboarding', '/t/',
+    '/pricing', '/features', '/about', '/contact', '/terms', '/privacy', '/demo',
+  ]
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
   
   // Static files and API routes that don't need auth check in middleware
@@ -34,10 +38,11 @@ export async function middleware(request: NextRequest) {
 
   // For authenticated users, we'll let server components handle role-based access
   // since we can't decode the JWT without crypto in edge runtime
-  
-  // Redirect root to login if not authenticated
-  if (pathname === '/' && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+
+  // Root `/` is the public marketing landing page. Signed-in users go to their
+  // role dashboard via /home (which reads the session server-side).
+  if (pathname === '/' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/home', request.url))
   }
 
   return NextResponse.next()

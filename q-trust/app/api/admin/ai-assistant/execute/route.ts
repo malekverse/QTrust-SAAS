@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
-import { ROLES } from '@/lib/constants'
+import { ROLES, PLANS } from '@/lib/constants'
+import { tenantHasTier } from '@/lib/entitlements'
 import {
   getGroqClient,
   AI_MODEL,
@@ -125,6 +126,20 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return new Response(JSON.stringify({ message: 'لا يوجد سياق مؤسسة' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    if (!(await tenantHasTier(tenantId, PLANS.PREMIUM))) {
+      return new Response(
+        JSON.stringify({ message: 'المساعد الذكي متاح ضمن الباقة المتقدمة فقط. يرجى ترقية اشتراك مؤسستك.' }),
+        { status: 402, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { conversationId, actionId, approved, modifiedParams } = await request.json()
 
     if (!conversationId || !actionId || typeof approved !== 'boolean') {
@@ -136,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     const adminId = session.user.id
 
-    const conversation = await getConversation(conversationId, adminId)
+    const conversation = await getConversation(conversationId, adminId, tenantId)
     if (!conversation) {
       return new Response(JSON.stringify({ message: 'المحادثة غير موجودة' }), {
         status: 404,
@@ -170,7 +185,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const result = await withTimeout(
-          executeTool(action.toolName, finalParams, adminId),
+          executeTool(action.toolName, finalParams, adminId, tenantId),
           TOOL_TIMEOUT_MS,
           action.toolName
         )
@@ -204,7 +219,7 @@ export async function POST(request: NextRequest) {
       executionContextMessage = `[نظام] رفض المدير تنفيذ "${action.description}". اكتفِ بالإقرار بالرفض بجملة قصيرة.`
     }
 
-    const updatedConversation = await getConversation(conversationId, adminId)
+    const updatedConversation = await getConversation(conversationId, adminId, tenantId)
     if (!updatedConversation) {
       return new Response(JSON.stringify({ message: 'خطأ في تحميل المحادثة' }), {
         status: 500,
@@ -357,7 +372,7 @@ export async function POST(request: NextRequest) {
 
                 let result: Awaited<ReturnType<typeof executeTool>>
                 try {
-                  result = await withTimeout(executeTool(toolName, cleanedArgs, adminId), TOOL_TIMEOUT_MS, toolName)
+                  result = await withTimeout(executeTool(toolName, cleanedArgs, adminId, tenantId), TOOL_TIMEOUT_MS, toolName)
                 } catch (toolErr) {
                   result = {
                     success: false,

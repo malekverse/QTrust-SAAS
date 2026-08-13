@@ -65,18 +65,20 @@ function isValidMongoObjectId(id: unknown): id is string {
 
 async function resolveTeacherObjectId(
   models: Models,
-  raw: unknown
+  raw: unknown,
+  tenantId: string
 ): Promise<{ ok: true; id: string } | { ok: false; error: string; candidates?: Array<{ _id: string; fullName: string }> }> {
   if (raw === undefined || raw === null) return { ok: false, error: 'معرف المعلم مطلوب' }
   const s = String(raw).trim()
   if (!s) return { ok: false, error: 'معرف المعلم مطلوب' }
   if (isValidMongoObjectId(s)) {
-    const u = await models.User.findOne({ _id: s, role: ROLES.TEACHER }).select('_id fullName').lean()
+    const u = await models.User.findOne({ _id: s, role: ROLES.TEACHER, tenantId }).select('_id fullName').lean()
     if (u) return { ok: true, id: String(u._id) }
     return { ok: false, error: 'لم يُعثر على معلم بهذا المعرّف' }
   }
   const results = await models.User.find({
     role: ROLES.TEACHER,
+    tenantId,
     fullName: { $regex: escapeRegex(s), $options: 'i' },
   })
     .select('_id fullName')
@@ -95,17 +97,19 @@ async function resolveTeacherObjectId(
 
 async function resolveStudentObjectId(
   models: Models,
-  raw: unknown
+  raw: unknown,
+  tenantId: string
 ): Promise<{ ok: true; id: string } | { ok: false; error: string; candidates?: Array<{ _id: string; fullName?: string; firstName?: string; lastName?: string }> }> {
   if (raw === undefined || raw === null) return { ok: false, error: 'معرف الطالب مطلوب' }
   const s = String(raw).trim()
   if (!s) return { ok: false, error: 'معرف الطالب مطلوب' }
   if (isValidMongoObjectId(s)) {
-    const st = await models.Student.findById(s).select('_id').lean()
+    const st = await models.Student.findOne({ _id: s, tenantId }).select('_id').lean()
     if (st) return { ok: true, id: String(st._id) }
     return { ok: false, error: 'لم يُعثر على طالب بهذا المعرّف' }
   }
   const results = await models.Student.find({
+    tenantId,
     $or: [
       { firstName: { $regex: escapeRegex(s), $options: 'i' } },
       { lastName: { $regex: escapeRegex(s), $options: 'i' } },
@@ -136,17 +140,19 @@ async function resolveStudentObjectId(
 
 async function resolveRoomObjectId(
   models: Models,
-  raw: unknown
+  raw: unknown,
+  tenantId: string
 ): Promise<{ ok: true; id: string | undefined } | { ok: false; error: string; candidates?: Array<{ _id: string; name: string }> }> {
   if (raw === undefined || raw === null || raw === '') return { ok: true, id: undefined }
   const s = String(raw).trim()
   if (!s) return { ok: true, id: undefined }
   if (isValidMongoObjectId(s)) {
-    const room = await models.Room.findById(s).select('_id').lean()
+    const room = await models.Room.findOne({ _id: s, tenantId }).select('_id').lean()
     if (room) return { ok: true, id: String(room._id) }
     return { ok: false, error: 'لم يُعثر على قاعة بهذا المعرّف' }
   }
   const results = await models.Room.find({
+    tenantId,
     name: { $regex: escapeRegex(s), $options: 'i' },
   })
     .select('_id name')
@@ -163,17 +169,19 @@ async function resolveRoomObjectId(
 
 async function resolveSessionTemplateObjectId(
   models: Models,
-  raw: unknown
+  raw: unknown,
+  tenantId: string
 ): Promise<{ ok: true; id: string } | { ok: false; error: string; candidates?: Array<{ _id: string; name: string }> }> {
   if (raw === undefined || raw === null) return { ok: false, error: 'معرف قالب الحصة مطلوب' }
   const s = String(raw).trim()
   if (!s) return { ok: false, error: 'معرف قالب الحصة مطلوب' }
   if (isValidMongoObjectId(s)) {
-    const tpl = await models.SessionTemplate.findById(s).select('_id').lean()
+    const tpl = await models.SessionTemplate.findOne({ _id: s, tenantId }).select('_id').lean()
     if (tpl) return { ok: true, id: String(tpl._id) }
     return { ok: false, error: 'لم يُعثر على حصة بهذا المعرّف' }
   }
   const results = await models.SessionTemplate.find({
+    tenantId,
     name: { $regex: escapeRegex(s), $options: 'i' },
   })
     .select('_id name')
@@ -191,16 +199,22 @@ async function resolveSessionTemplateObjectId(
 export async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
-  adminUserId: string
+  adminUserId: string,
+  tenantId: string
 ): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
+    // Fail closed: every AI tool is tenant-scoped. Without a tenant context we
+    // must never touch the database, or one tenant's assistant could read/write
+    // another tenant's data.
+    if (!tenantId) return { success: false, error: 'لا يوجد سياق مؤسسة' }
+
     const models = await getModels()
     const { logActivity } = await import('@/models/ActivityLog')
 
     switch (toolName) {
       // ─── Students ───
       case 'list_students': {
-        const query: Record<string, unknown> = {}
+        const query: Record<string, unknown> = { tenantId }
         if (args.isActive !== undefined) query.isActive = args.isActive
         if (args.search) {
           const s = args.search as string
@@ -234,10 +248,11 @@ export async function executeTool(
       case 'get_student': {
         let student
         if (args.id) {
-          student = await models.Student.findById(args.id).lean()
+          student = await models.Student.findOne({ _id: args.id, tenantId }).lean()
         } else if (args.name) {
           const s = args.name as string
           const results = await models.Student.find({
+            tenantId,
             $or: [
               { firstName: { $regex: escapeRegex(s), $options: 'i' } },
               { lastName: { $regex: escapeRegex(s), $options: 'i' } },
@@ -267,6 +282,7 @@ export async function executeTool(
         const qrUuid = generateQrUuid()
         const year = new Date().getFullYear()
         const lastStudent = await models.Student.findOne({
+          tenantId,
           enrollmentNumber: { $regex: `^${year}-` },
         }).sort({ enrollmentNumber: -1 }).select('enrollmentNumber').lean()
 
@@ -278,6 +294,7 @@ export async function executeTool(
         const enrollmentNumber = `${year}-${nextNum.toString().padStart(3, '0')}`
 
         const studentData: any = {
+          tenantId,
           firstName: args.firstName,
           lastName: args.lastName,
           gender: args.gender,
@@ -299,30 +316,31 @@ export async function executeTool(
 
         const student = oneDoc(await models.Student.create(studentData))
         await logActivity('STUDENT_CREATED', `${args.firstName} ${args.lastName}`, {
-          studentId: student._id, userId: adminUserId,
+          tenantId, studentId: student._id, userId: adminUserId,
         })
         return { success: true, data: { _id: student._id, enrollmentNumber, name: `${args.firstName} ${args.lastName}` } }
       }
 
       case 'update_student': {
         const { id, ...updateData } = args
+        delete (updateData as any).tenantId
         if (updateData.dateOfBirth) updateData.dateOfBirth = new Date(updateData.dateOfBirth as string)
-        const student = await models.Student.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).lean()
+        const student = await models.Student.findOneAndUpdate({ _id: id, tenantId } as any, updateData, { new: true, runValidators: true }).lean()
         if (!student) return { success: false, error: 'الطالب غير موجود' }
         await logActivity('STUDENT_UPDATED', `${student.firstName} ${student.lastName}`, {
-          studentId: student._id, userId: adminUserId,
+          tenantId, studentId: student._id, userId: adminUserId,
         })
         return { success: true, data: { _id: student._id, name: `${student.firstName} ${student.lastName}` } }
       }
 
       case 'delete_student': {
-        const student = await models.Student.findByIdAndUpdate(args.id, { isActive: false }, { new: true }).lean()
+        const student = await models.Student.findOneAndUpdate({ _id: args.id, tenantId } as any, { isActive: false }, { new: true }).lean()
         if (!student) return { success: false, error: 'الطالب غير موجود' }
         return { success: true, data: { _id: student._id, name: `${student.firstName} ${student.lastName}` } }
       }
 
       case 'create_student_account': {
-        const student = await models.Student.findById(args.studentId)
+        const student = await models.Student.findOne({ _id: args.studentId, tenantId } as any)
         if (!student) return { success: false, error: 'الطالب غير موجود' }
         if (student.hasPortalAccess) return { success: false, error: 'الطالب لديه حساب بالفعل' }
 
@@ -333,6 +351,7 @@ export async function executeTool(
         const tempPassword = generateTempPassword()
         const passwordHash = await hashPassword(tempPassword)
         const user = await models.User.create({
+          tenantId,
           fullName: `${student.firstName} ${student.lastName}`,
           email,
           phone,
@@ -349,12 +368,12 @@ export async function executeTool(
       }
 
       case 'reset_student_password': {
-        const student = await models.Student.findById(args.studentId).lean()
+        const student = await models.Student.findOne({ _id: args.studentId, tenantId } as any).lean()
         if (!student) return { success: false, error: 'الطالب غير موجود' }
         if (!student.userId) return { success: false, error: 'الطالب ليس لديه حساب' }
         const tempPassword = generateTempPassword()
         const passwordHash = await hashPassword(tempPassword)
-        await models.User.findByIdAndUpdate(student.userId, {
+        await models.User.findOneAndUpdate({ _id: student.userId, tenantId }, {
           passwordHash, mustChangePassword: true,
         })
         return { success: true, data: { tempPassword } }
@@ -362,7 +381,7 @@ export async function executeTool(
 
       // ─── Teachers ───
       case 'list_teachers': {
-        const query: Record<string, unknown> = { role: ROLES.TEACHER }
+        const query: Record<string, unknown> = { role: ROLES.TEACHER, tenantId }
         if (args.isActive !== undefined) query.isActive = args.isActive
         if (args.search) {
           query.$or = [
@@ -379,11 +398,12 @@ export async function executeTool(
       case 'get_teacher': {
         let teacher
         if (args.id) {
-          teacher = await models.User.findOne({ _id: args.id, role: ROLES.TEACHER })
+          teacher = await models.User.findOne({ _id: args.id, role: ROLES.TEACHER, tenantId })
             .select('-passwordHash').lean()
         } else if (args.name) {
           const results = await models.User.find({
             role: ROLES.TEACHER,
+            tenantId,
             fullName: { $regex: escapeRegex(args.name as string), $options: 'i' },
           }).select('-passwordHash').limit(5).lean()
           if (results.length === 1) teacher = results[0]
@@ -405,6 +425,7 @@ export async function executeTool(
         const password = (args.password as string) || generateTempPassword()
         const passwordHash = await hashPassword(password)
         const teacherData: any = {
+          tenantId,
           fullName: args.fullName,
           email: args.email,
           phone: args.phone,
@@ -414,24 +435,26 @@ export async function executeTool(
           mustChangePassword: !args.password,
         }
         const teacher = oneDoc(await models.User.create(teacherData))
-        await logActivity('TEACHER_CREATED', args.fullName as string, { userId: adminUserId })
+        await logActivity('TEACHER_CREATED', args.fullName as string, { tenantId, userId: adminUserId })
         return { success: true, data: { _id: teacher._id, fullName: args.fullName, email: args.email, tempPassword: args.password ? undefined : password } }
       }
 
       case 'update_teacher': {
         const { id: tid, ...tUpdate } = args
+        delete (tUpdate as any).tenantId
+        delete (tUpdate as any).role
         const teacher = await models.User.findOneAndUpdate(
-          { _id: tid, role: ROLES.TEACHER } as any, tUpdate as any,
+          { _id: tid, role: ROLES.TEACHER, tenantId } as any, tUpdate as any,
           { new: true, runValidators: true }
         ).select('-passwordHash').lean()
         if (!teacher) return { success: false, error: 'المعلم غير موجود' }
-        await logActivity('TEACHER_UPDATED', teacher.fullName, { userId: adminUserId })
+        await logActivity('TEACHER_UPDATED', teacher.fullName, { tenantId, userId: adminUserId })
         return { success: true, data: { _id: teacher._id, fullName: teacher.fullName } }
       }
 
       case 'delete_teacher': {
         const teacher = await models.User.findOneAndUpdate(
-          { _id: args.id, role: ROLES.TEACHER } as any, { isActive: false } as any, { new: true }
+          { _id: args.id, role: ROLES.TEACHER, tenantId } as any, { isActive: false } as any, { new: true }
         ).select('fullName').lean()
         if (!teacher) return { success: false, error: 'المعلم غير موجود' }
         return { success: true, data: { _id: teacher._id, fullName: teacher.fullName } }
@@ -439,9 +462,9 @@ export async function executeTool(
 
       // ─── Sessions ───
       case 'list_sessions': {
-        const query: Record<string, unknown> = {}
+        const query: Record<string, unknown> = { tenantId }
         if (args.teacherId) {
-          const tr = await resolveTeacherObjectId(models, args.teacherId)
+          const tr = await resolveTeacherObjectId(models, args.teacherId, tenantId)
           if (!tr.ok) {
             return {
               success: false,
@@ -463,11 +486,12 @@ export async function executeTool(
       case 'get_session': {
         let session
         if (args.id) {
-          session = await models.SessionTemplate.findById(args.id)
+          session = await models.SessionTemplate.findOne({ _id: args.id, tenantId })
             .populate('teacherId', 'fullName email')
             .populate('roomId', 'name capacity').lean()
         } else if (args.name) {
           const results = await models.SessionTemplate.find({
+            tenantId,
             name: { $regex: escapeRegex(args.name as string), $options: 'i' },
           }).populate('teacherId', 'fullName').limit(5).lean()
           if (results.length === 1) session = results[0]
@@ -479,13 +503,13 @@ export async function executeTool(
           }
         }
         if (!session) return { success: false, error: 'الحصة غير موجودة' }
-        const enrolled = await models.StudentSession.find({ sessionTemplateId: session._id, isActive: true })
+        const enrolled = await models.StudentSession.find({ sessionTemplateId: session._id, tenantId, isActive: true })
           .populate('studentId', 'firstName lastName enrollmentNumber').lean()
         return { success: true, data: { session, enrolledStudents: enrolled.map((e: any) => e.studentId), enrolledCount: enrolled.length } }
       }
 
       case 'create_session': {
-        const teacherRes = await resolveTeacherObjectId(models, args.teacherId)
+        const teacherRes = await resolveTeacherObjectId(models, args.teacherId, tenantId)
         if (!teacherRes.ok) {
           return {
             success: false,
@@ -493,7 +517,7 @@ export async function executeTool(
             ...(teacherRes.candidates ? { data: { teacherCandidates: teacherRes.candidates } } : {}),
           }
         }
-        const roomRes = await resolveRoomObjectId(models, args.roomId)
+        const roomRes = await resolveRoomObjectId(models, args.roomId, tenantId)
         if (!roomRes.ok) {
           return {
             success: false,
@@ -502,6 +526,7 @@ export async function executeTool(
           }
         }
         const sessionData: any = {
+          tenantId,
           name: args.name,
           teacherId: teacherRes.id,
           dayOfWeek: args.dayOfWeek,
@@ -515,15 +540,16 @@ export async function executeTool(
         }
         const session = oneDoc(await models.SessionTemplate.create(sessionData))
         await logActivity('SESSION_CREATED', args.name as string, {
-          sessionId: session._id, userId: adminUserId,
+          tenantId, sessionId: session._id, userId: adminUserId,
         })
         return { success: true, data: { _id: session._id, name: args.name } }
       }
 
       case 'update_session': {
         const { id: sid, ...sUpdate } = args as any
+        delete sUpdate.tenantId
         if (sUpdate.teacherId !== undefined) {
-          const tr = await resolveTeacherObjectId(models, sUpdate.teacherId)
+          const tr = await resolveTeacherObjectId(models, sUpdate.teacherId, tenantId)
           if (!tr.ok) {
             return {
               success: false,
@@ -534,7 +560,7 @@ export async function executeTool(
           sUpdate.teacherId = tr.id
         }
         if (Object.prototype.hasOwnProperty.call(sUpdate, 'roomId')) {
-          const rr = await resolveRoomObjectId(models, sUpdate.roomId)
+          const rr = await resolveRoomObjectId(models, sUpdate.roomId, tenantId)
           if (!rr.ok) {
             return {
               success: false,
@@ -547,20 +573,20 @@ export async function executeTool(
         }
         if (sUpdate.effectiveFromDate) sUpdate.effectiveFromDate = new Date(sUpdate.effectiveFromDate as string)
         if (sUpdate.effectiveToDate) sUpdate.effectiveToDate = new Date(sUpdate.effectiveToDate as string)
-        const session = await models.SessionTemplate.findByIdAndUpdate(sid, sUpdate, { new: true, runValidators: true }).lean()
+        const session = await models.SessionTemplate.findOneAndUpdate({ _id: sid, tenantId }, sUpdate, { new: true, runValidators: true }).lean()
         if (!session) return { success: false, error: 'الحصة غير موجودة' }
-        await logActivity('SESSION_UPDATED', session.name, { sessionId: session._id, userId: adminUserId })
+        await logActivity('SESSION_UPDATED', session.name, { tenantId, sessionId: session._id, userId: adminUserId })
         return { success: true, data: { _id: session._id, name: session.name } }
       }
 
       case 'delete_session': {
-        const session = await models.SessionTemplate.findByIdAndUpdate(args.id, { isActive: false }, { new: true }).lean()
+        const session = await models.SessionTemplate.findOneAndUpdate({ _id: args.id, tenantId } as any, { isActive: false }, { new: true }).lean()
         if (!session) return { success: false, error: 'الحصة غير موجودة' }
         return { success: true, data: { _id: session._id, name: session.name } }
       }
 
       case 'enroll_student': {
-        const studentRes = await resolveStudentObjectId(models, args.studentId)
+        const studentRes = await resolveStudentObjectId(models, args.studentId, tenantId)
         if (!studentRes.ok) {
           return {
             success: false,
@@ -568,7 +594,7 @@ export async function executeTool(
             ...(studentRes.candidates ? { data: { studentCandidates: studentRes.candidates } } : {}),
           }
         }
-        const tplRes = await resolveSessionTemplateObjectId(models, args.sessionTemplateId)
+        const tplRes = await resolveSessionTemplateObjectId(models, args.sessionTemplateId, tenantId)
         if (!tplRes.ok) {
           return {
             success: false,
@@ -577,7 +603,7 @@ export async function executeTool(
           }
         }
         const existing = await models.StudentSession.findOne({
-          studentId: studentRes.id, sessionTemplateId: tplRes.id,
+          studentId: studentRes.id, sessionTemplateId: tplRes.id, tenantId,
         } as any)
         if (existing) {
           if (existing.isActive) return { success: false, error: 'الطالب مسجل بالفعل في هذه الحصة' }
@@ -586,13 +612,13 @@ export async function executeTool(
           return { success: true, data: { reactivated: true } }
         }
         await models.StudentSession.create({
-          studentId: studentRes.id, sessionTemplateId: tplRes.id, isActive: true,
+          tenantId, studentId: studentRes.id, sessionTemplateId: tplRes.id, isActive: true,
         } as any)
         return { success: true, data: { enrolled: true } }
       }
 
       case 'unenroll_student': {
-        const studentResU = await resolveStudentObjectId(models, args.studentId)
+        const studentResU = await resolveStudentObjectId(models, args.studentId, tenantId)
         if (!studentResU.ok) {
           return {
             success: false,
@@ -600,7 +626,7 @@ export async function executeTool(
             ...(studentResU.candidates ? { data: { studentCandidates: studentResU.candidates } } : {}),
           }
         }
-        const tplResU = await resolveSessionTemplateObjectId(models, args.sessionTemplateId)
+        const tplResU = await resolveSessionTemplateObjectId(models, args.sessionTemplateId, tenantId)
         if (!tplResU.ok) {
           return {
             success: false,
@@ -609,7 +635,7 @@ export async function executeTool(
           }
         }
         const enrollment = await models.StudentSession.findOneAndUpdate(
-          { studentId: studentResU.id, sessionTemplateId: tplResU.id } as any,
+          { studentId: studentResU.id, sessionTemplateId: tplResU.id, tenantId } as any,
           { isActive: false } as any, { new: true }
         )
         if (!enrollment) return { success: false, error: 'الطالب غير مسجل في هذه الحصة' }
@@ -619,9 +645,9 @@ export async function executeTool(
       case 'generate_occurrences': {
         const start = new Date(args.startDate as string)
         const end = new Date(args.endDate as string)
-        const templateQuery: Record<string, unknown> = { isActive: true }
+        const templateQuery: Record<string, unknown> = { tenantId, isActive: true }
         if (args.sessionTemplateId) {
-          const tplRes = await resolveSessionTemplateObjectId(models, args.sessionTemplateId)
+          const tplRes = await resolveSessionTemplateObjectId(models, args.sessionTemplateId, tenantId)
           if (!tplRes.ok) {
             return {
               success: false,
@@ -641,6 +667,7 @@ export async function executeTool(
             if (current.getDay() === tpl.dayOfWeek) {
               const dateStr = current.toISOString().split('T')[0]
               const exists = await models.SessionOccurrence.findOne({
+                tenantId,
                 sessionTemplateId: tpl._id,
                 date: { $gte: new Date(`${dateStr}T00:00:00`), $lt: new Date(`${dateStr}T23:59:59`) },
               })
@@ -655,6 +682,7 @@ export async function executeTool(
                 const qrClose = new Date(endDT.getTime() + (tpl.qrCloseOffsetAfterMin || 60) * 60000)
 
                 await models.SessionOccurrence.create({
+                  tenantId,
                   sessionTemplateId: tpl._id,
                   teacherId: tpl.teacherId,
                   date: new Date(dateStr),
@@ -675,7 +703,7 @@ export async function executeTool(
 
       // ─── Rooms ───
       case 'list_rooms': {
-        const query: Record<string, unknown> = {}
+        const query: Record<string, unknown> = { tenantId }
         if (args.isActive !== undefined) query.isActive = args.isActive
         const rooms = await models.Room.find(query).sort({ name: 1 }).lean()
         return { success: true, data: { rooms, total: rooms.length } }
@@ -684,9 +712,10 @@ export async function executeTool(
       case 'get_room': {
         let room
         if (args.id) {
-          room = await models.Room.findById(args.id).lean()
+          room = await models.Room.findOne({ _id: args.id, tenantId }).lean()
         } else if (args.name) {
           const results = await models.Room.find({
+            tenantId,
             name: { $regex: escapeRegex(args.name as string), $options: 'i' },
           }).limit(5).lean()
           if (results.length === 1) room = results[0]
@@ -703,6 +732,7 @@ export async function executeTool(
 
       case 'create_room': {
         const roomData: any = {
+          tenantId,
           name: args.name, capacity: args.capacity,
           description: args.description, location: args.location,
           features: args.features || [], isActive: true,
@@ -713,21 +743,22 @@ export async function executeTool(
 
       case 'update_room': {
         const { id: rid, ...rUpdate } = args
-        const room = await models.Room.findByIdAndUpdate(rid, rUpdate as any, { new: true, runValidators: true }).lean()
+        delete (rUpdate as any).tenantId
+        const room = await models.Room.findOneAndUpdate({ _id: rid, tenantId } as any, rUpdate as any, { new: true, runValidators: true }).lean()
         if (!room) return { success: false, error: 'القاعة غير موجودة' }
         return { success: true, data: { _id: room._id, name: room.name } }
       }
 
       case 'delete_room': {
-        const room = await models.Room.findByIdAndUpdate(args.id, { isActive: false }, { new: true }).lean()
+        const room = await models.Room.findOneAndUpdate({ _id: args.id, tenantId } as any, { isActive: false }, { new: true }).lean()
         if (!room) return { success: false, error: 'القاعة غير موجودة' }
         return { success: true, data: { _id: room._id, name: room.name } }
       }
 
       case 'check_room_availability': {
-        const room = await models.Room.findById(args.roomId).lean()
+        const room = await models.Room.findOne({ _id: args.roomId, tenantId } as any).lean()
         if (!room) return { success: false, error: 'القاعة غير موجودة' }
-        const sessQuery: Record<string, unknown> = { roomId: args.roomId, isActive: true }
+        const sessQuery: Record<string, unknown> = { tenantId, roomId: args.roomId, isActive: true }
         if (args.dayOfWeek !== undefined) sessQuery.dayOfWeek = args.dayOfWeek
         const sessions = await models.SessionTemplate.find(sessQuery)
           .populate('teacherId', 'fullName').lean()
@@ -739,7 +770,7 @@ export async function executeTool(
 
       // ─── Schedule ───
       case 'view_schedule': {
-        const query: Record<string, unknown> = { isActive: true }
+        const query: Record<string, unknown> = { tenantId, isActive: true }
         if (args.teacherId && typeof args.teacherId === 'string') query.teacherId = args.teacherId
         if (args.roomId && typeof args.roomId === 'string') query.roomId = args.roomId
         const sessions = await models.SessionTemplate.find(query)
@@ -756,7 +787,7 @@ export async function executeTool(
       }
 
       case 'check_conflicts': {
-        const activeSessions = await models.SessionTemplate.find({ isActive: true })
+        const activeSessions = await models.SessionTemplate.find({ tenantId, isActive: true })
           .populate('teacherId', 'fullName')
           .populate('roomId', 'name').lean()
 
@@ -791,19 +822,20 @@ export async function executeTool(
       }
 
       case 'auto_assign_rooms': {
-        const unassigned = await models.SessionTemplate.find({ isActive: true, roomId: null }).lean()
-        const rooms = await models.Room.find({ isActive: true }).sort({ capacity: -1 }).lean()
+        const unassigned = await models.SessionTemplate.find({ tenantId, isActive: true, roomId: null }).lean()
+        const rooms = await models.Room.find({ tenantId, isActive: true }).sort({ capacity: -1 }).lean()
         const assigned: Array<{ session: string; room: string }> = []
 
         for (const sess of unassigned) {
           for (const room of rooms) {
             const conflict = await models.SessionTemplate.findOne({
+              tenantId,
               isActive: true, roomId: room._id, dayOfWeek: sess.dayOfWeek,
               startTime: { $lt: sess.endTime }, endTime: { $gt: sess.startTime },
             })
             if (!conflict) {
               if (args.confirm) {
-                await models.SessionTemplate.findByIdAndUpdate(sess._id, { roomId: room._id })
+                await models.SessionTemplate.findOneAndUpdate({ _id: sess._id, tenantId }, { roomId: room._id })
               }
               assigned.push({ session: sess.name, room: room.name })
               break
@@ -820,6 +852,7 @@ export async function executeTool(
         const dayEnd = new Date(`${date}T23:59:59`)
 
         const occQuery: Record<string, unknown> = {
+          tenantId,
           date: { $gte: dayStart, $lte: dayEnd },
         }
         if (args.sessionTemplateId) occQuery.sessionTemplateId = args.sessionTemplateId
@@ -832,7 +865,7 @@ export async function executeTool(
         }
 
         const occIds = occurrences.map((o: any) => o._id)
-        const attQuery: Record<string, unknown> = { sessionOccurrenceId: { $in: occIds } }
+        const attQuery: Record<string, unknown> = { tenantId, sessionOccurrenceId: { $in: occIds } }
         if (args.studentId) attQuery.studentId = args.studentId
 
         const records = await models.Attendance.find(attQuery)
@@ -852,7 +885,7 @@ export async function executeTool(
 
       case 'update_attendance': {
         if (args.attendanceId) {
-          const att = await models.Attendance.findByIdAndUpdate(args.attendanceId, {
+          const att = await models.Attendance.findOneAndUpdate({ _id: args.attendanceId, tenantId }, {
             status: args.status, notes: args.notes,
             lastModifiedByUserId: adminUserId, lastModifiedAt: new Date(),
           }, { new: true, runValidators: true }).lean()
@@ -861,7 +894,7 @@ export async function executeTool(
         }
         if (args.studentId && args.sessionOccurrenceId) {
           const att = await models.Attendance.findOneAndUpdate(
-            { studentId: args.studentId, sessionOccurrenceId: args.sessionOccurrenceId },
+            { studentId: args.studentId, sessionOccurrenceId: args.sessionOccurrenceId, tenantId },
             {
               status: args.status, notes: args.notes,
               lastModifiedByUserId: adminUserId, lastModifiedAt: new Date(),
@@ -879,17 +912,17 @@ export async function executeTool(
         const dayStart = new Date(`${date}T00:00:00`)
         const dayEnd = new Date(`${date}T23:59:59`)
 
-        const occQuery: Record<string, unknown> = { date: { $gte: dayStart, $lte: dayEnd } }
+        const occQuery: Record<string, unknown> = { tenantId, date: { $gte: dayStart, $lte: dayEnd } }
         if (args.sessionTemplateId) occQuery.sessionTemplateId = args.sessionTemplateId
 
         const occurrences = await models.SessionOccurrence.find(occQuery).lean()
         const occIds = occurrences.map((o: any) => o._id)
 
-        const total = await models.Attendance.countDocuments({ sessionOccurrenceId: { $in: occIds } })
-        const present = await models.Attendance.countDocuments({ sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.PRESENT })
-        const late = await models.Attendance.countDocuments({ sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.LATE })
-        const absent = await models.Attendance.countDocuments({ sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.ABSENT })
-        const justified = await models.Attendance.countDocuments({ sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.JUSTIFIED_ABSENCE })
+        const total = await models.Attendance.countDocuments({ tenantId, sessionOccurrenceId: { $in: occIds } })
+        const present = await models.Attendance.countDocuments({ tenantId, sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.PRESENT })
+        const late = await models.Attendance.countDocuments({ tenantId, sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.LATE })
+        const absent = await models.Attendance.countDocuments({ tenantId, sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.ABSENT })
+        const justified = await models.Attendance.countDocuments({ tenantId, sessionOccurrenceId: { $in: occIds }, status: ATTENDANCE_STATUS.JUSTIFIED_ABSENCE })
 
         const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0
 
@@ -905,7 +938,7 @@ export async function executeTool(
         const month = (args.month as number) || (now.getMonth() + 1)
         const year = (args.year as number) || now.getFullYear()
 
-        const query: Record<string, unknown> = { month, year }
+        const query: Record<string, unknown> = { tenantId, month, year }
         if (args.studentId) query.studentId = args.studentId
         if (args.isPaid !== undefined) query.isPaid = args.isPaid
 
@@ -919,7 +952,7 @@ export async function executeTool(
 
       case 'mark_payment': {
         const payment = await models.MonthlyPayment.findOneAndUpdate(
-          { studentId: args.studentId, month: args.month, year: args.year } as any,
+          { studentId: args.studentId, month: args.month, year: args.year, tenantId } as any,
           {
             isPaid: args.isPaid,
             paidAt: args.isPaid ? new Date() : undefined,
@@ -937,7 +970,7 @@ export async function executeTool(
         let updated = 0
         for (const sid of ids) {
           await models.MonthlyPayment.findOneAndUpdate(
-            { studentId: sid, month: args.month, year: args.year } as any,
+            { studentId: sid, month: args.month, year: args.year, tenantId } as any,
             {
               isPaid: args.isPaid,
               paidAt: args.isPaid ? new Date() : undefined,
@@ -953,7 +986,7 @@ export async function executeTool(
 
       // ─── Claims ───
       case 'list_claims': {
-        const query: Record<string, unknown> = {}
+        const query: Record<string, unknown> = { tenantId }
         if (args.status) query.status = args.status
         const claims = await models.AttendanceClaim.find(query)
           .populate('studentId', 'firstName lastName enrollmentNumber')
@@ -963,7 +996,7 @@ export async function executeTool(
       }
 
       case 'review_claim': {
-        const claim = await models.AttendanceClaim.findByIdAndUpdate(args.claimId, {
+        const claim = await models.AttendanceClaim.findOneAndUpdate({ _id: args.claimId, tenantId } as any, {
           status: args.status,
           reviewedBy: adminUserId,
           reviewNotes: args.reviewNotes,
@@ -973,7 +1006,7 @@ export async function executeTool(
 
         if (args.status === CLAIM_STATUS.APPROVED) {
           await models.Attendance.findOneAndUpdate(
-            { studentId: claim.studentId, sessionOccurrenceId: claim.sessionOccurrenceId },
+            { studentId: claim.studentId, sessionOccurrenceId: claim.sessionOccurrenceId, tenantId },
             { status: ATTENDANCE_STATUS.PRESENT, lastModifiedByUserId: adminUserId, lastModifiedAt: new Date() },
             { runValidators: true }
           )
@@ -983,7 +1016,7 @@ export async function executeTool(
 
       // ─── Documents ───
       case 'list_documents': {
-        const query: Record<string, unknown> = {}
+        const query: Record<string, unknown> = { tenantId }
         if (args.category) query.category = args.category
         const docs = await models.LearningDocument.find(query)
           .sort({ createdAt: -1 }).lean()
@@ -991,32 +1024,33 @@ export async function executeTool(
       }
 
       case 'delete_document': {
-        const doc = await models.LearningDocument.findByIdAndDelete(args.id).lean()
+        const doc = await models.LearningDocument.findOneAndDelete({ _id: args.id, tenantId } as any).lean()
         if (!doc) return { success: false, error: 'المستند غير موجود' }
         return { success: true, data: { deleted: true, title: doc.title } }
       }
 
       // ─── Dashboard ───
       case 'get_dashboard_stats': {
-        const totalStudents = await models.Student.countDocuments({ isActive: true })
-        const totalTeachers = await models.User.countDocuments({ role: ROLES.TEACHER, isActive: true })
-        const totalSessions = await models.SessionTemplate.countDocuments({ isActive: true })
-        const totalRooms = await models.Room.countDocuments({ isActive: true })
+        const totalStudents = await models.Student.countDocuments({ tenantId, isActive: true })
+        const totalTeachers = await models.User.countDocuments({ tenantId, role: ROLES.TEACHER, isActive: true })
+        const totalSessions = await models.SessionTemplate.countDocuments({ tenantId, isActive: true })
+        const totalRooms = await models.Room.countDocuments({ tenantId, isActive: true })
 
         const today = new Date().toISOString().split('T')[0]
         const dayStart = new Date(`${today}T00:00:00`)
         const dayEnd = new Date(`${today}T23:59:59`)
-        const todayOccurrences = await models.SessionOccurrence.find({ date: { $gte: dayStart, $lte: dayEnd } }).lean()
+        const todayOccurrences = await models.SessionOccurrence.find({ tenantId, date: { $gte: dayStart, $lte: dayEnd } }).lean()
         const occIds = todayOccurrences.map((o: any) => o._id)
 
-        const totalAtt = await models.Attendance.countDocuments({ sessionOccurrenceId: { $in: occIds } })
+        const totalAtt = await models.Attendance.countDocuments({ tenantId, sessionOccurrenceId: { $in: occIds } })
         const presentAtt = await models.Attendance.countDocuments({
+          tenantId,
           sessionOccurrenceId: { $in: occIds },
           status: { $in: [ATTENDANCE_STATUS.PRESENT, ATTENDANCE_STATUS.LATE] },
         })
         const attendanceRate = totalAtt > 0 ? Math.round((presentAtt / totalAtt) * 100) : 0
 
-        const pendingClaims = await models.AttendanceClaim.countDocuments({ status: CLAIM_STATUS.PENDING })
+        const pendingClaims = await models.AttendanceClaim.countDocuments({ tenantId, status: CLAIM_STATUS.PENDING })
 
         return {
           success: true,
@@ -1032,7 +1066,7 @@ export async function executeTool(
       // ─── Activity Log ───
       case 'get_activity_log': {
         const limit = Math.min((args.limit as number) || 20, 50)
-        const query: Record<string, unknown> = {}
+        const query: Record<string, unknown> = { tenantId }
         if (args.type) query.type = args.type
         const logs = await models.ActivityLog.find(query)
           .populate('userId', 'fullName')
@@ -1043,16 +1077,16 @@ export async function executeTool(
       // ─── Settings ───
       case 'get_settings': {
         if (args.key) {
-          const setting = await models.Settings.findOne({ key: args.key }).lean()
+          const setting = await models.Settings.findOne({ key: args.key, tenantId }).lean()
           return { success: true, data: setting || { message: 'الإعداد غير موجود' } }
         }
-        const settings = await models.Settings.find({}).lean()
+        const settings = await models.Settings.find({ tenantId }).lean()
         return { success: true, data: { settings } }
       }
 
       case 'update_settings': {
         const setting = await models.Settings.findOneAndUpdate(
-          { key: args.key } as any,
+          { key: args.key, tenantId } as any,
           { value: args.value, updatedBy: adminUserId } as any,
           { new: true, upsert: true, runValidators: true }
         ).lean()

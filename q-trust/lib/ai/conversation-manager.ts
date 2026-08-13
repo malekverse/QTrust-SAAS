@@ -3,9 +3,10 @@ import Conversation from '@/models/Conversation'
 import type { IConversation, IConversationMessage, IPendingAction } from '@/models/Conversation'
 import crypto from 'crypto'
 
-export async function createConversation(userId: string): Promise<IConversation> {
+export async function createConversation(userId: string, tenantId: string): Promise<IConversation> {
   await dbConnect()
   const conversation = await Conversation.create({
+    tenantId,
     userId,
     title: 'محادثة جديدة',
     messages: [],
@@ -15,14 +16,14 @@ export async function createConversation(userId: string): Promise<IConversation>
   return conversation
 }
 
-export async function getConversation(conversationId: string, userId: string): Promise<IConversation | null> {
+export async function getConversation(conversationId: string, userId: string, tenantId: string): Promise<IConversation | null> {
   await dbConnect()
-  return Conversation.findOne({ _id: conversationId, userId })
+  return Conversation.findOne({ _id: conversationId, userId, tenantId })
 }
 
-export async function listConversations(userId: string, limit = 20): Promise<IConversation[]> {
+export async function listConversations(userId: string, tenantId: string, limit = 20): Promise<IConversation[]> {
   await dbConnect()
-  return Conversation.find({ userId, status: 'active' })
+  return Conversation.find({ userId, tenantId, status: 'active' })
     .select('title status createdAt updatedAt')
     .sort({ updatedAt: -1 })
     .limit(limit)
@@ -91,9 +92,9 @@ export async function resolvePendingAction(
   return action
 }
 
-export async function deleteConversation(conversationId: string, userId: string): Promise<boolean> {
+export async function deleteConversation(conversationId: string, userId: string, tenantId: string): Promise<boolean> {
   await dbConnect()
-  const result = await Conversation.findOneAndDelete({ _id: conversationId, userId })
+  const result = await Conversation.findOneAndDelete({ _id: conversationId, userId, tenantId })
   return !!result
 }
 
@@ -104,10 +105,11 @@ export async function deleteConversation(conversationId: string, userId: string)
  */
 export async function popAfterLastUserMessage(
   conversationId: string,
-  userId: string
+  userId: string,
+  tenantId: string
 ): Promise<string | null> {
   await dbConnect()
-  const conversation = await Conversation.findOne({ _id: conversationId, userId })
+  const conversation = await Conversation.findOne({ _id: conversationId, userId, tenantId })
   if (!conversation) return null
 
   const msgs = conversation.messages

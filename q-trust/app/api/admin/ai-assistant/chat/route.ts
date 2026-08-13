@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
-import { ROLES } from '@/lib/constants'
+import { ROLES, PLANS } from '@/lib/constants'
+import { tenantHasTier } from '@/lib/entitlements'
 import {
   getGroqClient,
   AI_MODEL,
@@ -237,6 +238,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    const tenantId = session.user.tenantId
+    if (!tenantId) {
+      return new Response(JSON.stringify({ message: 'لا يوجد سياق مؤسسة' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    // The AI assistant is a Premium-only feature; verify the plan fresh from the DB.
+    if (!(await tenantHasTier(tenantId, PLANS.PREMIUM))) {
+      return new Response(
+        JSON.stringify({ message: 'المساعد الذكي متاح ضمن الباقة المتقدمة فقط. يرجى ترقية اشتراك مؤسستك.' }),
+        { status: 402, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Cost/abuse control: cap AI chat requests per admin.
     const limited = await enforceRateLimit(aiLimiter, `ai:${session.user.id}`)
     if (limited) return limited
@@ -254,7 +270,7 @@ export async function POST(request: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
         })
       }
-      const lastUserText = await popAfterLastUserMessage(conversationId, adminId)
+      const lastUserText = await popAfterLastUserMessage(conversationId, adminId, tenantId)
       if (!lastUserText) {
         return new Response(JSON.stringify({ message: 'لا توجد رسالة لإعادة التوليد' }), {
           status: 400,
@@ -273,7 +289,7 @@ export async function POST(request: NextRequest) {
 
     let conversation
     if (conversationId) {
-      conversation = await getConversation(conversationId, adminId)
+      conversation = await getConversation(conversationId, adminId, tenantId)
       if (!conversation) {
         return new Response(JSON.stringify({ message: 'المحادثة غير موجودة' }), {
           status: 404,
@@ -281,7 +297,7 @@ export async function POST(request: NextRequest) {
         })
       }
     } else {
-      conversation = await createConversation(adminId)
+      conversation = await createConversation(adminId, tenantId)
     }
 
     const convId = conversation._id.toString()
@@ -296,7 +312,7 @@ export async function POST(request: NextRequest) {
 
     let stats
     try {
-      const statsResult = await executeTool('get_dashboard_stats', {}, adminId)
+      const statsResult = await executeTool('get_dashboard_stats', {}, adminId, tenantId)
       if (statsResult.success && statsResult.data) {
         stats = statsResult.data as Record<string, number>
       }
@@ -473,7 +489,7 @@ export async function POST(request: NextRequest) {
 
                 let result: Awaited<ReturnType<typeof executeTool>>
                 try {
-                  result = await withTimeout(executeTool(toolName, toolArgs, adminId), TOOL_TIMEOUT_MS, toolName)
+                  result = await withTimeout(executeTool(toolName, toolArgs, adminId, tenantId), TOOL_TIMEOUT_MS, toolName)
                 } catch (toolErr) {
                   result = {
                     success: false,

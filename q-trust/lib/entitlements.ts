@@ -8,6 +8,17 @@ export function hasPlanAccess(current: Plan, required: Plan): boolean {
   return PLAN_HIERARCHY.indexOf(current) >= PLAN_HIERARCHY.indexOf(required)
 }
 
+// Lightweight tier check for a known tenantId (no session lookup). Reads the
+// plan fresh from the DB so a downgrade takes effect immediately. Returns false
+// if the tenant is missing. Handy for streaming routes (e.g. the AI assistant)
+// that want to return their own Response instead of catching a thrown error.
+export async function tenantHasTier(tenantId: string, minTier: Plan): Promise<boolean> {
+  await dbConnect()
+  const tenant = await Tenant.findById(tenantId).select('plan').lean<{ plan: Plan }>()
+  if (!tenant) return false
+  return hasPlanAccess(tenant.plan, minTier)
+}
+
 // Require the calling tenant to be on at least `minTier`. Reads the plan fresh
 // from the DB (so a downgrade takes effect immediately, unlike the JWT copy).
 // Throws TenantAuthError(402) when the tier is insufficient.

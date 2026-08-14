@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+// Next.js 16 renamed `middleware.ts` -> `proxy.ts`, which runs on the Node.js
+// runtime (the old Edge middleware is deprecated). This also fixes a crash on
+// Vercel: `next/server` bundles `ua-parser-js`, which references `__dirname` —
+// undefined in the Edge runtime, so Edge middleware threw
+// `ReferenceError: __dirname is not defined` (MIDDLEWARE_INVOCATION_FAILED) on
+// every request. The Node.js runtime defines `__dirname`, so this is resolved.
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes that don't require auth
@@ -12,10 +18,10 @@ export async function middleware(request: NextRequest) {
     '/pricing', '/features', '/about', '/contact', '/terms', '/privacy', '/demo',
   ]
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
-  
-  // Static files and API routes that don't need auth check in middleware
+
+  // Static files and API routes that don't need auth check in the proxy
   if (
-    pathname.startsWith('/_next') || 
+    pathname.startsWith('/_next') ||
     pathname.startsWith('/api/') ||
     pathname.includes('.') ||
     pathname === '/favicon.ico'
@@ -37,7 +43,6 @@ export async function middleware(request: NextRequest) {
   }
 
   // For authenticated users, we'll let server components handle role-based access
-  // since we can't decode the JWT without crypto in edge runtime
 
   // Root `/` is the public marketing landing page. Signed-in users go to their
   // role dashboard via /home (which reads the session server-side).

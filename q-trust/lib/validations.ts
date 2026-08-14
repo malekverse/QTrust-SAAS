@@ -394,6 +394,16 @@ export const checkInSchema = z.object({
   scannedAt: z.string().datetime().optional()
 })
 
+// Kiosk health heartbeat sent by scanner devices every few minutes
+export const scannerHeartbeatSchema = z.object({
+  deviceId: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/, 'معرّف الجهاز غير صالح'),
+  appVersion: z.string().max(32).optional(),
+  platform: z.string().max(16).optional(),
+  batteryLevel: z.number().min(0).max(1).optional(),
+  batteryCharging: z.boolean().optional(),
+  pendingScans: z.number().int().min(0).max(100000).optional()
+})
+
 // ===== Session Occurrence =====
 export const createSessionOccurrenceSchema = z.object({
   sessionTemplateId: z.string().min(1, 'قالب الحصة مطلوب'),

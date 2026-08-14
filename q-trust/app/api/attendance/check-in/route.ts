@@ -7,8 +7,10 @@ import SessionOccurrence from "@/models/SessionOccurrence"
 import SessionTemplate from "@/models/SessionTemplate"
 import Student from "@/models/Student"
 import StudentSession from "@/models/StudentSession"
+import ScannerDevice from "@/models/ScannerDevice"
 import { NextRequest, NextResponse } from "next/server"
 import { checkInLimiter, enforceRateLimit, getClientIp } from "@/lib/rate-limit"
+import { verifyScannerToken, DEVICE_ID_PATTERN } from "@/lib/scanner-auth"
 
 // Force model registration (needed for populate in serverless)
 void Attendance
@@ -16,6 +18,7 @@ void SessionOccurrence
 void SessionTemplate
 void Student
 void StudentSession
+void ScannerDevice
 
 // Tunisia timezone offset (UTC+1, Tunisia doesn't use DST anymore)
 const TUNISIA_TIMEZONE_OFFSET_HOURS = 1
@@ -31,18 +34,6 @@ function getTunisiaTime(date?: Date): Date {
 function getTunisiaDayOfWeek(date: Date): number {
   const tunisiaTime = getTunisiaTime(date)
   return tunisiaTime.getUTCDay()
-}
-
-// Verify scanner token. Fails closed in production if no token is configured,
-// rather than silently accepting the well-known development default.
-function verifyScannerToken(request: NextRequest): boolean {
-  const token = request.headers.get("x-scanner-token")
-  const validToken = process.env.SCANNER_DEVICE_TOKEN
-  if (!validToken) {
-    if (process.env.NODE_ENV === "production") return false
-    return token === "dev-scanner-token"
-  }
-  return token === validToken
 }
 
 // Helper to create session occurrence if it doesn't exist
@@ -203,6 +194,20 @@ export async function POST(request: NextRequest) {
 
     // The tenant is derived from the scanned student; scope everything below to it.
     const tenantId = student.tenantId
+
+    // Bind the scanning device to this tenant (fire-and-forget). The global
+    // scanner token carries no tenant context, so the first successful scan
+    // is what makes a kiosk visible in its tenant's device dashboard.
+    const deviceId = request.headers.get("x-device-id")
+    if (deviceId && DEVICE_ID_PATTERN.test(deviceId)) {
+      ScannerDevice.findOneAndUpdate(
+        { deviceId },
+        { $set: { tenantId, lastSeenAt: new Date(), lastCheckInAt: new Date() } },
+        { upsert: true, setDefaultsOnInsert: true }
+      ).catch((err) =>
+        console.error("[Check-in] Device association failed (non-fatal):", err)
+      )
+    }
 
     // Get student's session assignments
     let studentSessions

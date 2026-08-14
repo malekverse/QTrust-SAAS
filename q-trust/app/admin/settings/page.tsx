@@ -36,11 +36,39 @@ import {
   Eye,
   EyeOff,
   Hash,
-  RefreshCw
+  RefreshCw,
+  Tablet
 } from "lucide-react"
 import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations"
 import { IslamicDivider } from "@/components/layout/islamic-divider"
 import { DEFAULT_QR_SETTINGS } from "@/lib/constants"
+
+// Scanner kiosk device reported via heartbeat
+interface ScannerDeviceInfo {
+  deviceId: string
+  appVersion?: string
+  platform?: string
+  batteryLevel?: number
+  batteryCharging?: boolean
+  pendingScans?: number
+  lastSeenAt: string
+  lastCheckInAt?: string
+}
+
+// A device is "online" if it heartbeated within the last 6 minutes
+// (heartbeat interval is 5 minutes)
+const DEVICE_ONLINE_WINDOW_MS = 6 * 60 * 1000
+
+function timeAgoAr(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const min = Math.floor(diffMs / 60000)
+  if (min < 1) return 'الآن'
+  if (min < 60) return `قبل ${min} دقيقة`
+  const hours = Math.floor(min / 60)
+  if (hours < 24) return `قبل ${hours} ساعة`
+  const days = Math.floor(hours / 24)
+  return `قبل ${days} يوم`
+}
 
 // Enrollment settings type
 interface EnrollmentSettings {
@@ -130,7 +158,29 @@ export default function AdminSettingsPage() {
     queryKey: ['settings', 'enrollment'],
     queryFn: fetchEnrollmentSettings
   })
-  
+
+  // Scanner token is fetched behind the admin session instead of being
+  // baked into the public bundle via NEXT_PUBLIC_*.
+  const [showScannerToken, setShowScannerToken] = useState(false)
+  const { data: scannerTokenData } = useQuery({
+    queryKey: ['settings', 'scanner-token'],
+    queryFn: async (): Promise<{ token: string | null }> => {
+      const res = await fetch('/api/admin/scanner-token')
+      if (!res.ok) throw new Error('فشل في جلب رمز الماسح')
+      return res.json()
+    }
+  })
+
+  const { data: scannerDevicesData, isLoading: isLoadingDevices } = useQuery({
+    queryKey: ['settings', 'scanner-devices'],
+    queryFn: async (): Promise<{ devices: ScannerDeviceInfo[] }> => {
+      const res = await fetch('/api/admin/scanner-devices')
+      if (!res.ok) throw new Error('فشل في جلب الأجهزة')
+      return res.json()
+    },
+    refetchInterval: 60_000
+  })
+
   const [localEnrollmentSettings, setLocalEnrollmentSettings] = useState<EnrollmentSettings>(DEFAULT_ENROLLMENT_SETTINGS)
   
   // Sync local state with fetched data
@@ -714,13 +764,97 @@ export default function AdminSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 rounded-lg bg-muted font-mono text-sm" dir="ltr">
-                {process.env.NEXT_PUBLIC_SCANNER_TOKEN || "dev-scanner-token"}
+              <div className="p-4 rounded-lg bg-muted font-mono text-sm flex items-center justify-between gap-2" dir="ltr">
+                <span className="truncate">
+                  {scannerTokenData?.token
+                    ? (showScannerToken ? scannerTokenData.token : '•'.repeat(24))
+                    : '—'}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowScannerToken(v => !v)}
+                >
+                  {showScannerToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                استخدم هذا الرمز على صفحة الماسح الضوئي: 
+                استخدم هذا الرمز على صفحة الماسح الضوئي:
                 <code className="px-1 bg-muted rounded mx-1">/scanner?token=TOKEN</code>
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Scanner Devices (kiosk fleet health) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tablet className="h-5 w-5" />
+                أجهزة المسح
+              </CardTitle>
+              <CardDescription>
+                حالة أجهزة تسجيل الحضور — يظهر الجهاز بعد أول عملية مسح ناجحة
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingDevices ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جارٍ التحميل...
+                </div>
+              ) : !scannerDevicesData?.devices?.length ? (
+                <p className="text-sm text-muted-foreground">
+                  لا توجد أجهزة مسجلة بعد
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {scannerDevicesData.devices.map((device) => {
+                    const online =
+                      Date.now() - new Date(device.lastSeenAt).getTime() <
+                      DEVICE_ONLINE_WINDOW_MS
+                    return (
+                      <div
+                        key={device.deviceId}
+                        className="flex items-center justify-between rounded-lg border p-3 gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                              online ? 'bg-green-500' : 'bg-gray-300'
+                            }`}
+                            title={online ? 'متصل' : 'غير متصل'}
+                          />
+                          <div className="min-w-0">
+                            <p className="font-mono text-sm truncate" dir="ltr">
+                              {device.deviceId.slice(0, 12)}…
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {device.platform || '—'}
+                              {device.appVersion ? ` · v${device.appVersion}` : ''}
+                              {' · '}
+                              {online ? 'متصل' : `آخر ظهور ${timeAgoAr(device.lastSeenAt)}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0 text-xs text-muted-foreground">
+                          {typeof device.batteryLevel === 'number' && (
+                            <span dir="ltr">
+                              🔋 {Math.round(device.batteryLevel * 100)}%
+                              {device.batteryCharging ? '⚡' : ''}
+                            </span>
+                          )}
+                          {!!device.pendingScans && device.pendingScans > 0 && (
+                            <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
+                              {device.pendingScans} بانتظار المزامنة
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -118,7 +118,23 @@ async function dbConnect(): Promise<typeof mongoose> {
       connectTimeoutMS: 10000, // 10 seconds
     }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    // Free-tier / serverless clusters occasionally time out on the first
+    // (cold) connection. One quick retry absorbs almost all of these transient
+    // blips so an attendance check-in doesn't fail with a 500.
+    const connectWithRetry = async (attempt = 1): Promise<typeof mongoose> => {
+      try {
+        return await mongoose.connect(MONGODB_URI as string, opts)
+      } catch (err) {
+        if (attempt < 2) {
+          console.warn(`⚠️ MongoDB connect attempt ${attempt} failed, retrying...`)
+          await new Promise((r) => setTimeout(r, 1500))
+          return connectWithRetry(attempt + 1)
+        }
+        throw err
+      }
+    }
+
+    cached.promise = connectWithRetry().then((mongoose) => {
       console.log('✅ MongoDB connected successfully')
       return mongoose
     })

@@ -8,7 +8,7 @@
 
 export const ENV = {
   // Default backend API URL (overridable in setup/settings)
-  API_BASE_URL: 'https://q-trust.vercel.app',
+  API_BASE_URL: 'https://q-trust-saas.vercel.app',
 
   // API Endpoints
   ENDPOINTS: {

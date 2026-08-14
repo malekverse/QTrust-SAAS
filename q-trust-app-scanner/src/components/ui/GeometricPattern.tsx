@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Svg, { Pattern, Rect, Circle, Line, Defs, G, Path } from 'react-native-svg';
 import { useThemeColors } from '../../theme/ThemeContext';
 
@@ -14,11 +14,10 @@ interface GeometricPatternProps {
 
 export function GeometricPattern({ opacity = 0.05, style }: GeometricPatternProps) {
   const colors = useThemeColors();
-  const { width, height } = Dimensions.get('window');
-  
+
   return (
     <View style={[styles.container, style]} pointerEvents="none">
-      <Svg width={width} height={height}>
+      <Svg width="100%" height="100%">
         <Defs>
           <Pattern
             id="islamicPattern"

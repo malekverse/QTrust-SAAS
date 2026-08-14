@@ -22,7 +22,9 @@ import { TextStyles } from '../src/theme/typography';
 import { Spacing, BorderRadius, Layout, Shadows } from '../src/theme/spacing';
 import { Button, Card, Input, AyahSeparator, GeometricPattern } from '../src/components';
 import { useDeviceStore } from '../src/store/deviceStore';
-import { ThemeMode, ARABIC_MESSAGES, ENVIRONMENT_PRESETS } from '../src/types';
+import { syncPendingScans } from '../src/sync';
+import { clearStoredPinHash, hashPin, setStoredPinHash } from '../src/utils/secureStorage';
+import { ThemeMode, CameraFacing, ARABIC_MESSAGES, ENVIRONMENT_PRESETS } from '../src/types';
 
 const THEME_OPTIONS: { id: ThemeMode; label: string; icon: string }[] = [
   { id: 'light', label: ARABIC_MESSAGES.lightMode, icon: 'sunny' },
@@ -30,19 +32,33 @@ const THEME_OPTIONS: { id: ThemeMode; label: string; icon: string }[] = [
   { id: 'system', label: ARABIC_MESSAGES.systemMode, icon: 'phone-portrait' },
 ];
 
+const CAMERA_OPTIONS: { id: CameraFacing; label: string; icon: string }[] = [
+  { id: 'front', label: ARABIC_MESSAGES.cameraFront, icon: 'camera-reverse' },
+  { id: 'back', label: ARABIC_MESSAGES.cameraBack, icon: 'camera' },
+];
+
 export default function SettingsScreen() {
   const colors = useThemeColors();
-  const { 
-    config, 
-    themeMode, 
-    setConfig, 
-    setThemeMode, 
+  const {
+    config,
+    themeMode,
+    cameraFacing,
+    hasPin,
+    setConfig,
+    setThemeMode,
+    setCameraFacing,
+    setHasPin,
     clearConfig,
     recentScans,
     clearRecentScans,
   } = useDeviceStore();
-  
+  const pendingCount = useDeviceStore((s) => s.pendingScans.length);
+
   const [deviceToken, setDeviceToken] = useState(config.deviceToken);
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(() => {
     const preset = ENVIRONMENT_PRESETS.find(p => p.apiBaseUrl === config.apiBaseUrl);
     return preset?.id || 'custom';
@@ -120,6 +136,62 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleSavePin = async () => {
+    if (!/^\d{4,8}$/.test(newPin)) {
+      Alert.alert('خطأ', ARABIC_MESSAGES.pinInvalid);
+      return;
+    }
+    if (newPin !== confirmPin) {
+      Alert.alert('خطأ', ARABIC_MESSAGES.pinMismatch);
+      return;
+    }
+    setPinSaving(true);
+    try {
+      await setStoredPinHash(await hashPin(newPin));
+      setHasPin(true);
+      setNewPin('');
+      setConfirmPin('');
+      Alert.alert('تم الحفظ', ARABIC_MESSAGES.pinSaved);
+    } finally {
+      setPinSaving(false);
+    }
+  };
+
+  const handleRemovePin = () => {
+    Alert.alert(
+      'تأكيد',
+      'هل تريد إزالة رمز حماية الإعدادات؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: ARABIC_MESSAGES.pinRemove,
+          style: 'destructive',
+          onPress: async () => {
+            await clearStoredPinHash();
+            setHasPin(false);
+            Alert.alert('تم', ARABIC_MESSAGES.pinRemoved);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSyncNow = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncPendingScans();
+      if (result.synced > 0) {
+        Alert.alert('تم', ARABIC_MESSAGES.syncDone(result.synced));
+      } else if (result.remaining > 0) {
+        Alert.alert('تنبيه', ARABIC_MESSAGES.syncStillOffline);
+      } else {
+        Alert.alert('تم', ARABIC_MESSAGES.syncNothing);
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <GeometricPattern opacity={0.03} />
@@ -172,6 +244,49 @@ export default function SettingsScreen() {
                     style={[
                       styles.themeOptionText,
                       { color: themeMode === option.id ? '#fff' : colors.text },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Card>
+        </Animated.View>
+
+        {/* Camera Selection */}
+        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+          <Card style={styles.card}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {ARABIC_MESSAGES.cameraLabel}
+            </Text>
+
+            <View style={styles.themeOptions}>
+              {CAMERA_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.themeOption,
+                    {
+                      backgroundColor: cameraFacing === option.id
+                        ? colors.primary
+                        : colors.surface,
+                      borderColor: cameraFacing === option.id
+                        ? colors.primary
+                        : colors.border,
+                    },
+                  ]}
+                  onPress={() => setCameraFacing(option.id)}
+                >
+                  <Ionicons
+                    name={option.icon as any}
+                    size={24}
+                    color={cameraFacing === option.id ? '#fff' : colors.text}
+                  />
+                  <Text
+                    style={[
+                      styles.themeOptionText,
+                      { color: cameraFacing === option.id ? '#fff' : colors.text },
                     ]}
                   >
                     {option.label}
@@ -258,6 +373,54 @@ export default function SettingsScreen() {
           </Card>
         </Animated.View>
 
+        {/* Settings PIN */}
+        <Animated.View entering={FadeInDown.delay(350).duration(400)}>
+          <Card style={styles.card}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {ARABIC_MESSAGES.pinLabel}
+            </Text>
+            <Text style={[styles.pinHint, { color: colors.textMuted }]}>
+              {ARABIC_MESSAGES.pinOptionalHint}
+            </Text>
+
+            <Input
+              value={newPin}
+              onChangeText={(v: string) => setNewPin(v.replace(/[^0-9]/g, ''))}
+              placeholder={ARABIC_MESSAGES.pinPlaceholder}
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={8}
+            />
+            <Input
+              value={confirmPin}
+              onChangeText={(v: string) => setConfirmPin(v.replace(/[^0-9]/g, ''))}
+              placeholder={ARABIC_MESSAGES.pinConfirmPlaceholder}
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={8}
+            />
+
+            <Button
+              title={hasPin ? ARABIC_MESSAGES.pinChange : ARABIC_MESSAGES.pinSet}
+              onPress={handleSavePin}
+              loading={pinSaving}
+              disabled={newPin.length < 4}
+            />
+
+            {hasPin && (
+              <TouchableOpacity
+                onPress={handleRemovePin}
+                style={[styles.clearButton, { borderColor: colors.error }]}
+              >
+                <Ionicons name="lock-open-outline" size={18} color={colors.error} />
+                <Text style={[styles.clearButtonText, { color: colors.error }]}>
+                  {ARABIC_MESSAGES.pinRemove}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </Card>
+        </Animated.View>
+
         {/* Device Info */}
         <Animated.View entering={FadeInDown.delay(400).duration(400)}>
           <Card style={styles.card}>
@@ -282,7 +445,32 @@ export default function SettingsScreen() {
                 {recentScans.length}
               </Text>
             </View>
-            
+
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                {ARABIC_MESSAGES.pendingSyncLabel}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  { color: pendingCount > 0 ? '#B45309' : colors.text },
+                ]}
+              >
+                {pendingCount}
+              </Text>
+            </View>
+
+            {pendingCount > 0 && (
+              <Button
+                title={ARABIC_MESSAGES.syncNow}
+                onPress={handleSyncNow}
+                loading={syncing}
+                variant="outline"
+                size="sm"
+                style={styles.syncButton}
+              />
+            )}
+
             {recentScans.length > 0 && (
               <TouchableOpacity
                 onPress={handleClearHistory}
@@ -429,6 +617,14 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: Spacing.md,
+  },
+  pinHint: {
+    ...TextStyles.caption,
+    textAlign: 'right',
+    marginBottom: Spacing.md,
+  },
+  syncButton: {
+    marginTop: Spacing.sm,
   },
   infoRow: {
     flexDirection: 'row',

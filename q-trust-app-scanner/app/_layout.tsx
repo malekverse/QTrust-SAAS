@@ -12,7 +12,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import 'react-native-reanimated';
 
 import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
-import { useDeviceStore, initializeDeviceId } from '../src/store/deviceStore';
+import { useDeviceStore, initializeDevice } from '../src/store/deviceStore';
+import { startBackgroundServices } from '../src/sync';
 import { Colors } from '../src/theme/colors';
 
 // Prevent splash screen from auto-hiding
@@ -55,28 +56,26 @@ const IslamicDarkTheme = {
 
 function RootLayoutNav() {
   const { isDark } = useTheme();
-  const { config } = useDeviceStore();
 
   useEffect(() => {
-    // Initialize device ID on app start
-    initializeDeviceId();
-    
-    // Hide splash screen after initialization
-    SplashScreen.hideAsync();
+    let cancelled = false;
+
+    (async () => {
+      // Waits for storage hydration, generates the device ID if missing,
+      // and loads the scanner token + PIN flag from SecureStore.
+      await initializeDevice();
+      startBackgroundServices();
+      SplashScreen.hideAsync();
+
+      if (cancelled) return;
+      const { isSetupComplete } = useDeviceStore.getState();
+      router.replace(isSetupComplete() ? '/scanner' : '/setup');
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  useEffect(() => {
-    // Navigate based on configuration status after hydration
-    const timer = setTimeout(() => {
-      if (!config.isConfigured) {
-        router.replace('/setup');
-      } else {
-        router.replace('/scanner');
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [config.isConfigured]);
 
   return (
     <NavigationThemeProvider value={isDark ? IslamicDarkTheme : IslamicLightTheme}>

@@ -22,23 +22,24 @@ import { useThemeColors } from '../src/theme/ThemeContext';
 import { TextStyles } from '../src/theme/typography';
 import { Spacing, BorderRadius, Layout, Shadows } from '../src/theme/spacing';
 import { Button, Card, Input, AyahSeparator, GeometricPattern } from '../src/components';
-import { useDeviceStore, initializeDeviceId } from '../src/store/deviceStore';
+import { useDeviceStore, initializeDevice } from '../src/store/deviceStore';
+import { hashPin, setStoredPinHash } from '../src/utils/secureStorage';
 import { ENVIRONMENT_PRESETS, ARABIC_MESSAGES } from '../src/types';
-import { ENV } from '../src/config/env';
 
 export default function SetupScreen() {
   const colors = useThemeColors();
-  const { config, setConfig } = useDeviceStore();
-  
+  const { config, setConfig, setHasPin } = useDeviceStore();
+
   const [selectedPreset, setSelectedPreset] = useState('production');
   const [customUrl, setCustomUrl] = useState('');
   const [deviceToken, setDeviceToken] = useState('');
-  const [errors, setErrors] = useState<{ url?: string; token?: string }>({});
+  const [setupPin, setSetupPin] = useState('');
+  const [errors, setErrors] = useState<{ url?: string; token?: string; pin?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Initialize device ID on mount
-    initializeDeviceId();
+    // Ensure device ID + secrets are hydrated on mount
+    initializeDevice();
     
     // Pre-fill if config exists
     if (config.apiBaseUrl) {
@@ -56,23 +57,27 @@ export default function SetupScreen() {
   }, []);
 
   const validateForm = (): boolean => {
-    const newErrors: { url?: string; token?: string } = {};
-    
+    const newErrors: { url?: string; token?: string; pin?: string } = {};
+
     const preset = ENVIRONMENT_PRESETS.find(p => p.id === selectedPreset);
     const apiUrl = selectedPreset === 'custom' ? customUrl : preset?.apiBaseUrl;
-    
+
     if (!apiUrl || apiUrl.trim().length === 0) {
       newErrors.url = 'يرجى إدخال عنوان الخادم';
     } else if (selectedPreset === 'custom' && !apiUrl.startsWith('http')) {
       newErrors.url = 'يجب أن يبدأ العنوان بـ http:// أو https://';
     }
-    
+
     if (!deviceToken || deviceToken.trim().length === 0) {
       newErrors.token = 'يرجى إدخال رمز الجهاز';
     } else if (deviceToken.length < 8) {
       newErrors.token = 'رمز الجهاز قصير جدًا';
     }
-    
+
+    if (setupPin.length > 0 && !/^\d{4,8}$/.test(setupPin)) {
+      newErrors.pin = ARABIC_MESSAGES.pinInvalid;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -91,7 +96,12 @@ export default function SetupScreen() {
         deviceToken: deviceToken.trim(),
         isConfigured: true,
       });
-      
+
+      if (setupPin.length > 0) {
+        await setStoredPinHash(await hashPin(setupPin));
+        setHasPin(true);
+      }
+
       // Brief delay for UX feedback
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -230,6 +240,30 @@ export default function SetupScreen() {
                 autoCorrect={false}
                 secureTextEntry
                 error={errors.token}
+              />
+            </Card>
+          </Animated.View>
+
+          {/* Settings PIN (optional) */}
+          <Animated.View
+            entering={FadeInDown.delay(350).duration(500)}
+          >
+            <Card style={styles.card}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {ARABIC_MESSAGES.pinLabel}
+              </Text>
+              <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+                {ARABIC_MESSAGES.pinOptionalHint}
+              </Text>
+
+              <Input
+                value={setupPin}
+                onChangeText={(v: string) => setSetupPin(v.replace(/[^0-9]/g, ''))}
+                placeholder={ARABIC_MESSAGES.pinPlaceholder}
+                keyboardType="number-pad"
+                secureTextEntry
+                maxLength={8}
+                error={errors.pin}
               />
             </Card>
           </Animated.View>

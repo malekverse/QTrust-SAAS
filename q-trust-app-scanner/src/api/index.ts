@@ -3,11 +3,10 @@
  */
 
 export { default as apiClient, isNetworkError, type ApiError } from './client';
-export { 
-  checkIn, 
-  mockCheckIn, 
+export {
+  checkIn,
   performCheckIn,
+  isRetryableCheckInError,
   type CheckInRequest,
   type CheckInResponse,
 } from './attendance';
-

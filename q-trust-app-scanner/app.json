@@ -4,7 +4,7 @@
     "slug": "q-trust-app-scanner",
     "description": "QR scanner for q-trust app",
     "version": "1.0.1",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "qtrust",
     "userInterfaceStyle": "automatic",
@@ -27,9 +27,9 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -42,7 +42,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "نحتاج إلى صلاحية الوصول للكاميرا لمسح رموز QR"
+          "cameraPermission": "نحتاج إلى صلاحية الوصول للكاميرا لمسح رموز QR",
+          "recordAudioAndroid": false
         }
       ],
       [
@@ -57,7 +58,9 @@
             "image": "./assets/images/icon.png"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,8 +16,6 @@ import Svg, { Rect, Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useThemeColors } from '../../theme/ThemeContext';
 import { Colors } from '../../theme/colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const FRAME_SIZE = Math.min(SCREEN_WIDTH * 0.75, 300);
 const CORNER_SIZE = 40;
 const CORNER_THICKNESS = 4;
 
@@ -27,6 +25,9 @@ interface ScannerFrameProps {
 
 export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
   const colors = useThemeColors();
+  const { width, height } = useWindowDimensions();
+  // Size against the short edge so the frame fits in portrait and landscape
+  const frameSize = Math.min(Math.min(width, height) * 0.75, 300);
   const scanLinePosition = useSharedValue(0);
   const pulseScale = useSharedValue(1);
 
@@ -53,19 +54,19 @@ export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
 
   const scanLineStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: scanLinePosition.value * (FRAME_SIZE - 4) },
+      { translateY: scanLinePosition.value * (frameSize - 4) },
     ],
     opacity: isScanning ? 0.8 : 0,
-  }));
+  }), [isScanning, frameSize]);
 
   const cornerStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
   }));
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { width: frameSize, height: frameSize }]}>
       {/* Frame corners */}
-      <Animated.View style={[styles.frameContainer, cornerStyle]}>
+      <Animated.View style={[styles.frameContainer, { width: frameSize, height: frameSize }, cornerStyle]}>
         {/* Top Left */}
         <View style={[styles.corner, styles.topLeft]}>
           <Svg width={CORNER_SIZE} height={CORNER_SIZE}>
@@ -126,8 +127,8 @@ export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
       </Animated.View>
 
       {/* Scanning line */}
-      <Animated.View style={[styles.scanLine, scanLineStyle]}>
-        <Svg width={FRAME_SIZE - 20} height={4}>
+      <Animated.View style={[styles.scanLine, { width: frameSize - 20 }, scanLineStyle]}>
+        <Svg width={frameSize - 20} height={4}>
           <Defs>
             <LinearGradient id="scanGradient" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0" stopColor={colors.primary} stopOpacity="0" />
@@ -138,7 +139,7 @@ export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
           <Rect
             x="0"
             y="0"
-            width={FRAME_SIZE - 20}
+            width={frameSize - 20}
             height="4"
             fill="url(#scanGradient)"
             rx="2"
@@ -151,14 +152,10 @@ export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
 
 const styles = StyleSheet.create({
   container: {
-    width: FRAME_SIZE,
-    height: FRAME_SIZE,
     justifyContent: 'center',
     alignItems: 'center',
   },
   frameContainer: {
-    width: FRAME_SIZE,
-    height: FRAME_SIZE,
     position: 'absolute',
   },
   corner: {
@@ -186,7 +183,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     left: 10,
-    width: FRAME_SIZE - 20,
     height: 4,
   },
 });

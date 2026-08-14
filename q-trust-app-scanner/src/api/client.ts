@@ -8,6 +8,16 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { ENV } from '../config/env';
 import { useDeviceStore } from '../store/deviceStore';
+import { ARABIC_MESSAGES } from '../types';
+
+// Requests flagged `silentErrors` are fire-and-forget telemetry (heartbeat):
+// their failures are expected when a kiosk is offline or the endpoint isn't
+// deployed yet, so they must not spam the console. Real API calls still log.
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    silentErrors?: boolean;
+  }
+}
 
 // Create axios instance with base URL and production-ready settings
 const apiClient: AxiosInstance = axios.create({
@@ -23,25 +33,34 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const { config: deviceConfig } = useDeviceStore.getState();
-    
+
     // Use device config base URL if configured, otherwise use ENV default
     if (deviceConfig.apiBaseUrl && deviceConfig.apiBaseUrl.length > 0) {
       config.baseURL = deviceConfig.apiBaseUrl;
     }
-    
-    // Use device token if configured, otherwise fall back to ENV token
-    const token = deviceConfig.deviceToken && deviceConfig.deviceToken.length > 0
-      ? deviceConfig.deviceToken
-      : ENV.SCANNER_TOKEN;
-    
-    // Set the x-scanner-token header for authentication
+
+    // No fallback: an unconfigured device must fail loudly, never borrow
+    // a shared credential.
+    const token = deviceConfig.deviceToken;
+    if (!token || token.length === 0) {
+      return Promise.reject({
+        code: 'NOT_CONFIGURED',
+        message: 'Device is not configured with a scanner token',
+        messageAr: ARABIC_MESSAGES.errorNotConfigured,
+      });
+    }
     config.headers.set(ENV.HEADERS.SCANNER_TOKEN_NAME, token);
-    
+
+    // Identify the device so the backend can track kiosk health per device
+    if (deviceConfig.deviceId) {
+      config.headers.set(ENV.HEADERS.DEVICE_ID_NAME, deviceConfig.deviceId);
+    }
+
     // Production logging (minimal)
-    if (__DEV__) {
+    if (__DEV__ && !config.silentErrors) {
       console.log('[API] Request:', config.method?.toUpperCase(), config.url);
     }
-    
+
     return config;
   },
   (error) => {
@@ -59,34 +78,37 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
+    // Telemetry (heartbeat) opts out of error logging; failures are expected.
+    const silent = Boolean(error.config?.silentErrors);
+
     // Handle timeout
     if (error.code === 'ECONNABORTED') {
-      console.error('[API] Request timed out');
+      if (!silent) console.error('[API] Request timed out');
       return Promise.reject({
         code: 'TIMEOUT',
         message: 'Request timed out',
         messageAr: 'انتهت مهلة الطلب. يرجى المحاولة مرة أخرى',
       });
     }
-    
+
     // Handle network errors (no response received)
     if (!error.response) {
-      console.error('[API] Network error:', error.message);
+      if (!silent) console.error('[API] Network error:', error.message);
       return Promise.reject({
         code: 'NETWORK_ERROR',
         message: 'Network error - please check your connection',
         messageAr: 'حدث خطأ في الاتصال. تأكد من اتصالك بالإنترنت',
       });
     }
-    
+
     const responseData = error.response.data as any;
     const status = error.response.status;
-    
+
     // Extract the Arabic message from the backend response
     // The backend returns { message: "Arabic message here" } for errors
     const backendMessage = responseData?.message;
-    
-    console.error('[API] Error response:', status, backendMessage || 'No message');
+
+    if (!silent) console.error('[API] Error response:', status, backendMessage || 'No message');
     
     // Handle specific HTTP status codes
     switch (status) {

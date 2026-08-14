@@ -4,23 +4,59 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Layout } from '../../theme/spacing';
-import { ARABIC_MESSAGES, getRandomSuccessSubtext, ScannerStatus } from '../../types';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { ARABIC_MESSAGES, AttendanceStatus, getRandomSuccessSubtext, ScannerStatus } from '../../types';
 
 interface StatusBannerProps {
   status: ScannerStatus;
   studentName?: string;
   errorMessage?: string;
+  sessionName?: string;
+  attendanceStatus?: AttendanceStatus;
+  alreadyCheckedIn?: boolean;
+  queuedReason?: 'offline' | 'server';
   onScanAnother?: () => void;
+}
+
+function AttendanceChips({
+  attendanceStatus,
+  alreadyCheckedIn,
+}: {
+  attendanceStatus?: AttendanceStatus;
+  alreadyCheckedIn?: boolean;
+}) {
+  const chips: { label: string; bg: string; fg: string }[] = [];
+
+  if (alreadyCheckedIn) {
+    chips.push({ label: ARABIC_MESSAGES.statusAlready, bg: '#E5E7EB', fg: '#374151' });
+  } else if (attendanceStatus === 'LATE') {
+    chips.push({ label: ARABIC_MESSAGES.statusLate, bg: '#FEF3C7', fg: '#B45309' });
+  } else if (attendanceStatus === 'PRESENT') {
+    chips.push({ label: ARABIC_MESSAGES.statusPresent, bg: '#D1FAE5', fg: '#065F46' });
+  }
+
+  if (chips.length === 0) return null;
+
+  return (
+    <View style={styles.chipRow}>
+      {chips.map((chip) => (
+        <View key={chip.label} style={[styles.chip, { backgroundColor: chip.bg }]}>
+          <Text style={[styles.chipText, { color: chip.fg }]}>{chip.label}</Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 export function StatusBanner({
   status,
   studentName,
   errorMessage,
+  sessionName,
+  attendanceStatus,
+  alreadyCheckedIn,
+  queuedReason = 'offline',
   onScanAnother,
 }: StatusBannerProps) {
 
@@ -40,8 +76,8 @@ export function StatusBanner({
             {ARABIC_MESSAGES.welcomeSubtitle}
           </Text>
           <Text style={styles.scanPrompt}>
-            {status === 'SCANNING' 
-              ? ARABIC_MESSAGES.scanning 
+            {status === 'SCANNING'
+              ? ARABIC_MESSAGES.scanning
               : ARABIC_MESSAGES.scanPrompt}
           </Text>
         </View>
@@ -71,29 +107,76 @@ export function StatusBanner({
           <View style={styles.successIcon}>
             <Ionicons name="checkmark" size={48} color="#fff" />
           </View>
-          
+
           <Text style={styles.successGreeting}>
             {ARABIC_MESSAGES.successGreeting(studentName || '')}
           </Text>
-          
+
+          <AttendanceChips
+            attendanceStatus={attendanceStatus}
+            alreadyCheckedIn={alreadyCheckedIn}
+          />
+
+          {!!sessionName && (
+            <Text style={styles.sessionName}>{sessionName}</Text>
+          )}
+
           <View style={styles.separator}>
             <View style={styles.separatorLineGold} />
             <View style={styles.separatorDotGold} />
             <View style={styles.separatorLineGold} />
           </View>
-          
+
           <Text style={styles.successMessage}>
-            {ARABIC_MESSAGES.successMessage}
+            {alreadyCheckedIn
+              ? ARABIC_MESSAGES.alreadyCheckedIn
+              : ARABIC_MESSAGES.successMessage}
           </Text>
-          
-          <Text style={styles.successSubtext}>
-            {getRandomSuccessSubtext()}
-          </Text>
-          
+
+          {!alreadyCheckedIn && (
+            <Text style={styles.successSubtext}>
+              {getRandomSuccessSubtext()}
+            </Text>
+          )}
+
           {onScanAnother && (
             <TouchableOpacity
               onPress={onScanAnother}
               style={styles.successButton}
+            >
+              <Ionicons name="scan" size={20} color="#fff" />
+              <Text style={styles.buttonText}>
+                {ARABIC_MESSAGES.scanAnother}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  }
+
+  if (status === 'QUEUED') {
+    return (
+      <View style={styles.cardWrapper}>
+        <View style={styles.queuedCard}>
+          <View style={styles.queuedIcon}>
+            <Ionicons name="cloud-offline-outline" size={44} color="#fff" />
+          </View>
+
+          <Text style={styles.queuedTitle}>
+            {ARABIC_MESSAGES.queuedTitle}
+          </Text>
+
+          <Text style={styles.queuedMessage}>
+            {queuedReason === 'server'
+              ? ARABIC_MESSAGES.queuedMessageServer
+              : ARABIC_MESSAGES.queuedMessageOffline}
+          </Text>
+
+          {onScanAnother && (
+            <TouchableOpacity
+              onPress={onScanAnother}
+              style={styles.queuedButton}
             >
               <Ionicons name="scan" size={20} color="#fff" />
               <Text style={styles.buttonText}>
@@ -113,15 +196,15 @@ export function StatusBanner({
           <View style={styles.errorIcon}>
             <Ionicons name="close" size={48} color="#fff" />
           </View>
-          
+
           <Text style={styles.errorMessage}>
             {errorMessage || ARABIC_MESSAGES.errorNoSession}
           </Text>
-          
+
           <Text style={styles.errorSubtext}>
             {ARABIC_MESSAGES.errorContactAdmin}
           </Text>
-          
+
           {onScanAnother && (
             <TouchableOpacity
               onPress={onScanAnother}
@@ -141,66 +224,32 @@ export function StatusBanner({
   return null;
 }
 
+const cardBase = {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 24,
+  padding: 32,
+  alignItems: 'center' as const,
+  // Android shadow
+  elevation: 10,
+  // iOS shadow
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.15,
+  shadowRadius: 12,
+};
+
 const styles = StyleSheet.create({
   cardWrapper: {
-    width: SCREEN_WIDTH - 48,
+    width: '100%',
     maxWidth: Layout.maxContentWidth,
   },
-  
-  // IDLE CARD - White solid background
-  idleCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    // Android shadow
-    elevation: 10,
-    // iOS shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  
-  // SUCCESS CARD - Same solid white as idle card
-  successCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  
-  // ERROR CARD - Same solid white as idle card
-  errorCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  
-  // PROCESSING CARD - Same solid white as idle card
-  processingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  
+
+  idleCard: { ...cardBase },
+  successCard: { ...cardBase },
+  errorCard: { ...cardBase },
+  processingCard: { ...cardBase },
+  queuedCard: { ...cardBase },
+
   // Separator
   separator: {
     flexDirection: 'row',
@@ -232,7 +281,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4C76C',
     marginHorizontal: 8,
   },
-  
+
+  // Status chips
+  chipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 100,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sessionName: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+
   // Typography
   arabicGreeting: {
     fontSize: 28,
@@ -253,7 +324,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
   },
-  
+
   // Success styles
   successIcon: {
     width: 80,
@@ -295,7 +366,42 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 8,
   },
-  
+
+  // Queued (offline) styles
+  queuedIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#D97706',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  queuedTitle: {
+    fontSize: 22,
+    fontWeight: '500',
+    color: '#B45309',
+    textAlign: 'center',
+    lineHeight: 34,
+  },
+  queuedMessage: {
+    fontSize: 16,
+    color: '#374151',
+    textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 28,
+  },
+  queuedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D97706',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 100,
+    marginTop: 24,
+    gap: 8,
+  },
+
   // Error styles
   errorIcon: {
     width: 80,
@@ -330,7 +436,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 8,
   },
-  
+
   // Processing styles
   processingIndicator: {
     width: 60,
@@ -353,7 +459,7 @@ const styles = StyleSheet.create({
     color: '#111827',
     textAlign: 'center',
   },
-  
+
   // Button text
   buttonText: {
     fontSize: 16,

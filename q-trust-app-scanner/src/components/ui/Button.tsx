@@ -8,6 +8,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  StyleProp,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -34,8 +35,8 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export function Button({
@@ -174,7 +175,7 @@ export function Button({
               styles.text,
               sizeStyles.text,
               variantStyles.text,
-              icon && styles.textWithIcon,
+              icon ? styles.textWithIcon : null,
               textStyle,
             ]}
           >

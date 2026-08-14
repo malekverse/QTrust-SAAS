@@ -3,14 +3,14 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { BorderRadius, Spacing, Layout, Shadows } from '../../theme/spacing';
 import { useThemeColors } from '../../theme/ThemeContext';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   elevated?: boolean;
   animated?: boolean;
   animationDelay?: number;

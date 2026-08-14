@@ -20,17 +20,23 @@ export interface CheckInResponse {
   status?: 'PRESENT' | 'LATE' | 'ABSENT' | 'JUSTIFIED_ABSENCE';
   message: string;
   alreadyCheckedIn?: boolean;
+  // Set on failure so callers can distinguish retryable transport errors
+  // (NETWORK_ERROR / TIMEOUT / SERVER_ERROR) from definitive rejections.
+  errorCode?: string;
 }
 
-// Backend error response type
-interface BackendErrorResponse {
-  message?: string;
+// Error codes that mean "the server never rejected this scan" — the scan
+// can be queued offline and retried later with its original timestamp.
+export const RETRYABLE_ERROR_CODES = ['NETWORK_ERROR', 'TIMEOUT', 'SERVER_ERROR'] as const;
+
+export function isRetryableCheckInError(errorCode?: string): boolean {
+  return !!errorCode && (RETRYABLE_ERROR_CODES as readonly string[]).includes(errorCode);
 }
 
 /**
  * Check in a student using their QR code
  * Calls the real Q-Trust backend
- * 
+ *
  * @param request - Check-in request containing qrUuid and optional scannedAt
  * @returns Promise with check-in response
  */
@@ -39,7 +45,7 @@ export async function checkIn(request: CheckInRequest): Promise<CheckInResponse>
     if (__DEV__) {
       console.log('[Check-in] Sending request for QR:', request.qrUuid.substring(0, 8) + '...');
     }
-    
+
     const response = await apiClient.post<CheckInResponse>(
       ENV.ENDPOINTS.CHECK_IN,
       {
@@ -47,11 +53,11 @@ export async function checkIn(request: CheckInRequest): Promise<CheckInResponse>
         scannedAt: request.scannedAt || new Date().toISOString(),
       }
     );
-    
+
     if (__DEV__) {
       console.log('[Check-in] Success:', response.data.studentName);
     }
-    
+
     // Backend returns the complete response directly
     return {
       success: response.data.success ?? true,
@@ -63,80 +69,18 @@ export async function checkIn(request: CheckInRequest): Promise<CheckInResponse>
     };
   } catch (error: any) {
     if (__DEV__) {
-      console.log('[Check-in] Error:', error.message || error.messageAr || 'Unknown error');
+      console.log('[Check-in] Error:', error.code, error.message || error.messageAr || 'Unknown error');
     }
-    
+
     // Handle API errors - extract Arabic message if available
     const errorMessage = error.messageAr || error.message || 'حدث خطأ أثناء تسجيل الحضور';
-    
+
     return {
       success: false,
       message: errorMessage,
+      errorCode: error.code,
     };
   }
 }
 
-/**
- * Mock check-in function for development/testing ONLY
- * Remove or disable in production!
- */
-export async function mockCheckIn(request: CheckInRequest): Promise<CheckInResponse> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const uuid = request.qrUuid.toLowerCase();
-  
-  // Error scenarios for testing
-  if (uuid.includes('invalid')) {
-    return {
-      success: false,
-      message: 'رمز QR غير صالح أو الطالب غير مسجل',
-    };
-  }
-  
-  if (uuid.includes('nosession')) {
-    return {
-      success: false,
-      message: 'لا توجد حصة نشطة لك في هذا الوقت. يرجى مراجعة الإدارة',
-    };
-  }
-  
-  if (uuid.includes('duplicate')) {
-    return {
-      success: true,
-      studentName: 'أحمد محمد',
-      sessionName: 'حفظ القرآن - المجموعة أ',
-      message: 'تم تسجيل حضورك مسبقاً',
-      alreadyCheckedIn: true,
-    };
-  }
-  
-  // Success scenario
-  const names = [
-    'أحمد محمد',
-    'عمر عبدالله',
-    'يوسف علي',
-    'إبراهيم حسن',
-    'خالد أحمد',
-    'زيد محمود',
-    'حمزة عثمان',
-    'بلال ياسر',
-  ];
-  
-  const randomName = names[Math.floor(Math.random() * names.length)];
-  const isLate = Math.random() > 0.7; // 30% chance of being late
-  
-  return {
-    success: true,
-    studentName: randomName,
-    sessionName: 'حفظ القرآن - المجموعة أ',
-    status: isLate ? 'LATE' : 'PRESENT',
-    message: isLate ? 'تم تسجيل حضورك بنجاح (متأخر)' : 'تم تسجيل حضورك بنجاح',
-  };
-}
-
-// ============================================
-// SWITCH THIS TO USE REAL API:
-// Change 'mockCheckIn' to 'checkIn' below
-// ============================================
-export const performCheckIn = checkIn; // NOW USING REAL API!
+export const performCheckIn = checkIn;

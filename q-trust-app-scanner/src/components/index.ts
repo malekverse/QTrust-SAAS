@@ -8,4 +8,5 @@ export { Input } from './ui/Input';
 export { GeometricPattern, AyahSeparator, CornerOrnament } from './ui/GeometricPattern';
 export { ScannerFrame } from './scanner/ScannerFrame';
 export { StatusBanner } from './scanner/StatusBanner';
+export { PinModal } from './scanner/PinModal';
 

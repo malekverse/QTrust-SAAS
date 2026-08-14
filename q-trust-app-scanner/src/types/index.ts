@@ -3,12 +3,24 @@
  */
 
 // Scanner status states
-export type ScannerStatus = 
+export type ScannerStatus =
   | 'IDLE'
   | 'SCANNING'
   | 'PROCESSING'
   | 'SUCCESS'
-  | 'ERROR';
+  | 'ERROR'
+  | 'QUEUED';
+
+// Which camera the kiosk uses (changeable from the protected settings screen)
+export type CameraFacing = 'front' | 'back';
+
+// A check-in captured while offline, waiting to be synced
+export interface PendingScan {
+  id: string;
+  qrUuid: string;
+  scannedAt: string; // original scan time (ISO), preserved so late sync keeps true timestamps
+  attempts: number;
+}
 
 // Attendance status from backend
 export type AttendanceStatus = 'PRESENT' | 'LATE' | 'ABSENT' | 'JUSTIFIED_ABSENCE';
@@ -90,6 +102,43 @@ export const ARABIC_MESSAGES = {
   errorContactAdmin: 'يرجى مراجعة الإدارة',
   errorNetwork: 'حدث خطأ في الاتصال',
   errorUnauthorized: 'غير مصرح بالوصول',
+  errorNotConfigured: 'الجهاز غير مهيأ — يرجى إدخال رمز الماسح في الإعدادات',
+
+  // Offline queue
+  queuedTitle: 'تم حفظ عملية المسح',
+  // Cause-specific: true offline vs. server reachable-but-erroring
+  queuedMessageOffline: 'لا يوجد اتصال بالإنترنت حاليًا. تم حفظ الحضور وستتم مزامنته تلقائيًا عند عودة الاتصال',
+  queuedMessageServer: 'تعذّر الوصول إلى الخادم مؤقتًا. تم حفظ الحضور وستتم مزامنته تلقائيًا',
+  pendingSyncLabel: 'بانتظار المزامنة',
+  syncNow: 'مزامنة الآن',
+  syncDone: (n: number) => `تمت مزامنة ${n} من عمليات المسح`,
+  syncNothing: 'لا توجد عمليات مسح بانتظار المزامنة',
+  syncStillOffline: 'لا يزال الاتصال بالخادم غير متاح',
+
+  // Attendance status chips
+  statusPresent: 'حاضر',
+  statusLate: 'متأخر',
+  statusAlready: 'مسجل مسبقًا',
+
+  // Camera
+  cameraLabel: 'الكاميرا',
+  cameraFront: 'الأمامية',
+  cameraBack: 'الخلفية',
+
+  // Settings PIN
+  pinLabel: 'رمز حماية الإعدادات (PIN)',
+  pinEnterPrompt: 'أدخل رمز الحماية للوصول إلى الإعدادات',
+  pinPlaceholder: 'رمز PIN (4-8 أرقام)',
+  pinConfirmPlaceholder: 'تأكيد رمز PIN',
+  pinWrong: 'رمز PIN غير صحيح',
+  pinMismatch: 'رمزا PIN غير متطابقين',
+  pinInvalid: 'يجب أن يتكون الرمز من 4 إلى 8 أرقام',
+  pinSet: 'تعيين الرمز',
+  pinChange: 'تغيير الرمز',
+  pinRemove: 'إزالة الرمز',
+  pinSaved: 'تم حفظ رمز الحماية',
+  pinRemoved: 'تمت إزالة رمز الحماية',
+  pinOptionalHint: 'اختياري — يمنع فتح الإعدادات دون إذن',
   
   // Setup
   setupTitle: 'إعداد الجهاز',

@@ -34,7 +34,7 @@ export function Input({
 }: InputProps) {
   const colors = useThemeColors();
   const [isFocused, setIsFocused] = useState(false);
-  const borderColor = useSharedValue(colors.border);
+  const borderColor = useSharedValue<string>(colors.border);
 
   const animatedBorder = useAnimatedStyle(() => ({
     borderColor: borderColor.value,

@@ -33,13 +33,17 @@ export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
 
   React.useEffect(() => {
     if (isScanning) {
-      // Scanning line animation
+      // Always restart the sweep from the top. If scanning stopped while the
+      // line was at the bottom (value ≈1), re-issuing withTiming(1) from 1
+      // produces no motion and the line looks frozen — visible when the status
+      // cycles (e.g. demo mode). Resetting to 0 first guarantees a fresh sweep.
+      scanLinePosition.value = 0;
       scanLinePosition.value = withRepeat(
         withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
         -1,
         true
       );
-      
+
       // Pulse animation for corners
       pulseScale.value = withRepeat(
         withSequence(
@@ -49,6 +53,9 @@ export function ScannerFrame({ isScanning = true }: ScannerFrameProps) {
         -1,
         true
       );
+    } else {
+      // Park the line at the top so the next sweep starts cleanly
+      scanLinePosition.value = 0;
     }
   }, [isScanning]);
 

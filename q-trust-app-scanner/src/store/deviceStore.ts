@@ -31,6 +31,11 @@ interface DeviceState {
   // Whether a settings PIN is configured (hash itself lives in SecureStore)
   hasPin: boolean;
 
+  // Demo/recording mode: branded background + scripted scan for capturing
+  // marketing screenshots/video. Session-only (never persisted) so a kiosk
+  // can't boot into it.
+  demoMode: boolean;
+
   // Recent scans for debugging
   recentScans: ScanRecord[];
 
@@ -46,6 +51,7 @@ interface DeviceState {
   setThemeMode: (mode: ThemeMode) => void;
   setCameraFacing: (facing: CameraFacing) => void;
   setHasPin: (hasPin: boolean) => void;
+  setDemoMode: (on: boolean) => void;
   clearConfig: () => void;
 
   // Scan tracking
@@ -89,6 +95,7 @@ export const useDeviceStore = create<DeviceState>()(
       themeMode: 'light',
       cameraFacing: 'front',
       hasPin: false,
+      demoMode: false,
       recentScans: [],
       pendingScans: [],
       lastScannedQr: null,
@@ -118,6 +125,10 @@ export const useDeviceStore = create<DeviceState>()(
 
       setHasPin: (hasPin) => {
         set({ hasPin });
+      },
+
+      setDemoMode: (on) => {
+        set({ demoMode: on });
       },
 
       clearConfig: () => {
@@ -198,7 +209,7 @@ export const useDeviceStore = create<DeviceState>()(
     {
       name: 'q-trust-device-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         // deviceToken deliberately blanked — SecureStore is its only home
         config: { ...state.config, deviceToken: '' },
@@ -213,6 +224,12 @@ export const useDeviceStore = create<DeviceState>()(
         if (version < 2 && persisted?.config?.deviceToken) {
           await setStoredDeviceToken(persisted.config.deviceToken);
           persisted.config.deviceToken = '';
+        }
+        // v2 → v3: production backend moved to q-trust-saas.vercel.app.
+        // Repoint devices still saved with the old domain so they don't keep
+        // hitting the dead deployment.
+        if (version < 3 && persisted?.config?.apiBaseUrl === 'https://q-trust.vercel.app') {
+          persisted.config.apiBaseUrl = 'https://q-trust-saas.vercel.app';
         }
         return persisted;
       },

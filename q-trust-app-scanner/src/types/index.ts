@@ -62,7 +62,7 @@ export const ENVIRONMENT_PRESETS: EnvironmentPreset[] = [
     id: 'production',
     name: 'Production',
     nameAr: 'الإنتاج',
-    apiBaseUrl: 'https://q-trust.vercel.app',
+    apiBaseUrl: 'https://q-trust-saas.vercel.app',
   },
   {
     id: 'custom',
@@ -124,6 +124,11 @@ export const ARABIC_MESSAGES = {
   cameraLabel: 'الكاميرا',
   cameraFront: 'الأمامية',
   cameraBack: 'الخلفية',
+
+  // Demo / recording mode
+  demoModeLabel: 'وضع العرض التوضيحي',
+  demoModeHint: 'يستبدل الكاميرا بخلفية مزخرفة ويشغّل عملية مسح تجريبية متكررة — لالتقاط صور وفيديو احترافية للتطبيق. يُعاد ضبطه تلقائيًا عند إعادة تشغيل التطبيق.',
+  demoSessionName: 'حلقة تحفيظ القرآن الكريم',
 
   // Settings PIN
   pinLabel: 'رمز حماية الإعدادات (PIN)',

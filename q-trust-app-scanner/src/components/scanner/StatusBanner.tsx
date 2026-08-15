@@ -5,6 +5,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { Layout } from '../../theme/spacing';
 import { ARABIC_MESSAGES, AttendanceStatus, getRandomSuccessSubtext, ScannerStatus } from '../../types';
 
@@ -104,13 +105,16 @@ export function StatusBanner({
     return (
       <View style={styles.cardWrapper}>
         <View style={styles.successCard}>
-          <View style={styles.successIcon}>
+          <Animated.View
+            entering={ZoomIn.springify().damping(12).delay(120)}
+            style={styles.successIcon}
+          >
             <Ionicons name="checkmark" size={48} color="#fff" />
-          </View>
+          </Animated.View>
 
-          <Text style={styles.successGreeting}>
+          <Animated.Text entering={FadeInDown.duration(300).delay(220)} style={styles.successGreeting}>
             {ARABIC_MESSAGES.successGreeting(studentName || '')}
-          </Text>
+          </Animated.Text>
 
           <AttendanceChips
             attendanceStatus={attendanceStatus}
@@ -159,9 +163,12 @@ export function StatusBanner({
     return (
       <View style={styles.cardWrapper}>
         <View style={styles.queuedCard}>
-          <View style={styles.queuedIcon}>
+          <Animated.View
+            entering={ZoomIn.springify().damping(12).delay(120)}
+            style={styles.queuedIcon}
+          >
             <Ionicons name="cloud-offline-outline" size={44} color="#fff" />
-          </View>
+          </Animated.View>
 
           <Text style={styles.queuedTitle}>
             {ARABIC_MESSAGES.queuedTitle}
@@ -193,9 +200,12 @@ export function StatusBanner({
     return (
       <View style={styles.cardWrapper}>
         <View style={styles.errorCard}>
-          <View style={styles.errorIcon}>
+          <Animated.View
+            entering={ZoomIn.springify().damping(12).delay(120)}
+            style={styles.errorIcon}
+          >
             <Ionicons name="close" size={48} color="#fff" />
-          </View>
+          </Animated.View>
 
           <Text style={styles.errorMessage}>
             {errorMessage || ARABIC_MESSAGES.errorNoSession}

@@ -29,7 +29,7 @@ import { router } from 'expo-router';
 import { useThemeColors, useTheme } from '../src/theme/ThemeContext';
 import { TextStyles } from '../src/theme/typography';
 import { Spacing, BorderRadius } from '../src/theme/spacing';
-import { ScannerFrame, StatusBanner, GeometricPattern, PinModal } from '../src/components';
+import { ScannerFrame, StatusBanner, GeometricPattern, PinModal, DemoBackground, DemoScanCard } from '../src/components';
 import { useDeviceStore } from '../src/store/deviceStore';
 import { performCheckIn, isRetryableCheckInError, CheckInResponse } from '../src/api/attendance';
 import { useAutoUpdate } from '../src/hooks';
@@ -41,11 +41,33 @@ const SCAN_COOLDOWN = 5000;
 // Auto-reset delay after success/error
 const AUTO_RESET_DELAY = 3000;
 
+// Outcomes cycled through in demo/recording mode — one per distinct result
+// screen so a capture shows the full range (present, late, already-in, error).
+type DemoOutcome =
+  | { kind: 'present'; name: string }
+  | { kind: 'late'; name: string }
+  | { kind: 'already'; name: string }
+  | { kind: 'error'; message: string };
+
+const DEMO_SAMPLES: DemoOutcome[] = [
+  { kind: 'present', name: 'رامي الزهراني' },
+  { kind: 'late', name: 'أحمد بن يوسف' },
+  { kind: 'already', name: 'يوسف العمري' },
+  { kind: 'error', message: `${ARABIC_MESSAGES.errorNoSession}. ${ARABIC_MESSAGES.errorContactAdmin}` },
+];
+// Demo loop timing (ms)
+const DEMO_IDLE_MS = 1400;
+const DEMO_PRESENT_MS = 2400;
+const DEMO_PROCESSING_MS = 1300;
+const DEMO_RESULT_MS = 4200;
+
 export default function ScannerScreen() {
   const colors = useThemeColors();
   const { isDark } = useTheme();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
+  // Matches ScannerFrame's own sizing so the demo card fits inside the frame
+  const demoFrameSize = Math.min(Math.min(width, height) * 0.75, 300);
   const [permission, requestPermission] = useCameraPermissions();
 
   const {
@@ -58,6 +80,7 @@ export default function ScannerScreen() {
     enqueuePendingScan,
   } = useDeviceStore();
   const pendingCount = useDeviceStore((s) => s.pendingScans.length);
+  const demoMode = useDeviceStore((s) => s.demoMode);
 
   const [status, setStatus] = useState<ScannerStatus>('IDLE');
   const [studentName, setStudentName] = useState<string>('');
@@ -68,6 +91,7 @@ export default function ScannerScreen() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [settingsLongPressCount, setSettingsLongPressCount] = useState(0);
   const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [demoCardShown, setDemoCardShown] = useState(false);
 
   const isProcessingRef = useRef(false);
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,6 +118,75 @@ export default function ScannerScreen() {
       router.replace('/setup');
     }
   }, [config.isConfigured]);
+
+  // Demo/recording mode: loop IDLE → PROCESSING → SUCCESS with sample data so
+  // the real UI + animations can be captured without a live camera or backend.
+  useEffect(() => {
+    if (!demoMode) return;
+
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => timers.push(setTimeout(resolve, ms)));
+
+    const toIdle = () => {
+      setDemoCardShown(false);
+      setStudentName('');
+      setSessionName('');
+      setAttendanceStatus(undefined);
+      setAlreadyCheckedIn(false);
+      setErrorMessage('');
+      setStatus('IDLE');
+    };
+
+    const run = async () => {
+      let i = 0;
+      isProcessingRef.current = false;
+      while (!cancelled) {
+        const outcome = DEMO_SAMPLES[i % DEMO_SAMPLES.length];
+        // IDLE (branded welcome, empty frame, animated scan line)
+        toIdle();
+        await wait(DEMO_IDLE_MS);
+        if (cancelled) break;
+        // PRESENT — QR card rises into the frame, scan line sweeps over it
+        setDemoCardShown(true);
+        await wait(DEMO_PRESENT_MS);
+        if (cancelled) break;
+        // PROCESSING (result overlay covers the frame; card fades out behind it)
+        setStatus('PROCESSING');
+        setDemoCardShown(false);
+        await wait(DEMO_PROCESSING_MS);
+        if (cancelled) break;
+        // RESULT — varies per outcome
+        if (outcome.kind === 'error') {
+          setErrorMessage(outcome.message);
+          setStatus('ERROR');
+          feedbackError();
+        } else {
+          setStudentName(outcome.name);
+          setSessionName(ARABIC_MESSAGES.demoSessionName);
+          setAttendanceStatus(outcome.kind === 'late' ? 'LATE' : 'PRESENT');
+          setAlreadyCheckedIn(outcome.kind === 'already');
+          setStatus('SUCCESS');
+          feedbackSuccess();
+        }
+        await wait(DEMO_RESULT_MS);
+        i++;
+      }
+    };
+    run();
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      setDemoCardShown(false);
+      setStatus('IDLE');
+      setStudentName('');
+      setSessionName('');
+      setAttendanceStatus(undefined);
+      setErrorMessage('');
+    };
+  }, [demoMode]);
 
   // Handle settings access (tap logo 5 times, then PIN if configured)
   const handleLogoPress = () => {
@@ -318,18 +411,34 @@ export default function ScannerScreen() {
       <StatusBar hidden />
 
       {/* Camera View — CameraView does not support children, so the overlay
-          is an absolutely-positioned sibling on top of it. */}
+          is an absolutely-positioned sibling on top of it. In demo/recording
+          mode the camera is replaced by a branded backdrop. */}
       <Animated.View style={[styles.cameraContainer, cameraAnimatedStyle]}>
-        <CameraView
-          style={styles.camera}
-          facing={cameraFacing}
-          barcodeScannerSettings={{
-            barcodeTypes: ['qr'],
-          }}
-          onBarcodeScanned={status === 'IDLE' ? handleBarCodeScanned : undefined}
-        />
+        {demoMode ? (
+          <DemoBackground />
+        ) : (
+          <CameraView
+            style={styles.camera}
+            facing={cameraFacing}
+            barcodeScannerSettings={{
+              barcodeTypes: ['qr'],
+            }}
+            onBarcodeScanned={status === 'IDLE' ? handleBarCodeScanned : undefined}
+          />
+        )}
         {/* Overlay */}
-        <View style={[styles.overlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)' }]}>
+        <View
+          style={[
+            styles.overlay,
+            {
+              backgroundColor: demoMode
+                ? 'transparent'
+                : isDark
+                  ? 'rgba(0,0,0,0.6)'
+                  : 'rgba(0,0,0,0.4)',
+            },
+          ]}
+        >
             {/* Top Section - Header */}
             <SafeAreaView style={styles.topSection}>
               <View style={styles.headerRow}>
@@ -353,6 +462,8 @@ export default function ScannerScreen() {
             {/* Content: frame + welcome card side by side in landscape */}
             <View style={[styles.contentArea, isLandscape && styles.contentAreaLandscape]}>
               <View style={styles.centerSection}>
+                {/* Behind the frame so the corners + sweeping line overlay it */}
+                {demoMode && demoCardShown && <DemoScanCard size={demoFrameSize} />}
                 <ScannerFrame isScanning={status === 'IDLE' || status === 'SCANNING'} />
               </View>
 
@@ -377,7 +488,7 @@ export default function ScannerScreen() {
 
       {/* RESULT OVERLAY - Rendered OUTSIDE camera for solid background */}
       {showResultOverlay && (
-        <View style={styles.resultOverlay}>
+        <Animated.View entering={FadeIn.duration(220)} style={styles.resultOverlay}>
           <View style={styles.resultHeader}>
             <View style={[styles.logoSmall, { backgroundColor: colors.primary }]}>
               <Ionicons name="book" size={24} color="#fff" />
@@ -401,7 +512,7 @@ export default function ScannerScreen() {
               onScanAnother={handleScanAnother}
             />
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {/* Settings Hint (appears when close to 5 taps) */}

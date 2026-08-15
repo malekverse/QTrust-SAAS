@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -44,10 +45,12 @@ export default function SettingsScreen() {
     themeMode,
     cameraFacing,
     hasPin,
+    demoMode,
     setConfig,
     setThemeMode,
     setCameraFacing,
     setHasPin,
+    setDemoMode,
     clearConfig,
     recentScans,
     clearRecentScans,
@@ -294,6 +297,26 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </Card>
+        </Animated.View>
+
+        {/* Demo / recording mode */}
+        <Animated.View entering={FadeInDown.delay(175).duration(400)}>
+          <Card style={styles.card}>
+            <View style={styles.demoHeaderRow}>
+              <Text style={[styles.sectionTitle, styles.demoTitle, { color: colors.text }]}>
+                {ARABIC_MESSAGES.demoModeLabel}
+              </Text>
+              <Switch
+                value={demoMode}
+                onValueChange={setDemoMode}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor="#fff"
+              />
+            </View>
+            <Text style={[styles.demoHint, { color: colors.textMuted }]}>
+              {ARABIC_MESSAGES.demoModeHint}
+            </Text>
           </Card>
         </Animated.View>
 
@@ -622,6 +645,20 @@ const styles = StyleSheet.create({
     ...TextStyles.caption,
     textAlign: 'right',
     marginBottom: Spacing.md,
+  },
+  demoHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  demoTitle: {
+    marginBottom: 0,
+    flex: 1,
+  },
+  demoHint: {
+    ...TextStyles.caption,
+    textAlign: 'right',
+    marginTop: Spacing.sm,
   },
   syncButton: {
     marginTop: Spacing.sm,

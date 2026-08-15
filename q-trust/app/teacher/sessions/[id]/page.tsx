@@ -27,10 +27,11 @@ import {
 } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { 
-  ArrowRight, 
-  Search, 
-  Users, 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  ArrowRight,
+  Search,
+  Users,
   Clock,
   CheckCircle,
   XCircle,
@@ -39,11 +40,15 @@ import {
   Loader2,
   Edit,
   CreditCard,
-  DoorOpen
+  DoorOpen,
+  BookOpen,
+  Heart,
 } from "lucide-react"
 import { getDayName, getAttendanceStatusLabel, getAttendanceStatusColor, formatDate } from "@/lib/utils"
 import { ATTENDANCE_STATUS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
+import { HifzEntry } from "./hifz-entry"
+import { BehaviorEntry } from "./behavior-entry"
 
 interface AttendanceData {
   session: {
@@ -301,132 +306,206 @@ export default function TeacherSessionDetailPage({
         </Card>
       </div>
 
-      {/* Students List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">الحضور</CardTitle>
-          <div className="relative w-64">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="بحث..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pr-10"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <TooltipProvider>
-            <div className="space-y-2">
-              {filteredStudents?.map((student) => {
-                const isPaid = paymentStatus?.[student._id]
-                return (
-                  <div
-                    key={student._id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(student.status)}
-                      <Avatar>
-                        <AvatarFallback>{getInitials(student.fullName)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{student.fullName}</p>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div
-                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                                  isPaid
-                                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                                    : "bg-red-500/15 text-red-700 dark:text-red-400"
-                                }`}
-                              >
-                                <CreditCard className="h-3 w-3" />
-                                {isPaid ? "مدفوع" : "غير مدفوع"}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {isPaid
-                                ? "الاشتراك الشهري مدفوع"
-                                : "الاشتراك الشهري غير مدفوع"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        {student.checkInTime && (
-                          <p className="text-xs text-muted-foreground" dir="ltr">
-                            {new Date(student.checkInTime).toLocaleTimeString("ar-TN", {
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getAttendanceStatusColor(student.status)}>
-                        {getAttendanceStatusLabel(student.status)}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(student)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </TooltipProvider>
-        </CardContent>
-      </Card>
+      {/* Attendance, Hifz & Behavior Tabs */}
+      <Tabs defaultValue="attendance">
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="attendance" className="flex items-center gap-1.5">
+            <Users className="h-4 w-4" />
+            الحضور
+          </TabsTrigger>
+          <TabsTrigger value="hifz" className="flex items-center gap-1.5">
+            <BookOpen className="h-4 w-4" />
+            التسميع
+          </TabsTrigger>
+          <TabsTrigger value="behavior" className="flex items-center gap-1.5">
+            <Heart className="h-4 w-4" />
+            السلوك
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editingStudent} onOpenChange={() => setEditingStudent(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>تعديل الحضور</DialogTitle>
-            <DialogDescription>
-              {editingStudent?.fullName}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">الحالة</label>
-              <Select value={editStatus} onValueChange={setEditStatus}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ATTENDANCE_STATUS.PRESENT}>حاضر</SelectItem>
-                  <SelectItem value={ATTENDANCE_STATUS.LATE}>متأخر</SelectItem>
-                  <SelectItem value={ATTENDANCE_STATUS.ABSENT}>غائب</SelectItem>
-                  <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>غياب مبرر</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">ملاحظات</label>
-              <Textarea
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                placeholder="ملاحظات اختيارية..."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingStudent(null)}>
-              إلغاء
-            </Button>
-            <Button onClick={handleSaveAttendance} disabled={mutation.isPending}>
-              {mutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              حفظ
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Attendance Tab */}
+        <TabsContent value="attendance" className="mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">الحضور</CardTitle>
+              <div className="relative w-64">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="بحث..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <TooltipProvider>
+                <div className="space-y-2">
+                  {filteredStudents?.map((student) => {
+                    const isPaid = paymentStatus?.[student._id]
+                    return (
+                      <div
+                        key={student._id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(student.status)}
+                          <Avatar>
+                            <AvatarFallback>{getInitials(student.fullName)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{student.fullName}</p>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div
+                                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                                      isPaid
+                                        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                                        : "bg-red-500/15 text-red-700 dark:text-red-400"
+                                    }`}
+                                  >
+                                    <CreditCard className="h-3 w-3" />
+                                    {isPaid ? "مدفوع" : "غير مدفوع"}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {isPaid
+                                    ? "الاشتراك الشهري مدفوع"
+                                    : "الاشتراك الشهري غير مدفوع"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            {student.checkInTime && (
+                              <p className="text-xs text-muted-foreground" dir="ltr">
+                                {new Date(student.checkInTime).toLocaleTimeString("ar-TN", {
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getAttendanceStatusColor(student.status)}>
+                            {getAttendanceStatusLabel(student.status)}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(student)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </TooltipProvider>
+            </CardContent>
+          </Card>
+
+          {/* Edit Attendance Dialog */}
+          <Dialog open={!!editingStudent} onOpenChange={() => setEditingStudent(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>تعديل الحضور</DialogTitle>
+                <DialogDescription>
+                  {editingStudent?.fullName}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">الحالة</label>
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ATTENDANCE_STATUS.PRESENT}>حاضر</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.LATE}>متأخر</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.ABSENT}>غائب</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>غياب مبرر</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">ملاحظات</label>
+                  <Textarea
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    placeholder="ملاحظات اختيارية..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditingStudent(null)}>
+                  إلغاء
+                </Button>
+                <Button onClick={handleSaveAttendance} disabled={mutation.isPending}>
+                  {mutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                  حفظ
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        {/* Hifz Tab */}
+        <TabsContent value="hifz" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                تسجيل التسميع
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {data.occurrence?._id ? (
+                <HifzEntry
+                  sessionId={id}
+                  occurrenceId={data.occurrence._id}
+                  students={data.students.map((s) => ({ _id: s._id, fullName: s.fullName }))}
+                  selectedDate={selectedDate}
+                />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpen className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                  <p>لا توجد حصة في هذا التاريخ</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Behavior Tab */}
+        <TabsContent value="behavior" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                الملاحظات السلوكية
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {data.occurrence?._id ? (
+                <BehaviorEntry
+                  sessionId={id}
+                  occurrenceId={data.occurrence._id}
+                  students={data.students.map((s) => ({ _id: s._id, fullName: s.fullName }))}
+                  selectedDate={selectedDate}
+                />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Heart className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                  <p>لا توجد حصة في هذا التاريخ</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

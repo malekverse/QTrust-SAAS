@@ -19,8 +19,10 @@ import {
   ThumbsDown,
   Clock,
   GraduationCap,
+  Heart,
+  AlertTriangle,
 } from "lucide-react"
-import { GRADE_TYPE_LABELS } from "@/lib/constants"
+import { GRADE_TYPE_LABELS, HIFZ_TYPE_LABELS, HIFZ_QUALITY_LABELS, BEHAVIOR_TYPE, BEHAVIOR_TYPE_LABELS } from "@/lib/constants"
 
 interface GradeData {
   _id: string
@@ -45,6 +47,27 @@ interface FeedbackData {
   isPositive: boolean
   date: string
   teacher: string
+}
+
+interface HifzLogData {
+  _id: string
+  type: string
+  surah: string
+  fromVerse: number
+  toVerse: number
+  quality: string
+  mistakeCount?: number
+  notes?: string
+  date: string
+  teacherId?: { fullName?: string }
+}
+
+interface BehaviorLogData {
+  _id: string
+  type: string
+  description: string
+  date: string
+  teacherId?: { fullName?: string }
 }
 
 interface BadgeData {
@@ -77,6 +100,8 @@ export default function StudentPerformance() {
   const [grades, setGrades] = useState<GradeData[]>([])
   const [feedback, setFeedback] = useState<FeedbackData[]>([])
   const [badges, setBadges] = useState<BadgeData[]>([])
+  const [hifzLogs, setHifzLogs] = useState<HifzLogData[]>([])
+  const [behaviorLogs, setBehaviorLogs] = useState<BehaviorLogData[]>([])
   const [stats, setStats] = useState<PerformanceStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -89,16 +114,26 @@ export default function StudentPerformance() {
   const fetchPerformance = async () => {
     setError(null)
     try {
-      const res = await fetch("/api/student/performance")
-      if (res.ok) {
-        const data = await res.json()
+      const [perfRes, hifzRes, behaviorRes] = await Promise.all([
+        fetch("/api/student/performance"),
+        fetch("/api/student/hifz?limit=100"),
+        fetch("/api/student/behavior?limit=100"),
+      ])
+      if (perfRes.ok) {
+        const data = await perfRes.json()
         setGrades(data.grades)
         setFeedback(data.feedback)
         setBadges(data.badges)
         setStats(data.stats)
       } else {
-        const errData = await res.json().catch(() => null)
+        const errData = await perfRes.json().catch(() => null)
         setError(errData?.message || "حدث خطأ أثناء تحميل البيانات")
+      }
+      if (hifzRes.ok) {
+        setHifzLogs(await hifzRes.json())
+      }
+      if (behaviorRes.ok) {
+        setBehaviorLogs(await behaviorRes.json())
       }
     } catch (err) {
       console.error("Error:", err)
@@ -126,6 +161,19 @@ export default function StudentPerformance() {
     if (percentage >= 80) return 'bg-emerald-500/10'
     if (percentage >= 60) return 'bg-amber-500/10'
     return 'bg-red-500/10'
+  }
+
+  const hifzQualityColor: Record<string, string> = {
+    EXCELLENT: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+    GOOD: 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
+    NEEDS_REVIEW: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+    WEAK: 'bg-red-500/15 text-red-700 dark:text-red-400',
+  }
+
+  const hifzTypeColor: Record<string, string> = {
+    SABAQ: 'border-primary/40 text-primary',
+    SABQI: 'border-violet-500/40 text-violet-700 dark:text-violet-400',
+    MANZIL: 'border-teal-500/40 text-teal-700 dark:text-teal-400',
   }
 
   if (loading) {
@@ -229,8 +277,10 @@ export default function StudentPerformance() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
           <TabsTrigger value="grades">التقييمات</TabsTrigger>
+          <TabsTrigger value="hifz">التسميع</TabsTrigger>
+          <TabsTrigger value="behavior">السلوك</TabsTrigger>
           <TabsTrigger value="feedback">ملاحظات المعلم</TabsTrigger>
           <TabsTrigger value="badges">الشارات</TabsTrigger>
         </TabsList>
@@ -284,6 +334,121 @@ export default function StudentPerformance() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Hifz Tab */}
+        <TabsContent value="hifz" className="mt-4 space-y-3">
+          {hifzLogs.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <BookOpen className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
+                <p className="text-muted-foreground">لا توجد سجلات تسميع بعد</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {hifzLogs.map((log) => (
+                <Card key={log._id} className="overflow-hidden transition-all hover:shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`rounded-xl p-3 ${hifzQualityColor[log.quality] || 'bg-muted'}`}>
+                        <BookOpen className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-sm">سورة {log.surah}</h4>
+                          <Badge variant="outline" className={`text-xs ${hifzTypeColor[log.type] || ''}`}>
+                            {HIFZ_TYPE_LABELS[log.type] || log.type}
+                          </Badge>
+                          <Badge variant="outline" className={`text-xs ${hifzQualityColor[log.quality] || ''}`}>
+                            {HIFZ_QUALITY_LABELS[log.quality] || log.quality}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                          <span>الآيات {log.fromVerse} — {log.toVerse}</span>
+                          <span>{formatDate(log.date)}</span>
+                          {log.teacherId?.fullName && (
+                            <span className="flex items-center gap-1">
+                              <GraduationCap className="h-3 w-3" />
+                              {log.teacherId.fullName}
+                            </span>
+                          )}
+                          {typeof log.mistakeCount === 'number' && (
+                            <span>{log.mistakeCount} خطأ</span>
+                          )}
+                        </div>
+                        {log.notes && (
+                          <p className="text-xs text-muted-foreground mt-1.5 italic bg-muted/40 rounded-md px-2 py-1">
+                            {log.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Behavior Tab */}
+        <TabsContent value="behavior" className="mt-4 space-y-3">
+          {behaviorLogs.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Heart className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
+                <p className="text-muted-foreground">لا توجد ملاحظات سلوكية بعد</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {behaviorLogs.map((log) => {
+                const isPositive = log.type === BEHAVIOR_TYPE.POSITIVE
+                return (
+                  <Card key={log._id} className="overflow-hidden transition-all hover:shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`rounded-full p-2 mt-0.5 ${
+                          isPositive
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                            : 'bg-amber-100 dark:bg-amber-900/30'
+                        }`}>
+                          {isPositive
+                            ? <ThumbsUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            : <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className={`text-xs ${
+                              isPositive
+                                ? 'border-emerald-500/40 text-emerald-700 dark:text-emerald-400'
+                                : 'border-amber-500/40 text-amber-700 dark:text-amber-400'
+                            }`}>
+                              {BEHAVIOR_TYPE_LABELS[log.type] || log.type}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-foreground leading-relaxed">{log.description}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            {log.teacherId?.fullName && (
+                              <span className="flex items-center gap-1">
+                                <GraduationCap className="h-3 w-3" />
+                                {log.teacherId.fullName}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {formatDate(log.date)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </TabsContent>

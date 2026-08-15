@@ -342,3 +342,44 @@ export const GRADE_TYPE_LABELS: Record<string, string> = {
   TAJWEED: 'تجويد'
 } as const
 
+// Hifz (memorization tracking) types
+export const HIFZ_TYPE = {
+  SABAQ: 'SABAQ',
+  SABQI: 'SABQI',
+  MANZIL: 'MANZIL',
+} as const
+export type HifzType = typeof HIFZ_TYPE[keyof typeof HIFZ_TYPE]
+
+export const HIFZ_TYPE_LABELS: Record<string, string> = {
+  SABAQ: 'سبق (حفظ جديد)',
+  SABQI: 'سبقي (مراجعة قريبة)',
+  MANZIL: 'منزل (مراجعة بعيدة)',
+} as const
+
+export const HIFZ_QUALITY = {
+  EXCELLENT: 'EXCELLENT',
+  GOOD: 'GOOD',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  WEAK: 'WEAK',
+} as const
+export type HifzQuality = typeof HIFZ_QUALITY[keyof typeof HIFZ_QUALITY]
+
+export const HIFZ_QUALITY_LABELS: Record<string, string> = {
+  EXCELLENT: 'ممتاز',
+  GOOD: 'جيد',
+  NEEDS_REVIEW: 'يحتاج مراجعة',
+  WEAK: 'ضعيف',
+} as const
+
+// Behavior (Akhlaq / Tarbiyah) logging
+export const BEHAVIOR_TYPE = {
+  POSITIVE: 'POSITIVE',
+  CONCERN: 'CONCERN',
+} as const
+export type BehaviorType = typeof BEHAVIOR_TYPE[keyof typeof BEHAVIOR_TYPE]
+
+export const BEHAVIOR_TYPE_LABELS: Record<string, string> = {
+  POSITIVE: 'سلوك إيجابي',
+  CONCERN: 'ملاحظة سلوكية',
+} as const
+

@@ -262,6 +262,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin/dashboard', label: 'لوحة التحكم', icon: 'LayoutDashboard' },
   { href: '/admin/teachers', label: 'المعلمون', icon: 'Users' },
   { href: '/admin/students', label: 'الطلاب', icon: 'GraduationCap' },
+  { href: '/admin/admissions', label: 'طلبات التسجيل', icon: 'ClipboardList' },
   { href: '/admin/sessions', label: 'الحصص', icon: 'Calendar' },
   { href: '/admin/rooms', label: 'القاعات', icon: 'DoorOpen' },
   { href: '/admin/schedule', label: 'الجدول الزمني', icon: 'CalendarClock' },
@@ -381,5 +382,21 @@ export type BehaviorType = typeof BEHAVIOR_TYPE[keyof typeof BEHAVIOR_TYPE]
 export const BEHAVIOR_TYPE_LABELS: Record<string, string> = {
   POSITIVE: 'سلوك إيجابي',
   CONCERN: 'ملاحظة سلوكية',
+} as const
+
+// Online admissions / enrollment pipeline
+export const ADMISSION_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  WAITLISTED: 'WAITLISTED',
+  REJECTED: 'REJECTED',
+} as const
+export type AdmissionStatus = typeof ADMISSION_STATUS[keyof typeof ADMISSION_STATUS]
+
+export const ADMISSION_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'قيد المراجعة',
+  APPROVED: 'مقبول',
+  WAITLISTED: 'قائمة الانتظار',
+  REJECTED: 'مرفوض',
 } as const
 

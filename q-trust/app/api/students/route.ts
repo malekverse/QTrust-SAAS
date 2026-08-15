@@ -7,34 +7,10 @@ import { auth } from "@/lib/auth"
 import { createStudentSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
 import { generateQrUuid } from "@/lib/utils"
+import { generateEnrollmentNumber } from "@/lib/enrollment"
 
 // Force model registration (needed for populate in serverless)
 void Student
-
-// Generate next enrollment number (format: YYYY-XXX)
-async function generateEnrollmentNumber(tenantId: string): Promise<string> {
-  const currentYear = new Date().getFullYear()
-  const yearPrefix = `${currentYear}-`
-
-  // Find the highest enrollment number for this year (within this tenant)
-  const lastStudent = await Student.findOne({
-    tenantId,
-    enrollmentNumber: { $regex: `^${yearPrefix}` }
-  })
-    .sort({ enrollmentNumber: -1 })
-    .select('enrollmentNumber')
-    .lean()
-  
-  let nextNumber = 1
-  if (lastStudent?.enrollmentNumber) {
-    const lastNumber = parseInt(lastStudent.enrollmentNumber.split('-')[1], 10)
-    if (!isNaN(lastNumber)) {
-      nextNumber = lastNumber + 1
-    }
-  }
-  
-  return `${yearPrefix}${nextNumber.toString().padStart(3, '0')}`
-}
 
 // GET /api/students - List all students
 export async function GET() {
@@ -159,11 +135,12 @@ export async function POST(request: NextRequest) {
     )
 
     return NextResponse.json(student, { status: 201 })
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating student:", error)
-    
+
     // Handle duplicate CIN error
-    if (error.code === 11000 && error.keyPattern?.cin) {
+    const dup = error as { code?: number; keyPattern?: Record<string, unknown> }
+    if (dup.code === 11000 && dup.keyPattern?.cin) {
       return NextResponse.json(
         { message: "رقم بطاقة التعريف مستخدم مسبقاً" },
         { status: 400 }

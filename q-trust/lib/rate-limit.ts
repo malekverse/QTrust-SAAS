@@ -45,6 +45,13 @@ export const leadLimiter = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '10 m'), prefix: 'qtrust:lead' })
   : null
 
+// Public admissions form — strict, keyed by client IP (spam control on an
+// unauthenticated endpoint; a honeypot field handles the dumb bots). Slightly
+// more generous than leads since a family may enroll several children.
+export const admissionLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(8, '10 m'), prefix: 'qtrust:admission' })
+  : null
+
 // Best-effort client IP extraction from proxy headers (Vercel sets these).
 export function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')

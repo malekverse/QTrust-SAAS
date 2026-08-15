@@ -3,8 +3,8 @@ import Link from "next/link"
 import { Reveal } from "@/components/marketing/reveal"
 import { BrowserFrame, ScreenshotSlot } from "@/components/marketing/frames"
 import { ScanDemo } from "@/components/marketing/scan-demo"
-import { AiChatDemo } from "@/components/marketing/ai-spotlight"
-import { SHOTS } from "@/components/marketing/content"
+import { ProductVideo } from "@/components/marketing/product-video"
+import { SHOTS, AI_VIDEO, QR_VIDEO } from "@/components/marketing/content"
 
 export const metadata: Metadata = {
   title: "المميزات",
@@ -72,7 +72,15 @@ export default function FeaturesPage() {
               </Reveal>
               <Reveal delay={80} className={i % 2 === 1 ? "lg:order-1" : ""}>
                 <BrowserFrame>
-                  <ScreenshotSlot src={SHOTS[s.shot] || undefined} alt={s.title} />
+                  {s.key === "qr" ? (
+                    <ProductVideo
+                      src={QR_VIDEO.src}
+                      poster={QR_VIDEO.poster}
+                      label="تسجيل حقيقي من المنصة: شاشة تسجيل الحضور بمسح QR"
+                    />
+                  ) : (
+                    <ScreenshotSlot src={SHOTS[s.shot] || undefined} alt={s.title} />
+                  )}
                 </BrowserFrame>
               </Reveal>
             </div>
@@ -114,7 +122,16 @@ export default function FeaturesPage() {
               </p>
             </Reveal>
             <Reveal delay={80}>
-              <AiChatDemo />
+              <BrowserFrame>
+                <ProductVideo
+                  src={AI_VIDEO.src}
+                  poster={AI_VIDEO.poster}
+                  label="تسجيل حقيقي من المنصة: المساعد الذكي يجهّز عملية وينتظر موافقة المدير"
+                />
+              </BrowserFrame>
+              <p className="mt-3 text-center text-xs text-foreground/50">
+                تسجيل حقيقي من المنصة — دون تسريع أو مونتاج
+              </p>
             </Reveal>
           </div>
         </div>

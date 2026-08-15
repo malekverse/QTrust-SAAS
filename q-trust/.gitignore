@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw marketing asset sources (large; originals live with the founder)
+/assets-src/

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { QrCode, Eye, BookOpenCheck } from "lucide-react"
+import { QrCode, Eye, BookOpenCheck, MapPin, ShieldCheck, CalendarClock, Handshake } from "lucide-react"
 import { Reveal } from "@/components/marketing/reveal"
 import { CountUp } from "@/components/marketing/count-up"
 import { BrowserFrame, ScreenshotSlot } from "@/components/marketing/frames"
@@ -12,6 +12,7 @@ import {
   HERO,
   PILLARS,
   PROOF_STATS,
+  TRUST_POINTS,
   TRUSTED_BY,
   TESTIMONIAL,
   AI_SPOTLIGHT,
@@ -30,6 +31,13 @@ const PILLAR_ICONS = {
   qr: QrCode,
   eye: Eye,
   ledger: BookOpenCheck,
+} as const
+
+const TRUST_ICONS = {
+  tunisia: MapPin,
+  shield: ShieldCheck,
+  trial: CalendarClock,
+  onsite: Handshake,
 } as const
 
 export default function LandingPage() {
@@ -92,28 +100,37 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 3. Proof strip — renders ONLY with verifiably real numbers (§8.2.7) ── */}
-      {(PROOF_STATS || TRUSTED_BY) && (
-        <section className="border-y border-foreground/8 bg-foreground/2">
-          <div className="mk-container">
-            <div className="flex flex-wrap items-center justify-center gap-x-14 gap-y-6 py-10">
-              {PROOF_STATS?.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="mk-display text-3xl font-bold text-primary">
-                    <CountUp value={stat.value} suffix={stat.suffix} />
-                  </p>
-                  <p className="mt-1 text-sm text-foreground/60">{stat.label}</p>
-                </div>
-              ))}
-              {TRUSTED_BY && (
-                <p className="text-sm text-foreground/60">
-                  موثوق من <span className="font-semibold text-foreground">{TRUSTED_BY.name}</span>
-                </p>
-              )}
-            </div>
+      {/* ── 3. Trust strip — usage numbers appear ONLY when verifiably real
+             (§8.2.7); until then, true product facts carry this band. ── */}
+      <section className="border-y border-foreground/8 bg-foreground/2">
+        <div className="mk-container">
+          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-5 py-9">
+            {PROOF_STATS
+              ? PROOF_STATS.map((stat) => (
+                  <div key={stat.label} className="text-center">
+                    <p className="mk-display text-3xl font-bold text-primary">
+                      <CountUp value={stat.value} suffix={stat.suffix} />
+                    </p>
+                    <p className="mt-1 text-sm text-foreground/60">{stat.label}</p>
+                  </div>
+                ))
+              : TRUST_POINTS.map((point) => {
+                  const Icon = TRUST_ICONS[point.icon]
+                  return (
+                    <div key={point.icon} className="flex items-center gap-2.5 text-sm text-foreground/70">
+                      <Icon className="h-4.5 w-4.5 text-primary" aria-hidden="true" />
+                      {point.text}
+                    </div>
+                  )
+                })}
+            {TRUSTED_BY && (
+              <p className="text-sm text-foreground/60">
+                موثوق من <span className="font-semibold text-foreground">{TRUSTED_BY.name}</span>
+              </p>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* ── 4. Product tour — the centerpiece (§8.2.2 #4) ── */}
       <section id="tour" className="mk-section">

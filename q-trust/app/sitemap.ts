@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://q-trust-saas.vercel.app'
 
 // Only the public marketing surface belongs in the sitemap — the
 // authenticated dashboards are deliberately invisible to search engines.

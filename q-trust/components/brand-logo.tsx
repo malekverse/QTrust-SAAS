@@ -7,6 +7,8 @@ export const brandAssetPaths = {
   withTitle: "/q-trust_logo/logo_with_title.png",
   symbolWhiteBg: "/q-trust_logo/logo_symbol_white_bg.png",
   fullWithTitleWhiteBg: "/q-trust_logo/full_logo_with_title_white_bg.png",
+  whiteSymbol: "/q-trust_logo/white_logo_symbol.png",
+  whiteWithTitle: "/q-trust_logo/white_logo_with_title.png",
 } as const
 
 type BrandLogoProps = {
@@ -20,6 +22,8 @@ const intrinsic = {
   withTitle: { width: 800, height: 240 },
   symbolWhiteBg: { width: 256, height: 256 },
   fullWithTitleWhiteBg: { width: 1200, height: 360 },
+  whiteSymbol: { width: 665, height: 668 },
+  whiteWithTitle: { width: 880, height: 1194 },
 } as const
 
 const defaultAlt = "Q-Trust"

@@ -14,7 +14,7 @@ const plexArabic = IBM_Plex_Sans_Arabic({
   display: "swap",
 })
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://q-trust-saas.vercel.app"
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

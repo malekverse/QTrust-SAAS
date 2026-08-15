@@ -14,15 +14,48 @@ export const TRUSTED_BY: { name: string; logoSrc?: string } | null = null
 export const TESTIMONIAL: { quote: string; name: string; role: string } | null = null
 // One real quote from a real client's director, with permission — or nothing.
 
-// ── Product screenshots (§8.2.8 founder assets — captures from the seeded
-// demo tenant only, never real students' data). Drop files in /public and
-// point these at them; empty string = honest placeholder slot renders. ──
+// ── Product screenshots (§8.2.8 founder assets — captures from the demo
+// tenant only, never real students' data). Empty string = the honest
+// placeholder slot renders (or a coded product visual where one exists). ──
 export const SHOTS = {
-  dashboard: "", // e.g. '/marketing/dashboard.webp'
-  qrCheckin: "",
-  ledger: "",
+  dashboard: "/assets/dashboard.png",
+  qrCheckin: "/assets/qr-checkin.webp",
+  ledger: "/assets/ledger.png",
   scannerPhone: "",
 }
+
+// The real AI propose→approve recording (trimmed, muted loop) + its poster.
+export const AI_VIDEO = {
+  src: "/assets/ai-propose.mp4",
+  poster: "/assets/ai-propose-poster.jpg",
+}
+
+// The scanner check-in recording (muted loop) — poster is the same shot.
+export const QR_VIDEO = {
+  src: "/assets/qr-scanner.mp4",
+  poster: "/assets/qr-checkin.webp",
+}
+
+// Scroll-scrubbed sequence (§8.2.3 signature moment): the check-in flow's
+// card → sweep → success bloom, pre-rendered as webp frames drawn to canvas.
+// Desktop-class viewports + motion-ok only; everyone else gets the still.
+export const SCRUB = {
+  basePath: "/assets/scrub",
+  count: 72,
+  // natural size of the frames (scale=1024:-2 from the 16:9 recording)
+  width: 1024,
+  height: 576,
+}
+
+// ── Honest early-stage trust strip: verifiably TRUE product facts, no
+// invented metrics (§8.2.7). Swapped for PROOF_STATS numbers when real
+// aggregates exist. ──
+export const TRUST_POINTS: { icon: "tunisia" | "shield" | "trial" | "onsite"; text: string }[] = [
+  { icon: "tunisia", text: "منصة تونسية، بالعربية بالكامل" },
+  { icon: "shield", text: "بيانات كل مؤسسة معزولة ومشفّرة" },
+  { icon: "trial", text: "تجربة مجانية 14 يومًا دون التزام" },
+  { icon: "onsite", text: "تركيب وتدريب في مقرّ جمعيتك" },
+]
 
 export const HERO = {
   // Line breaks are deliberate: each array item is one staggered reveal line.

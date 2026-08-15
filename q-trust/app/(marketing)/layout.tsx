@@ -1,12 +1,8 @@
 import type { Metadata } from "next"
 import { IBM_Plex_Sans_Arabic } from "next/font/google"
 import "./marketing.css"
-import { MarketingNav } from "@/components/marketing/nav"
-import { MarketingFooter } from "@/components/marketing/footer"
 import { LenisProvider } from "@/components/marketing/lenis-provider"
 
-// Marketing body face (§8.2.1 #2): Amiri stays display-only; a modern Arabic
-// sans carries body/UI copy on the long-form marketing surface.
 const plexArabic = IBM_Plex_Sans_Arabic({
   weight: ["400", "500", "700"],
   subsets: ["arabic", "latin"],
@@ -39,18 +35,13 @@ export default function MarketingLayout({
 }) {
   return (
     <div className={`mk ${plexArabic.variable}`} data-js="false" id="mk-root">
-      {/* Inline script runs during HTML parse — flips data-js before paint so
-          reveal-hidden states only apply when JS will actually run them;
-          no-JS visitors always see the full content. */}
       <script
         dangerouslySetInnerHTML={{
           __html: `document.getElementById('mk-root').setAttribute('data-js','true')`,
         }}
       />
       <LenisProvider />
-      <MarketingNav />
-      <main>{children}</main>
-      <MarketingFooter />
+      {children}
     </div>
   )
 }

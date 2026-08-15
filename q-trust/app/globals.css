@@ -2,23 +2,6 @@
 
 /* Islamic-themed Design System for Q-Trust */
 
-/* ===== Arabic Fonts ===== */
-@font-face {
-  font-family: 'Amiri';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/amiri/v27/J7aRnpd8CGxBHpUrtLMA7w.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Amiri';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/amiri/v27/J7acnpd8CGxBHp2VkZY4xJ9CGyAa.woff2') format('woff2');
-}
-
 /* ===== CSS Variables - Light Mode ===== */
 :root {
   /* Core Colors - Islamic Palette */
@@ -150,7 +133,7 @@
   
   --font-sans: var(--font-geist-sans), 'Segoe UI', system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
-  --font-arabic: 'Amiri', 'Traditional Arabic', serif;
+  --font-arabic: var(--font-amiri), 'Traditional Arabic', serif;
   
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: var(--radius);

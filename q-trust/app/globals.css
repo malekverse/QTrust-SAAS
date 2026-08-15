@@ -176,3 +176,14 @@ body {
   background: hsl(var(--primary) / 0.2);
   color: hsl(var(--foreground));
 }
+
+/* ===== Print (receipts, certificates) ===== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  /* Remove UA margins so the receipt sheet controls its own spacing */
+  @page {
+    margin: 12mm;
+  }
+}

@@ -49,6 +49,7 @@ import {
   Phone,
   TrendingUp,
   CircleDollarSign,
+  Receipt,
 } from "lucide-react"
 import { MONTH_LABELS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
@@ -491,7 +492,7 @@ export default function SubscriptionsPage() {
                   <TableHead className="hidden md:table-cell">رقم الانخراط</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead className="hidden lg:table-cell">تاريخ الدفع</TableHead>
-                  <TableHead className="w-[120px]">إجراء</TableHead>
+                  <TableHead className="w-[160px]">إجراء</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -555,31 +556,45 @@ export default function SubscriptionsPage() {
                         : "—"}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant={student.isPaid ? "outline" : "default"}
-                        size="sm"
-                        onClick={() => handleQuickToggle(student)}
-                        disabled={paymentMutation.isPending}
-                        className={
-                          student.isPaid
-                            ? ""
-                            : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                        }
-                      >
-                        {paymentMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : student.isPaid ? (
-                          <>
-                            <XCircle className="ml-1 h-4 w-4" />
-                            إلغاء
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="ml-1 h-4 w-4" />
-                            تأكيد الدفع
-                          </>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant={student.isPaid ? "outline" : "default"}
+                          size="sm"
+                          onClick={() => handleQuickToggle(student)}
+                          disabled={paymentMutation.isPending}
+                          className={
+                            student.isPaid
+                              ? ""
+                              : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                          }
+                        >
+                          {paymentMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : student.isPaid ? (
+                            <>
+                              <XCircle className="ml-1 h-4 w-4" />
+                              إلغاء
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="ml-1 h-4 w-4" />
+                              تأكيد الدفع
+                            </>
+                          )}
+                        </Button>
+                        {student.isPaid && student.paymentId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="طباعة الوصل"
+                            onClick={() =>
+                              window.open(`/receipt/payment/${student.paymentId}`, "_blank")
+                            }
+                          >
+                            <Receipt className="h-4 w-4" />
+                          </Button>
                         )}
-                      </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

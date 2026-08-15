@@ -84,6 +84,11 @@
   animation: mk-rise 700ms var(--mk-ease) forwards;
   animation-delay: calc(var(--mk-line, 0) * 110ms);
 }
+.mk-hero-line:first-child {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
 @keyframes mk-rise {
   to { opacity: 1; transform: none; }
 }

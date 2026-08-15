@@ -15,6 +15,7 @@ type BrandLogoProps = {
   variant: keyof typeof brandAssetPaths
   className?: string
   priority?: boolean
+  sizes?: string
 }
 
 const intrinsic = {
@@ -28,7 +29,7 @@ const intrinsic = {
 
 const defaultAlt = "Q-Trust"
 
-export function BrandLogo({ variant, className, priority }: BrandLogoProps) {
+export function BrandLogo({ variant, className, priority, sizes }: BrandLogoProps) {
   const { width, height } = intrinsic[variant]
   return (
     <Image
@@ -38,6 +39,7 @@ export function BrandLogo({ variant, className, priority }: BrandLogoProps) {
       height={height}
       className={cn("object-contain object-center shrink-0", className)}
       priority={priority}
+      {...(sizes ? { sizes } : {})}
     />
   )
 }

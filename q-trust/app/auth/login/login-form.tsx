@@ -1,5 +1,6 @@
 "use client"
 
+import "@/app/app-dashboard.css"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"

@@ -65,7 +65,7 @@ export function MarketingNav({ locale = "ar" }: { locale?: MarketingLocale }) {
       <div className="mk-container">
         <div className="mk-nav-inner flex items-center gap-6">
           <Link href={prefixHref("/", locale)} className="flex items-center gap-2.5 shrink-0" aria-label={t.homeLabel}>
-            <BrandLogo variant="symbol" className="h-9 w-9" />
+            <BrandLogo variant="symbol" className="h-9 w-9" priority sizes="36px" />
             <span className="mk-display text-lg font-bold" dir="ltr">Q-Trust</span>
           </Link>
 

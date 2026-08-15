@@ -57,6 +57,7 @@ export interface IStudent extends Document {
   parentEmail?: string           // بريد الولي الإلكتروني
   parentPhone?: string           // هاتف الولي
   parentName?: string            // اسم الولي
+  familyId?: mongoose.Types.ObjectId // Household grouping (sibling discount)
   
   // System fields
   qrUuid: string                 // Unique QR code
@@ -211,7 +212,12 @@ const StudentSchema = new Schema<IStudent>(
       trim: true,
       maxlength: [100, 'اسم الولي يجب أن لا يتجاوز 100 حرف']
     },
-    
+    familyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Family',
+      sparse: true,
+    },
+
     // System fields
     qrUuid: {
       type: String,
@@ -269,6 +275,7 @@ StudentSchema.index({ firstName: 'text', lastName: 'text', fullName: 'text' })
 StudentSchema.index({ tenantId: 1, isActive: 1 })
 StudentSchema.index({ tenantId: 1, cin: 1 }, { sparse: true })
 StudentSchema.index({ tenantId: 1, enrollmentNumber: 1 }, { sparse: true })
+StudentSchema.index({ tenantId: 1, familyId: 1 }, { sparse: true })
 
 const Student: Model<IStudent> = mongoose.models.Student || mongoose.model<IStudent>('Student', StudentSchema)
 

@@ -268,6 +268,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin/schedule', label: 'الجدول الزمني', icon: 'CalendarClock' },
   { href: '/admin/attendance', label: 'الحضور', icon: 'ClipboardCheck' },
   { href: '/admin/subscriptions', label: 'الاشتراكات', icon: 'CreditCard' },
+  { href: '/admin/families', label: 'العائلات', icon: 'UsersRound' },
   { href: '/admin/claims', label: 'الاعتراضات', icon: 'MessageSquareWarning' },
   { href: '/admin/documents', label: 'المكتبة', icon: 'BookOpen' },
   { href: '/admin/ai-assistant', label: 'المساعد الذكي', icon: 'Bot' },

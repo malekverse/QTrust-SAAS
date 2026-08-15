@@ -201,7 +201,7 @@ export const authConfig: NextAuthConfig = {
     strategy: 'jwt',
     maxAge: 24 * 60 * 60 // 24 hours
   },
-  secret: authSecret || 'dev-only-insecure-secret-set-NEXTAUTH_SECRET',
+  secret: authSecret,
   trustHost: true
 }
 

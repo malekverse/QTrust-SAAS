@@ -154,10 +154,6 @@ export default async function TenantDetailPage({
           </CardContent>
         </Card>
       </div>
-
-      <p className="text-xs text-muted-foreground text-center">
-        تعديل الباقة والحالة وتسجيل المدفوعات سيتوفّر في المرحلة القادمة.
-      </p>
     </div>
   )
 }

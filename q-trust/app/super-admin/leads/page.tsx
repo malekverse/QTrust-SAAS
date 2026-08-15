@@ -2,15 +2,8 @@ import { requireSuperAdmin } from "@/lib/tenant"
 import dbConnect from "@/lib/db"
 import Lead from "@/models/Lead"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Inbox } from "lucide-react"
-
-const STATUS_LABELS: Record<string, string> = {
-  NEW: "جديد",
-  CONTACTED: "تم التواصل",
-  CONVERTED: "تم التعاقد",
-  CLOSED: "مغلق",
-}
+import { LeadStatusSelect } from "./lead-status"
 
 const fmtDate = (d: Date | string) =>
   new Date(d).toLocaleDateString("ar-TN", { year: "numeric", month: "short", day: "numeric" })
@@ -70,9 +63,7 @@ export default async function LeadsPage() {
                   </td>
                   <td className="p-3">{l.studentCount ?? "—"}</td>
                   <td className="p-3">
-                    <Badge variant={l.status === "NEW" ? "default" : "outline"}>
-                      {STATUS_LABELS[l.status] ?? l.status}
-                    </Badge>
+                    <LeadStatusSelect leadId={l._id.toString()} status={l.status} />
                   </td>
                 </tr>
               ))}

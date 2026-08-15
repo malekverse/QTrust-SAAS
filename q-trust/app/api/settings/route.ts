@@ -2,13 +2,14 @@ import { NextResponse } from "next/server"
 import dbConnect from "@/lib/db"
 import Settings, { DEFAULT_ENROLLMENT_SETTINGS, type IEnrollmentSettings } from "@/models/Settings"
 import { auth } from "@/lib/auth"
+import { ROLES } from "@/lib/constants"
 
 // GET /api/settings - Get all settings or specific setting by key
 export async function GET(request: Request) {
   try {
     const session = await auth()
     
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || session.user.role !== ROLES.ADMIN) {
       return NextResponse.json(
         { message: "غير مصرح لك بالوصول" },
         { status: 403 }
@@ -74,7 +75,7 @@ export async function PUT(request: Request) {
   try {
     const session = await auth()
     
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || session.user.role !== ROLES.ADMIN) {
       return NextResponse.json(
         { message: "غير مصرح لك بالوصول" },
         { status: 403 }

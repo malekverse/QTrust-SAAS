@@ -15,6 +15,9 @@ export const MESSAGING_SETTINGS_KEY = 'messaging_config'
 
 export interface MessagingConfig {
   provider: MessagingProvider
+  // Feature toggle for payment reminders — OFF by default. Even with a provider
+  // configured, reminders won't send until the admin explicitly enables this.
+  paymentRemindersEnabled: boolean
   whatsapp: { phoneNumberId: string; accessToken: string }
   twilio: { accountSid: string; authToken: string; fromNumber: string }
 }
@@ -25,6 +28,7 @@ export async function getMessagingConfig(tenantId: string): Promise<MessagingCon
   const v = doc?.value || {}
   return {
     provider: (v.provider as MessagingProvider) || MESSAGING_PROVIDER.DISABLED,
+    paymentRemindersEnabled: v.paymentRemindersEnabled === true,
     whatsapp: {
       phoneNumberId: v.whatsapp?.phoneNumberId || '',
       accessToken: v.whatsapp?.accessToken || '',

@@ -6,7 +6,7 @@ import Tenant from '@/models/Tenant'
 import { requireTier } from '@/lib/entitlements'
 import { TenantAuthError } from '@/lib/tenant'
 import { ROLES, PLANS, MESSAGE_TYPE, MONTH_LABELS } from '@/lib/constants'
-import { sendMessage } from '@/lib/notifications/messaging'
+import { sendMessage, getMessagingConfig } from '@/lib/notifications/messaging'
 
 void Student
 void Tenant
@@ -34,6 +34,15 @@ export async function POST(request: NextRequest) {
     const { studentId, month, year } = parsed.data
 
     await dbConnect()
+
+    // Payment reminders are OFF by default — must be explicitly enabled.
+    const cfg = await getMessagingConfig(session.tenantId)
+    if (!cfg.paymentRemindersEnabled) {
+      return NextResponse.json(
+        { message: 'تذكيرات الدفع غير مُفعّلة — فعّلها من صفحة الرسائل', code: 'REMINDERS_DISABLED' },
+        { status: 403 }
+      )
+    }
     const student = await Student.findOne({ _id: studentId, tenantId: session.tenantId })
       .select('firstName lastName fullName parentPhone phone')
       .lean<{ firstName?: string; lastName?: string; fullName?: string; parentPhone?: string; phone?: string }>()

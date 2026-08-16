@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
 import {
   Select,
   SelectContent,
@@ -28,6 +29,7 @@ import { useToast } from "@/components/ui/toast"
 
 interface ConfigResponse {
   provider: string
+  paymentRemindersEnabled: boolean
   whatsapp: { phoneNumberId: string; accessTokenSet: boolean }
   twilio: { accountSid: string; fromNumber: string; authTokenSet: boolean }
 }
@@ -63,6 +65,7 @@ export default function MessagingPage() {
   const locked = config && "locked" in config
 
   const [provider, setProvider] = useState<string>(MESSAGING_PROVIDER.DISABLED)
+  const [remindersEnabled, setRemindersEnabled] = useState(false)
   const [waPhoneId, setWaPhoneId] = useState("")
   const [waToken, setWaToken] = useState("")
   const [twSid, setTwSid] = useState("")
@@ -74,6 +77,7 @@ export default function MessagingPage() {
     if (config && !("locked" in config)) {
       /* eslint-disable react-hooks/set-state-in-effect */
       setProvider(config.provider)
+      setRemindersEnabled(config.paymentRemindersEnabled)
       setWaPhoneId(config.whatsapp.phoneNumberId)
       setTwSid(config.twilio.accountSid)
       setTwFrom(config.twilio.fromNumber)
@@ -85,6 +89,7 @@ export default function MessagingPage() {
     mutationFn: async () => {
       const payload = {
         provider,
+        paymentRemindersEnabled: remindersEnabled,
         whatsapp: { phoneNumberId: waPhoneId, accessToken: waToken },
         twilio: { accountSid: twSid, authToken: twToken, fromNumber: twFrom },
       }
@@ -152,6 +157,24 @@ export default function MessagingPage() {
           الاعتماد. يمكنك تفعيلها لاحقاً بإدخال بيانات واتساب Cloud API أو Twilio.
         </div>
       </div>
+
+      {/* Feature toggles */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">التذكيرات</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-medium">تذكيرات الدفع</p>
+              <p className="text-sm text-muted-foreground">
+                إظهار زر «إرسال تذكير» للأولياء في صفحة الاشتراكات. معطّل افتراضياً.
+              </p>
+            </div>
+            <Switch checked={remindersEnabled} onCheckedChange={setRemindersEnabled} />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Provider config */}
       <Card>

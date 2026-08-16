@@ -18,6 +18,7 @@ export async function GET() {
     const cfg = await getMessagingConfig(session.tenantId)
     return NextResponse.json({
       provider: cfg.provider,
+      paymentRemindersEnabled: cfg.paymentRemindersEnabled,
       whatsapp: {
         phoneNumberId: cfg.whatsapp.phoneNumberId,
         accessTokenSet: !!cfg.whatsapp.accessToken,
@@ -43,6 +44,7 @@ const putSchema = z.object({
     MESSAGING_PROVIDER.WHATSAPP_CLOUD,
     MESSAGING_PROVIDER.TWILIO_SMS,
   ]),
+  paymentRemindersEnabled: z.boolean().optional(),
   whatsapp: z
     .object({
       phoneNumberId: z.string().trim().max(100).optional(),
@@ -77,6 +79,8 @@ export async function PUT(request: NextRequest) {
     // Preserve stored secrets when the incoming token field is blank.
     const merged = {
       provider: d.provider,
+      paymentRemindersEnabled:
+        d.paymentRemindersEnabled ?? existing.paymentRemindersEnabled,
       whatsapp: {
         phoneNumberId: d.whatsapp?.phoneNumberId ?? existing.whatsapp.phoneNumberId,
         accessToken: d.whatsapp?.accessToken ? d.whatsapp.accessToken : existing.whatsapp.accessToken,

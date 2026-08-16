@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -138,6 +138,17 @@ export default function SubscriptionsPage() {
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["payments", selectedMonth, selectedYear],
     queryFn: () => fetchPayments(selectedMonth, selectedYear),
+  })
+
+  // Payment reminders are opt-in; only show the reminder action when enabled.
+  const { data: remindersEnabled } = useQuery({
+    queryKey: ["payment-reminders-enabled"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/messaging")
+      if (!res.ok) return false
+      const cfg = await res.json()
+      return !!cfg.paymentRemindersEnabled
+    },
   })
 
   const paymentMutation = useMutation({
@@ -618,7 +629,7 @@ export default function SubscriptionsPage() {
                             <Receipt className="h-4 w-4" />
                           </Button>
                         )}
-                        {!student.isPaid && (
+                        {!student.isPaid && remindersEnabled && (
                           <Button
                             variant="ghost"
                             size="icon"

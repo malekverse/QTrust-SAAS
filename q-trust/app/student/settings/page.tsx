@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "next-auth/react"
 import { useTheme } from "next-themes"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -62,6 +63,8 @@ interface ProfileData {
 }
 
 export default function StudentSettings() {
+  const t = useTranslations("student.settings")
+  const tc = useTranslations("common")
   const { update: updateSession } = useSession()
   const { theme, setTheme } = useTheme()
   const { toast } = useToast()
@@ -112,14 +115,14 @@ export default function StudentSettings() {
       })
       const result = await res.json()
       if (res.ok) {
-        toast({ title: "تم الحفظ", description: "تم تحديث بياناتك بنجاح" })
+        toast({ title: tc("success"), description: "تم تحديث بياناتك بنجاح" })
         // Refresh profile data after save
         fetchProfile()
       } else {
-        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        toast({ title: tc("error"), description: result.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء الحفظ", variant: "destructive" })
+      toast({ title: tc("error"), description: "حدث خطأ أثناء الحفظ", variant: "destructive" })
     } finally {
       setSavingProfile(false)
     }
@@ -127,11 +130,11 @@ export default function StudentSettings() {
 
   const changePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast({ title: "خطأ", description: "كلمات المرور غير متطابقة", variant: "destructive" })
+      toast({ title: tc("error"), description: "كلمات المرور غير متطابقة", variant: "destructive" })
       return
     }
     if (newPassword.length < 6) {
-      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" })
+      toast({ title: tc("error"), description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" })
       return
     }
 
@@ -144,17 +147,17 @@ export default function StudentSettings() {
       })
       const result = await res.json()
       if (res.ok) {
-        toast({ title: "تم التغيير", description: "تم تغيير كلمة المرور بنجاح" })
+        toast({ title: tc("success"), description: t("passwordChanged") })
         setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")
         // Update session to clear mustChangePassword if set
         await updateSession({ mustChangePassword: false })
       } else {
-        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        toast({ title: tc("error"), description: result.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء تغيير كلمة المرور", variant: "destructive" })
+      toast({ title: tc("error"), description: "حدث خطأ أثناء تغيير كلمة المرور", variant: "destructive" })
     } finally {
       setChangingPassword(false)
     }
@@ -196,16 +199,16 @@ export default function StudentSettings() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <Settings className="h-7 w-7 text-primary" />
-          الإعدادات
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground mt-1">إدارة الملف الشخصي وإعدادات الحساب</p>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4 max-w-lg">
-          <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
-          <TabsTrigger value="qrcode">رمز QR</TabsTrigger>
-          <TabsTrigger value="password">كلمة المرور</TabsTrigger>
+          <TabsTrigger value="profile">{t("personalInfo")}</TabsTrigger>
+          <TabsTrigger value="qrcode">{t("qrCode")}</TabsTrigger>
+          <TabsTrigger value="password">{t("changePassword")}</TabsTrigger>
           <TabsTrigger value="appearance">المظهر</TabsTrigger>
         </TabsList>
 
@@ -243,7 +246,7 @@ export default function StudentSettings() {
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1">
                     <Mail className="h-3 w-3" />
-                    البريد الإلكتروني
+                    {tc("email")}
                   </Label>
                   <p className="text-sm font-medium" dir="ltr">{data.profile.email || 'غير محدد'}</p>
                 </div>
@@ -279,7 +282,7 @@ export default function StudentSettings() {
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-1">
                   <Phone className="h-3.5 w-3.5" />
-                  رقم الهاتف
+                  {tc("phone")}
                 </Label>
                 <TunisiaPhoneInput
                   value={phone}
@@ -305,7 +308,7 @@ export default function StudentSettings() {
                     جاري الحفظ...
                   </>
                 ) : (
-                  "حفظ التعديلات"
+                  tc("save")
                 )}
               </Button>
             </CardContent>
@@ -352,7 +355,7 @@ export default function StudentSettings() {
                 بطاقة QR الرقمية
               </CardTitle>
               <CardDescription>
-                يمكنك استخدام هذا الرمز لتسجيل الحضور عبر الماسح الضوئي
+                {t("qrDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center space-y-4">
@@ -366,12 +369,12 @@ export default function StudentSettings() {
                     />
                   </div>
                   <p className="text-sm text-muted-foreground text-center max-w-xs">
-                    أظهر هذا الرمز على شاشة هاتفك أمام الماسح الضوئي لتسجيل حضورك
+                    {t("showQR")}
                   </p>
                   <div className="flex gap-3">
                     <Button onClick={downloadQR} variant="outline" className="gap-2">
                       <Download className="h-4 w-4" />
-                      تحميل الرمز
+                      {t("downloadQR")}
                     </Button>
                   </div>
                   <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 max-w-sm">
@@ -395,12 +398,12 @@ export default function StudentSettings() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <KeyRound className="h-5 w-5 text-primary" />
-                تغيير كلمة المرور
+                {t("changePassword")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 max-w-md">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
+                <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
@@ -420,7 +423,7 @@ export default function StudentSettings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                <Label htmlFor="newPassword">{t("newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
@@ -441,7 +444,7 @@ export default function StudentSettings() {
                 <p className="text-xs text-muted-foreground">6 أحرف على الأقل</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -458,7 +461,7 @@ export default function StudentSettings() {
                     جاري التغيير...
                   </>
                 ) : (
-                  "تغيير كلمة المرور"
+                  t("changePassword")
                 )}
               </Button>
             </CardContent>

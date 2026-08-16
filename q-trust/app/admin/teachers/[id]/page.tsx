@@ -1,11 +1,12 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useEffect, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,12 +27,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/toast"
-import { 
-  ArrowRight, 
-  Save, 
-  Loader2, 
-  Mail, 
-  User, 
+import {
+  ArrowRight,
+  Save,
+  Loader2,
+  Mail,
+  User,
   Calendar,
   BookOpen,
   Users,
@@ -53,13 +54,11 @@ interface Teacher {
   studentsCount?: number
 }
 
-const teacherFormSchema = z.object({
-  fullName: z.string().min(2, "الاسم يجب أن يكون على الأقل حرفين"),
-  email: z.string().email("البريد الإلكتروني غير صالح"),
-  isActive: z.boolean(),
-})
-
-type TeacherFormData = z.infer<typeof teacherFormSchema>
+type TeacherFormData = {
+  fullName: string
+  email: string
+  isActive: boolean
+}
 
 async function fetchTeacher(id: string): Promise<Teacher> {
   const res = await fetch(`/api/teachers/${id}`)
@@ -102,6 +101,14 @@ export default function TeacherDetailPage({
   const { success, error } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const t = useTranslations("admin.teachers")
+  const tc = useTranslations("common")
+
+  const teacherFormSchema = useMemo(() => z.object({
+    fullName: z.string().min(2, t("validationNameMin")),
+    email: z.string().email(t("validationEmailInvalid")),
+    isActive: z.boolean(),
+  }), [t])
 
   const { data: teacher, isLoading } = useQuery({
     queryKey: ["teacher", id],
@@ -113,11 +120,11 @@ export default function TeacherDetailPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teacher", id] })
       queryClient.invalidateQueries({ queryKey: ["teachers"] })
-      success("تم التحديث", "تم تحديث بيانات المعلم بنجاح")
+      success(t("updated"), t("updatedSuccess"))
       setIsEditing(false)
     },
     onError: (err: Error) => {
-      error("خطأ", err.message || "حدث خطأ أثناء التحديث")
+      error(tc("error"), err.message || t("updateError"))
     },
   })
 
@@ -125,11 +132,11 @@ export default function TeacherDetailPage({
     mutationFn: () => deleteTeacher(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teachers"] })
-      success("تم الحذف", "تم حذف المعلم بنجاح")
+      success(t("deleted"), t("deletedSuccess"))
       router.push("/admin/teachers")
     },
     onError: (err: Error) => {
-      error("خطأ", err.message || "حدث خطأ أثناء الحذف")
+      error(tc("error"), err.message || t("deleteError"))
     },
   })
 
@@ -177,7 +184,7 @@ export default function TeacherDetailPage({
   }
 
   if (!teacher) {
-    return <div>المعلم غير موجود</div>
+    return <div>{t("notFound")}</div>
   }
 
   return (
@@ -186,7 +193,7 @@ export default function TeacherDetailPage({
       <Button variant="ghost" asChild>
         <Link href="/admin/teachers">
           <ArrowRight className="ml-2 h-4 w-4" />
-          العودة للقائمة
+          {t("backToList")}
         </Link>
       </Button>
 
@@ -205,7 +212,7 @@ export default function TeacherDetailPage({
                 <div className="flex items-center gap-2 mb-2">
                   <h1 className="text-2xl font-bold">{teacher.fullName}</h1>
                   <Badge variant={teacher.isActive ? "success" : "destructive"}>
-                    {teacher.isActive ? "نشط" : "معطل"}
+                    {teacher.isActive ? t("statusActive") : t("statusDisabled")}
                   </Badge>
                 </div>
                 <div className="space-y-1 text-sm text-muted-foreground">
@@ -215,20 +222,20 @@ export default function TeacherDetailPage({
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    <span>انضم في {new Date(teacher.createdAt).toLocaleDateString("ar-TN")}</span>
+                    <span>{t("joinedOn")} {new Date(teacher.createdAt).toLocaleDateString("ar-TN")}</span>
                   </div>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setIsEditing(!isEditing)}
                 >
-                  {isEditing ? "إلغاء" : "تعديل"}
+                  {isEditing ? tc("cancel") : tc("edit")}
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => setShowDeleteDialog(true)}
                 >
@@ -242,7 +249,7 @@ export default function TeacherDetailPage({
         {/* Stats Card */}
         <Card className="w-full md:w-72">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">إحصائيات</CardTitle>
+            <CardTitle className="text-lg">{t("statistics")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
@@ -251,7 +258,7 @@ export default function TeacherDetailPage({
               </div>
               <div>
                 <p className="text-2xl font-bold">{teacher.sessionsCount || 0}</p>
-                <p className="text-xs text-muted-foreground">حصة مسندة</p>
+                <p className="text-xs text-muted-foreground">{t("assignedSessions")}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -260,7 +267,7 @@ export default function TeacherDetailPage({
               </div>
               <div>
                 <p className="text-2xl font-bold">{teacher.studentsCount || 0}</p>
-                <p className="text-xs text-muted-foreground">طالب</p>
+                <p className="text-xs text-muted-foreground">{tc("student")}</p>
               </div>
             </div>
           </CardContent>
@@ -273,20 +280,20 @@ export default function TeacherDetailPage({
           <IslamicDivider />
           <Card>
             <CardHeader>
-              <CardTitle>تعديل البيانات</CardTitle>
+              <CardTitle>{t("editDetails")}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">الاسم الكامل</Label>
+                    <Label htmlFor="fullName">{t("fullName")}</Label>
                     <Input id="fullName" {...register("fullName")} />
                     {errors.fullName && (
                       <p className="text-sm text-destructive">{errors.fullName.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Label htmlFor="email">{t("email")}</Label>
                     <Input id="email" type="email" dir="ltr" {...register("email")} />
                     {errors.email && (
                       <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -296,9 +303,9 @@ export default function TeacherDetailPage({
 
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                   <div>
-                    <Label>حالة الحساب</Label>
+                    <Label>{t("accountStatus")}</Label>
                     <p className="text-sm text-muted-foreground">
-                      {isActive ? "الحساب نشط" : "الحساب معطل"}
+                      {isActive ? t("accountActive") : t("accountDisabled")}
                     </p>
                   </div>
                   <Switch
@@ -313,7 +320,7 @@ export default function TeacherDetailPage({
                   ) : (
                     <Save className="ml-2 h-4 w-4" />
                   )}
-                  حفظ التغييرات
+                  {t("saveChanges")}
                 </Button>
               </form>
             </CardContent>
@@ -325,19 +332,19 @@ export default function TeacherDetailPage({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>حذف المعلم</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTeacher")}</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف هذا المعلم؟ سيتم إلغاء تعيين جميع الحصص المسندة إليه.
+              {t("deleteConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteMutation.mutate()}
             >
               {deleteMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              حذف
+              {tc("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -345,4 +352,3 @@ export default function TeacherDetailPage({
     </div>
   )
 }
-

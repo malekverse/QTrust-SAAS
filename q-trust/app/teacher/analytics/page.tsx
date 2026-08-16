@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 import dbConnect from "@/lib/db"
 import SessionTemplate from "@/models/SessionTemplate"
 import StudentSession from "@/models/StudentSession"
@@ -132,13 +133,16 @@ export default async function TeacherAnalyticsPage() {
   const session = await auth()
   if (!session) redirect("/auth/login")
 
+  const t = await getTranslations("teacher.analytics")
+  const tc = await getTranslations("common")
+
   const analytics = await getTeacherAnalytics(session.user.id)
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="الإحصائيات"
-        description="تحليلات الحضور لحصصك"
+        title={t("title")}
+        description={t("description")}
       />
 
       {/* Overview Stats */}
@@ -150,7 +154,7 @@ export default async function TeacherAnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{analytics.totalStudents}</p>
-              <p className="text-xs text-muted-foreground">إجمالي الطلاب</p>
+              <p className="text-xs text-muted-foreground">{tc("total")} {tc("student")}</p>
             </div>
           </CardContent>
         </Card>
@@ -172,7 +176,7 @@ export default async function TeacherAnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{analytics.overallRate}%</p>
-              <p className="text-xs text-muted-foreground">نسبة الحضور</p>
+              <p className="text-xs text-muted-foreground">{t("attendanceRate")}</p>
             </div>
           </CardContent>
         </Card>
@@ -196,13 +200,13 @@ export default async function TeacherAnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            إحصائيات الحصص
+            {t("title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {analytics.sessionStats.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
-              لا توجد بيانات متاحة
+              {tc("noData")}
             </p>
           ) : (
             <div className="space-y-4">
@@ -215,7 +219,7 @@ export default async function TeacherAnalyticsPage() {
                     <div>
                       <p className="font-medium">{stat.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {stat.studentCount} طالب • {stat.totalOccurrences} حصة
+                        {stat.studentCount} {tc("student")} • {stat.totalOccurrences} حصة
                       </p>
                     </div>
                     <Badge 
@@ -236,10 +240,10 @@ export default async function TeacherAnalyticsPage() {
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>
                       <CheckCircle className="h-3 w-3 inline ml-1" />
-                      {stat.presentCount} حضور
+                      {stat.presentCount} {tc("present")}
                     </span>
                     <span>
-                      {stat.totalAttendance - stat.presentCount} غياب
+                      {stat.totalAttendance - stat.presentCount} {tc("absent")}
                     </span>
                   </div>
                 </div>

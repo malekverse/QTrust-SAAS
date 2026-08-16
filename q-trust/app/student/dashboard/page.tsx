@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -74,6 +75,8 @@ function getGreetingMessage(): string {
 }
 
 export default function StudentDashboard() {
+  const t = useTranslations("student.dashboard")
+  const tc = useTranslations("common")
   const { data: session } = useSession()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -173,7 +176,7 @@ export default function StudentDashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-foreground">الحصة القادمة</h3>
+                  <h3 className="font-semibold text-foreground">{t("nextSession")}</h3>
                   {data.nextSession.isToday && (
                     <Badge variant="outline" className="student-surface-emerald-chip text-xs font-semibold">
                       اليوم
@@ -205,7 +208,7 @@ export default function StudentDashboard() {
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-start justify-between">
               <div className="space-y-1.5">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">نسبة الحضور</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{t("attendanceRate")}</p>
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">{data.stats.attendanceRate}%</p>
               </div>
               <div className="rounded-xl bg-emerald-500/10 p-2.5">
@@ -333,7 +336,7 @@ export default function StudentDashboard() {
                     }}
                     formatter={(value, name) => [
                       value,
-                      name === 'present' ? 'حاضر' : 'غائب'
+                      name === 'present' ? tc("present") : tc("absent")
                     ]}
                   />
                   <Area
@@ -363,7 +366,7 @@ export default function StudentDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
-              آخر التقييمات
+              {t("recentGrades")}
             </CardTitle>
           </CardHeader>
           <CardContent>

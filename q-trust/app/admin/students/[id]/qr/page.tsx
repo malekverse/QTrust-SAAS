@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowRight, Download, Printer } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface StudentQRData {
   _id: string
@@ -32,6 +33,7 @@ export default function StudentQRPage({
   const orgName = session?.user?.tenantName || "Q-Trust"
   const [data, setData] = useState<StudentQRData | null>(null)
   const [loading, setLoading] = useState(true)
+  const t = useTranslations("admin.students")
 
   useEffect(() => {
     fetchStudentQR(id).then(d => {
@@ -56,7 +58,7 @@ export default function StudentQRPage({
   }
 
   if (!data) {
-    return <div>الطالب غير موجود</div>
+    return <div>{t("studentNotFound")}</div>
   }
 
   return (
@@ -65,7 +67,7 @@ export default function StudentQRPage({
       <Button variant="ghost" asChild className="no-print">
         <Link href={`/admin/students/${id}`}>
           <ArrowRight className="ml-2 h-4 w-4" />
-          العودة للملف
+          {t("backToProfile")}
         </Link>
       </Button>
 
@@ -97,7 +99,7 @@ export default function StudentQRPage({
               </h2>
               {data.parentName && (
                 <p className="text-muted-foreground mt-1">
-                  ابن/ابنة {data.parentName}
+                  {t("childOf")} {data.parentName}
                 </p>
               )}
             </div>
@@ -111,7 +113,7 @@ export default function StudentQRPage({
             <div className="w-full h-px bg-gradient-to-r from-transparent via-secondary to-transparent mt-6 mb-4" />
             
             <p className="text-xs text-muted-foreground text-center">
-              امسح هذا الرمز عند الدخول لتسجيل حضورك
+              {t("scanToCheckIn")}
             </p>
           </CardContent>
         </Card>
@@ -120,7 +122,7 @@ export default function StudentQRPage({
         <div className="flex gap-3 no-print">
           <Button onClick={handlePrint}>
             <Printer className="ml-2 h-4 w-4" />
-            طباعة
+            {t("print")}
           </Button>
           <Button variant="outline" asChild>
             <a 
@@ -128,7 +130,7 @@ export default function StudentQRPage({
               download={`qr-${data.fullName.replace(/\s+/g, '-')}.png`}
             >
               <Download className="ml-2 h-4 w-4" />
-              تحميل PNG
+              {t("downloadPNG")}
             </a>
           </Button>
         </div>
@@ -136,12 +138,12 @@ export default function StudentQRPage({
         {/* Instructions */}
         <Card className="w-full max-w-md no-print">
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-2">تعليمات الاستخدام</h3>
+            <h3 className="font-semibold mb-2">{t("usageInstructions")}</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• اطبع هذه البطاقة وقم بتغليفها</li>
-              <li>• أعط البطاقة للطالب للاحتفاظ بها</li>
-              <li>• يقوم الطالب بمسح الرمز عند الدخول لكل حصة</li>
-              <li>• الرمز فريد ولا يتغير أبداً</li>
+              <li>• {t("instruction1")}</li>
+              <li>• {t("instruction2")}</li>
+              <li>• {t("instruction3")}</li>
+              <li>• {t("instruction4")}</li>
             </ul>
           </CardContent>
         </Card>

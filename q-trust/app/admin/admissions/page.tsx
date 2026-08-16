@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Pagination } from "@/components/ui/pagination"
 import { PageHeader } from "@/components/layout/page-header"
@@ -78,6 +79,8 @@ export default function AdmissionsPage() {
   const [page, setPage] = useState(1)
   const [reviewing, setReviewing] = useState<Application | null>(null)
   const [reviewNotes, setReviewNotes] = useState("")
+  const t = useTranslations("admin.admissions")
+  const tc = useTranslations("common")
 
   const { data, isLoading } = useQuery({
     queryKey: ["admissions", tab, page],
@@ -129,21 +132,21 @@ export default function AdmissionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="طلبات التسجيل" description="مراجعة طلبات التسجيل الواردة من الاستمارة العامة" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       <Tabs value={tab} onValueChange={(v) => { setTab(v as TabValue); setPage(1) }}>
         <TabsList className="grid w-full grid-cols-4 max-w-xl">
           <TabsTrigger value="PENDING">
-            قيد المراجعة{stats.PENDING ? ` (${stats.PENDING})` : ""}
+            {t("pendingTab")}{stats.PENDING ? ` (${stats.PENDING})` : ""}
           </TabsTrigger>
           <TabsTrigger value="WAITLISTED">
-            الانتظار{stats.WAITLISTED ? ` (${stats.WAITLISTED})` : ""}
+            {t("waitlistedTab")}{stats.WAITLISTED ? ` (${stats.WAITLISTED})` : ""}
           </TabsTrigger>
           <TabsTrigger value="APPROVED">
-            مقبول{stats.APPROVED ? ` (${stats.APPROVED})` : ""}
+            {t("approvedTab")}{stats.APPROVED ? ` (${stats.APPROVED})` : ""}
           </TabsTrigger>
           <TabsTrigger value="REJECTED">
-            مرفوض{stats.REJECTED ? ` (${stats.REJECTED})` : ""}
+            {t("rejectedTab")}{stats.REJECTED ? ` (${stats.REJECTED})` : ""}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -159,7 +162,7 @@ export default function AdmissionsPage() {
           <CardContent className="py-12 text-center">
             <ClipboardList className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
             <p className="font-medium text-muted-foreground">
-              {tab === "PENDING" ? "لا توجد طلبات قيد المراجعة" : "لا توجد طلبات في هذه القائمة"}
+              {t("noApplications")}
             </p>
             {tab === "PENDING" && (
               <p className="mt-1 text-sm text-muted-foreground">
@@ -207,7 +210,7 @@ export default function AdmissionsPage() {
                 </div>
                 <Button variant="outline" size="sm" onClick={() => openReview(app)}>
                   <UserCheck className="ml-1.5 h-4 w-4" />
-                  مراجعة
+                  {t("review")}
                 </Button>
               </CardContent>
             </Card>
@@ -223,7 +226,7 @@ export default function AdmissionsPage() {
       <Dialog open={!!reviewing} onOpenChange={(o) => !o && setReviewing(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>مراجعة طلب التسجيل</DialogTitle>
+            <DialogTitle>{t("reviewTitle")}</DialogTitle>
             <DialogDescription>
               {reviewing && `${reviewing.firstName} ${reviewing.lastName}`}
             </DialogDescription>
@@ -233,10 +236,10 @@ export default function AdmissionsPage() {
             <div className="space-y-4 py-1">
               <dl className="grid grid-cols-1 gap-x-6 gap-y-2 rounded-lg bg-muted/50 p-4 text-sm sm:grid-cols-2">
                 {reviewing.cin && (
-                  <Detail label="بطاقة التعريف" value={reviewing.cin} ltr />
+                  <Detail label={t("idCard")} value={reviewing.cin} ltr />
                 )}
                 {reviewing.dateOfBirth && (
-                  <Detail label="تاريخ الولادة" value={formatDate(reviewing.dateOfBirth)} />
+                  <Detail label={t("birthDate")} value={formatDate(reviewing.dateOfBirth)} />
                 )}
                 {reviewing.educationLevel && (
                   <Detail label="المستوى" value={reviewing.educationLevel} />
@@ -256,7 +259,7 @@ export default function AdmissionsPage() {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">ملاحظات المراجعة (اختياري)</label>
+                <label className="text-sm font-medium">{t("reviewNotes")}</label>
                 <Textarea
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
@@ -275,7 +278,7 @@ export default function AdmissionsPage() {
               disabled={mutation.isPending}
             >
               <XCircle className="ml-1.5 h-4 w-4" />
-              رفض
+              {t("reject")}
             </Button>
             <Button
               variant="outline"
@@ -283,7 +286,7 @@ export default function AdmissionsPage() {
               disabled={mutation.isPending}
             >
               <Clock className="ml-1.5 h-4 w-4" />
-              قائمة الانتظار
+              {t("waitlist")}
             </Button>
             <Button
               className="bg-emerald-600 text-white hover:bg-emerald-700"
@@ -295,7 +298,7 @@ export default function AdmissionsPage() {
               ) : (
                 <CheckCircle className="ml-1.5 h-4 w-4" />
               )}
-              قبول وتسجيل
+              {t("approve")}
             </Button>
           </DialogFooter>
         </DialogContent>

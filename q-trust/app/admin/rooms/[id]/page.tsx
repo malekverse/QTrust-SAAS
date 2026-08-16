@@ -2,6 +2,7 @@
 
 import { use } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useTranslations } from "next-intl"
 import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,12 +13,14 @@ import Link from "next/link"
 
 async function fetchRoom(id: string) {
   const res = await fetch(`/api/rooms/${id}`)
-  if (!res.ok) throw new Error("فشل في جلب بيانات القاعة")
+  if (!res.ok) throw new Error("Failed to fetch room")
   return res.json()
 }
 
 export default function RoomDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const t = useTranslations("admin.rooms")
+  const tc = useTranslations("common")
 
   const { data: room, isLoading, isError } = useQuery({
     queryKey: ["room", id],
@@ -46,9 +49,9 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       <div className="space-y-6">
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-destructive">فشل في جلب بيانات القاعة</p>
+            <p className="text-destructive">{t("fetchError")}</p>
             <Button asChild variant="outline" className="mt-4">
-              <Link href="/admin/rooms">العودة</Link>
+              <Link href="/admin/rooms">{tc("back")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -62,12 +65,12 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
     <div className="space-y-6">
       <PageHeader
         title={room.name}
-        description={room.description || "تفاصيل القاعة"}
+        description={room.description || t("detailsDefault")}
       >
         <Button asChild variant="outline">
           <Link href="/admin/rooms">
             <ArrowRight className="h-4 w-4 ml-2" />
-            العودة
+            {tc("back")}
           </Link>
         </Button>
       </PageHeader>
@@ -80,7 +83,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
               <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">السعة</p>
+              <p className="text-sm text-muted-foreground">{t("capacity")}</p>
               <p className="text-xl font-semibold">{room.capacity}</p>
             </div>
           </CardContent>
@@ -91,7 +94,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
               <Calendar className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">الحصص النشطة</p>
+              <p className="text-sm text-muted-foreground">{t("activeSessions")}</p>
               <p className="text-xl font-semibold">{sessions.length}</p>
             </div>
           </CardContent>
@@ -103,7 +106,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                 <MapPin className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">الموقع</p>
+                <p className="text-sm text-muted-foreground">{t("location")}</p>
                 <p className="text-sm font-medium">{room.location}</p>
               </div>
             </CardContent>
@@ -115,9 +118,9 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
               <DoorOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">الحالة</p>
+              <p className="text-sm text-muted-foreground">{t("roomStatus")}</p>
               <Badge variant={room.isActive ? "success" : "destructive"}>
-                {room.isActive ? "نشطة" : "معطّلة"}
+                {room.isActive ? t("activeStatus") : t("disabledStatus")}
               </Badge>
             </div>
           </CardContent>
@@ -128,7 +131,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       {room.features?.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">التجهيزات</CardTitle>
+            <CardTitle className="text-base">{t("features")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -145,11 +148,11 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       {/* Weekly Availability Grid */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">الجدول الأسبوعي</CardTitle>
+          <CardTitle className="text-base">{t("weeklySchedule")}</CardTitle>
         </CardHeader>
         <CardContent>
           {sessions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">لا توجد حصص مرتبطة بهذه القاعة</p>
+            <p className="text-center text-muted-foreground py-8">{t("noSessionsForRoom")}</p>
           ) : (
             <div className="grid grid-cols-7 gap-2">
               {DAYS_OF_WEEK.map((day) => {
@@ -171,7 +174,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                             {s.startTime} - {s.endTime}
                           </div>
                           <div className="text-muted-foreground">
-                            {s.studentCount} طالب
+                            {s.studentCount} {t("studentSuffix")}
                           </div>
                         </Link>
                       ))}
@@ -188,7 +191,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       {sessions.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">الحصص المرتبطة ({sessions.length})</CardTitle>
+            <CardTitle className="text-base">{t("linkedSessions")} ({sessions.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

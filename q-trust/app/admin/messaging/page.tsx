@@ -26,6 +26,7 @@ import {
   MESSAGE_TYPE_LABELS,
 } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
+import { useTranslations } from "next-intl"
 
 interface ConfigResponse {
   provider: string
@@ -56,6 +57,8 @@ async function fetchLogs(): Promise<MessageLogItem[]> {
 }
 
 export default function MessagingPage() {
+  const t = useTranslations("admin.messaging")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: toastError } = useToast()
 
@@ -133,7 +136,7 @@ export default function MessagingPage() {
   if (locked) {
     return (
       <div className="space-y-6">
-        <PageHeader title="الرسائل" description="إشعارات واتساب / SMS للأولياء" />
+        <PageHeader title={t("title")} description={t("description")} />
         <Card>
           <CardContent className="py-12 text-center">
             <MessageCircle className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
@@ -147,7 +150,7 @@ export default function MessagingPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="الرسائل" description="إعدادات إشعارات واتساب / SMS للأولياء" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       {/* Info banner */}
       <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
@@ -243,7 +246,7 @@ export default function MessagingPage() {
 
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             {saveMutation.isPending ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Save className="ml-2 h-4 w-4" />}
-            حفظ الإعدادات
+            {tc("save")}
           </Button>
         </CardContent>
       </Card>
@@ -251,11 +254,11 @@ export default function MessagingPage() {
       {/* Recent messages */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">سجل الرسائل الأخيرة</CardTitle>
+          <CardTitle className="text-lg">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {!logs || logs.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">لا توجد رسائل بعد</div>
+            <div className="py-8 text-center text-sm text-muted-foreground">{t("noMessages")}</div>
           ) : (
             <div className="space-y-2">
               {logs.map((log) => (

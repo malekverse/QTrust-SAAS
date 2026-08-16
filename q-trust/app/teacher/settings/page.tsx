@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -27,6 +28,8 @@ import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validation
 import { IslamicDivider } from "@/components/layout/islamic-divider"
 
 export default function TeacherSettingsPage() {
+  const t = useTranslations("teacher.settings")
+  const tc = useTranslations("common")
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
   const { success, error } = useToast()
@@ -55,26 +58,26 @@ export default function TeacherSettingsPage() {
       const result = await res.json()
 
       if (!res.ok) {
-        error("خطأ", result.message || "فشل تغيير كلمة المرور")
+        error(tc("error"), result.message || tc("serverError"))
         return
       }
 
-      success("تم بنجاح", "تم تغيير كلمة المرور بنجاح")
+      success(tc("success"), t("passwordChanged"))
       reset()
       setIsChangingPassword(false)
       setShowCurrentPassword(false)
       setShowNewPassword(false)
       setShowConfirmPassword(false)
     } catch (err) {
-      error("خطأ", "حدث خطأ أثناء تغيير كلمة المرور")
+      error(tc("error"), tc("serverError"))
     }
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="الإعدادات"
-        description="إدارة إعدادات حسابك"
+        title={t("title")}
+        description={t("description")}
       />
 
       {/* Profile Info */}
@@ -91,7 +94,7 @@ export default function TeacherSettingsPage() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>الاسم الكامل</Label>
+              <Label>{tc("name")}</Label>
               <Input
                 value={session?.user?.fullName || ""}
                 disabled
@@ -99,7 +102,7 @@ export default function TeacherSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>البريد الإلكتروني</Label>
+              <Label>{tc("email")}</Label>
               <Input
                 value={session?.user?.email || ""}
                 disabled
@@ -121,21 +124,21 @@ export default function TeacherSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
-            كلمة المرور
+            {t("changePassword")}
           </CardTitle>
           <CardDescription>
-            قم بتغيير كلمة المرور الخاصة بك
+            {t("changePassword")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {!isChangingPassword ? (
             <Button onClick={() => setIsChangingPassword(true)}>
-              تغيير كلمة المرور
+              {t("changePassword")}
             </Button>
           ) : (
             <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
+                <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
@@ -162,7 +165,7 @@ export default function TeacherSettingsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                <Label htmlFor="newPassword">{t("newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
@@ -189,7 +192,7 @@ export default function TeacherSettingsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -222,7 +225,7 @@ export default function TeacherSettingsPage() {
                   ) : (
                     <Save className="ml-2 h-4 w-4" />
                   )}
-                  حفظ
+                  {tc("save")}
                 </Button>
                 <Button
                   type="button"
@@ -235,7 +238,7 @@ export default function TeacherSettingsPage() {
                     setShowConfirmPassword(false)
                   }}
                 >
-                  إلغاء
+                  {tc("cancel")}
                 </Button>
               </div>
             </form>

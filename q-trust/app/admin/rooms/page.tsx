@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm, Controller } from "react-hook-form"
@@ -93,6 +94,9 @@ export default function RoomsPage() {
   const [editingRoom, setEditingRoom] = useState<any>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+
+  const t = useTranslations("admin.rooms")
+  const tc = useTranslations("common")
 
   const { data: roomsResponse, isLoading } = useQuery({
     queryKey: ["rooms", page],
@@ -218,12 +222,12 @@ export default function RoomsPage() {
     return (
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label className="text-sm font-medium">اسم القاعة *</label>
+          <label className="text-sm font-medium">{t("roomName")} *</label>
           <Input {...reg("name")} placeholder="مثال: القاعة 1" />
           {errs.name && <p className="text-sm text-destructive mt-1">{errs.name.message}</p>}
         </div>
         <div>
-          <label className="text-sm font-medium">السعة *</label>
+          <label className="text-sm font-medium">{t("capacity")} *</label>
           <Input type="number" {...reg("capacity", { valueAsNumber: true })} placeholder="20" />
           {errs.capacity && <p className="text-sm text-destructive mt-1">{errs.capacity.message}</p>}
         </div>
@@ -232,7 +236,7 @@ export default function RoomsPage() {
           <Input {...reg("location")} placeholder="الطابق الأول - المبنى الرئيسي" />
         </div>
         <div>
-          <label className="text-sm font-medium">الوصف</label>
+          <label className="text-sm font-medium">{tc("description")}</label>
           <Input {...reg("description")} placeholder="وصف مختصر عن القاعة" />
         </div>
         <div>
@@ -240,7 +244,7 @@ export default function RoomsPage() {
           <FeaturesCheckboxGroup control={ctrl} name="features" />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "جاري الحفظ..." : "حفظ"}
+          {loading ? tc("loading") : tc("save")}
         </Button>
       </form>
     )
@@ -249,7 +253,7 @@ export default function RoomsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="إدارة القاعات" description="إدارة قاعات الدراسة وسعتها" />
+        <PageHeader title={t("title")} description={t("description")} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -267,12 +271,12 @@ export default function RoomsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="إدارة القاعات" description="إدارة قاعات الدراسة وسعتها وتجهيزاتها">
+      <PageHeader title={t("title")} description={t("description")}>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 ml-2" />
-              إضافة قاعة
+              {t("addRoom")}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -294,9 +298,9 @@ export default function RoomsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="إجمالي القاعات" value={activeRooms.length} icon={DoorOpen} index={0} />
         <StatCard title="القاعات المستخدمة" value={usedRooms.length} icon={BarChart3} index={1} />
-        <StatCard title="إجمالي السعة" value={totalCapacity} icon={Users} index={2} />
+        <StatCard title={t("capacity")} value={totalCapacity} icon={Users} index={2} />
         <StatCard
-          title="نسبة الاستخدام"
+          title={t("utilizationRate")}
           value={`${activeRooms.length > 0 ? Math.round((usedRooms.length / activeRooms.length) * 100) : 0}%`}
           icon={MapPin}
           index={3}
@@ -319,7 +323,7 @@ export default function RoomsPage() {
         <Card>
           <CardContent className="p-12 text-center">
             <DoorOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-1">لا توجد قاعات</h3>
+            <h3 className="text-lg font-medium mb-1">{t("noRooms")}</h3>
             <p className="text-muted-foreground">ابدأ بإضافة قاعات لإدارة المساحات</p>
           </CardContent>
         </Card>
@@ -366,7 +370,7 @@ export default function RoomsPage() {
                   {/* Capacity bar */}
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-muted-foreground">السعة</span>
+                      <span className="text-muted-foreground">{t("capacity")}</span>
                       <span className="font-medium">
                         {room.maxOccupancy}/{room.capacity}
                       </span>
@@ -413,7 +417,7 @@ export default function RoomsPage() {
         <Dialog open={!!editingRoom} onOpenChange={() => setEditingRoom(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>تعديل القاعة</DialogTitle>
+              <DialogTitle>{t("editRoom")}</DialogTitle>
             </DialogHeader>
             <RoomFormFields
               onSubmit={handleEditSubmit((data) =>
@@ -432,18 +436,18 @@ export default function RoomsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+            <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
             <AlertDialogDescription>
               سيتم تعطيل هذه القاعة. لا يمكن حذف القاعات المرتبطة بحصص نشطة.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              حذف
+              {tc("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

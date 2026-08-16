@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -67,6 +68,8 @@ interface FeedbackData {
 }
 
 export default function TeacherEvaluations() {
+  const t = useTranslations("teacher.evaluations")
+  const tc = useTranslations("common")
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("grades")
   const [grades, setGrades] = useState<GradeData[]>([])
@@ -126,7 +129,7 @@ export default function TeacherEvaluations() {
 
   const submitGrade = async () => {
     if (!gradeForm.studentId || !gradeForm.title || !gradeForm.score || !gradeForm.maxScore) {
-      toast({ title: "خطأ", description: "يرجى ملء جميع الحقول المطلوبة", variant: "destructive" })
+      toast({ title: tc("error"), description: tc("required"), variant: "destructive" })
       return
     }
 
@@ -149,7 +152,7 @@ export default function TeacherEvaluations() {
       })
 
       if (res.ok) {
-        toast({ title: "تم الحفظ", description: "تمت إضافة التقييم بنجاح" })
+        toast({ title: tc("success"), description: t("evaluationSaved") })
         setGradeDialogOpen(false)
         setGradeForm({
           studentId: "",
@@ -165,10 +168,10 @@ export default function TeacherEvaluations() {
         fetchData()
       } else {
         const data = await res.json()
-        toast({ title: "خطأ", description: data.message, variant: "destructive" })
+        toast({ title: tc("error"), description: data.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء الحفظ", variant: "destructive" })
+      toast({ title: tc("error"), description: tc("serverError"), variant: "destructive" })
     } finally {
       setSubmittingGrade(false)
     }
@@ -176,7 +179,7 @@ export default function TeacherEvaluations() {
 
   const submitFeedback = async () => {
     if (!feedbackForm.studentId || !feedbackForm.content) {
-      toast({ title: "خطأ", description: "يرجى ملء جميع الحقول المطلوبة", variant: "destructive" })
+      toast({ title: tc("error"), description: tc("required"), variant: "destructive" })
       return
     }
 
@@ -189,16 +192,16 @@ export default function TeacherEvaluations() {
       })
 
       if (res.ok) {
-        toast({ title: "تم الحفظ", description: "تمت إضافة الملاحظة بنجاح" })
+        toast({ title: tc("success"), description: t("evaluationSaved") })
         setFeedbackDialogOpen(false)
         setFeedbackForm({ studentId: "", content: "", isPositive: true })
         fetchData()
       } else {
         const data = await res.json()
-        toast({ title: "خطأ", description: data.message, variant: "destructive" })
+        toast({ title: tc("error"), description: data.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء الحفظ", variant: "destructive" })
+      toast({ title: tc("error"), description: tc("serverError"), variant: "destructive" })
     } finally {
       setSubmittingFeedback(false)
     }
@@ -251,18 +254,18 @@ export default function TeacherEvaluations() {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <Star className="h-7 w-7 text-primary" />
-            تقييم الطلاب
+            {t("title")}
           </h1>
-          <p className="text-muted-foreground mt-1">إدارة التقييمات والملاحظات للطلاب</p>
+          <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setGradeDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            إضافة تقييم
+            {t("saveEvaluation")}
           </Button>
           <Button variant="outline" onClick={() => setFeedbackDialogOpen(true)} className="gap-2">
             <MessageSquare className="h-4 w-4" />
-            إضافة ملاحظة
+            {t("feedback")}
           </Button>
         </div>
       </div>
@@ -271,7 +274,7 @@ export default function TeacherEvaluations() {
       <div className="relative max-w-sm">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="بحث عن طالب أو تقييم..."
+          placeholder={tc("searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pr-10"
@@ -280,8 +283,8 @@ export default function TeacherEvaluations() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 max-w-sm">
-          <TabsTrigger value="grades">التقييمات ({grades.length})</TabsTrigger>
-          <TabsTrigger value="feedback">الملاحظات ({feedback.length})</TabsTrigger>
+          <TabsTrigger value="grades">{t("grade")} ({grades.length})</TabsTrigger>
+          <TabsTrigger value="feedback">{t("feedback")} ({feedback.length})</TabsTrigger>
         </TabsList>
 
         {/* Grades Tab */}
@@ -290,7 +293,7 @@ export default function TeacherEvaluations() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Star className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد تقييمات بعد</p>
+                <p className="text-muted-foreground">{t("noEvaluations")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -337,7 +340,7 @@ export default function TeacherEvaluations() {
                           <span>
                             {grade.score}/{grade.maxScore}
                           </span>
-                          {grade.surah && <span>سورة {grade.surah}</span>}
+                          {grade.surah && <span>{t("surah")} {grade.surah}</span>}
                           {grade.juz && <span>الجزء {grade.juz}</span>}
                         </div>
                       </div>
@@ -355,7 +358,7 @@ export default function TeacherEvaluations() {
             <Card>
               <CardContent className="py-12 text-center">
                 <MessageSquare className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد ملاحظات بعد</p>
+                <p className="text-muted-foreground">{tc("noResults")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -395,15 +398,15 @@ export default function TeacherEvaluations() {
       <Dialog open={gradeDialogOpen} onOpenChange={setGradeDialogOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>إضافة تقييم جديد</DialogTitle>
-            <DialogDescription>أدخل بيانات التقييم للطالب</DialogDescription>
+            <DialogTitle>{t("saveEvaluation")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>الطالب *</Label>
+              <Label>{tc("student")} *</Label>
               <Select value={gradeForm.studentId} onValueChange={(v) => setGradeForm({ ...gradeForm, studentId: v })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الطالب" />
+                  <SelectValue placeholder={t("selectStudent")} />
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((s) => (
@@ -415,7 +418,7 @@ export default function TeacherEvaluations() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>نوع التقييم *</Label>
+              <Label>{t("grade")} *</Label>
               <Select value={gradeForm.type} onValueChange={(v) => setGradeForm({ ...gradeForm, type: v })}>
                 <SelectTrigger>
                   <SelectValue />
@@ -462,7 +465,7 @@ export default function TeacherEvaluations() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>التاريخ *</Label>
+              <Label>{tc("date")} *</Label>
               <Input
                 type="date"
                 value={gradeForm.date}
@@ -472,7 +475,7 @@ export default function TeacherEvaluations() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>السورة</Label>
+                <Label>{t("surah")}</Label>
                 <Input
                   value={gradeForm.surah}
                   onChange={(e) => setGradeForm({ ...gradeForm, surah: e.target.value })}
@@ -493,7 +496,7 @@ export default function TeacherEvaluations() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>ملاحظات</Label>
+              <Label>{tc("notes")}</Label>
               <Textarea
                 value={gradeForm.notes}
                 onChange={(e) => setGradeForm({ ...gradeForm, notes: e.target.value })}
@@ -504,16 +507,16 @@ export default function TeacherEvaluations() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setGradeDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={submitGrade} disabled={submittingGrade}>
               {submittingGrade ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الحفظ...
+                  {tc("saving")}
                 </>
               ) : (
-                "حفظ التقييم"
+                t("saveEvaluation")
               )}
             </Button>
           </DialogFooter>
@@ -524,18 +527,18 @@ export default function TeacherEvaluations() {
       <Dialog open={feedbackDialogOpen} onOpenChange={setFeedbackDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>إضافة ملاحظة</DialogTitle>
-            <DialogDescription>أضف ملاحظة أو تعليقاً على أداء الطالب</DialogDescription>
+            <DialogTitle>{t("feedback")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>الطالب *</Label>
+              <Label>{tc("student")} *</Label>
               <Select
                 value={feedbackForm.studentId}
                 onValueChange={(v) => setFeedbackForm({ ...feedbackForm, studentId: v })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الطالب" />
+                  <SelectValue placeholder={t("selectStudent")} />
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((s) => (
@@ -585,16 +588,16 @@ export default function TeacherEvaluations() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFeedbackDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={submitFeedback} disabled={submittingFeedback}>
               {submittingFeedback ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الحفظ...
+                  {tc("saving")}
                 </>
               ) : (
-                "حفظ الملاحظة"
+                tc("save")
               )}
             </Button>
           </DialogFooter>

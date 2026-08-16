@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { BrandLogo } from "@/components/brand-logo"
 
 export function LoginForm({
@@ -26,6 +27,9 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
+  const t = useTranslations("auth.login")
+  const tc = useTranslations("common")
+
   const {
     register,
     handleSubmit,
@@ -37,11 +41,11 @@ export function LoginForm({
   // Map NextAuth error codes to user-friendly Arabic messages
   const getErrorMessage = (errorCode: string): string => {
     const errorMessages: Record<string, string> = {
-      "CredentialsSignin": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-      "Configuration": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      "CredentialsSignin": t("errorInvalid"),
+      "Configuration": t("errorInvalid"),
       "AccessDenied": "تم رفض الوصول. الحساب قد يكون معطلاً",
       "Verification": "رابط التحقق غير صالح أو منتهي الصلاحية",
-      "Default": "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى",
+      "Default": t("errorGeneric"),
     }
     return errorMessages[errorCode] || errorMessages["Default"]
   }
@@ -66,7 +70,7 @@ export function LoginForm({
         router.refresh()
       }
     } catch {
-      setError("حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى")
+      setError(t("errorGeneric"))
     } finally {
       setIsLoading(false)
     }
@@ -100,9 +104,9 @@ export function LoginForm({
         {/* Login Card */}
         <Card className="border-0 shadow-xl animate-fade-in stagger-1">
           <CardHeader className="space-y-1 text-center pb-4">
-            <CardTitle className="text-xl">تسجيل الدخول</CardTitle>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
             <CardDescription>
-              {tenantName ? `مرحباً بك في ${tenantName}` : "أدخل بيانات حسابك للمتابعة"}
+              {tenantName ? `مرحباً بك في ${tenantName}` : t("subtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -129,7 +133,7 @@ export function LoginForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">كلمة المرور</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -160,10 +164,10 @@ export function LoginForm({
                 {isLoading ? (
                   <>
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    جاري تسجيل الدخول...
+                    {t("loggingIn")}
                   </>
                 ) : (
-                  "تسجيل الدخول"
+                  t("loginButton")
                 )}
               </Button>
             </form>

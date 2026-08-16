@@ -2,6 +2,7 @@
 
 import "@/app/app-dashboard.css"
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { Html5Qrcode } from "html5-qrcode"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle, XCircle, Loader2, Camera, RefreshCw, Sparkles, AlertTriangle } from "lucide-react"
@@ -46,6 +47,7 @@ interface ScanResult {
 }
 
 export default function ScannerPage() {
+  const t = useTranslations("scanner")
   const [isScanning, setIsScanning] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const [isInitializing, setIsInitializing] = useState(false)
@@ -63,7 +65,7 @@ export default function ScannerPage() {
     try {
       const res = await fetch("/api/attendance/check-in", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "x-scanner-token": process.env.NEXT_PUBLIC_SCANNER_TOKEN || "dev-scanner-token"
         },
@@ -80,14 +82,14 @@ export default function ScannerPage() {
           success: true,
           studentName: data.studentName,
           sessionName: data.sessionName,
-          message: `مرحبًا يا ${data.studentName} 🌿`,
-          subtitle: "تم تسجيل حضورك في حصة اليوم بنجاح ✅\nزادك الله حرصًا على كتابه 🤍",
+          message: t("welcomeStudent", { name: data.studentName }),
+          subtitle: t("successSubtitle"),
         })
       } else {
         setScanResult({
           success: false,
-          message: data.message || "حدث خطأ",
-          subtitle: "يرجى مراجعة الإدارة",
+          message: data.message || t("errorGeneric"),
+          subtitle: t("errorReviewAdmin"),
         })
       }
 
@@ -100,31 +102,31 @@ export default function ScannerPage() {
     } catch {
       setScanResult({
         success: false,
-        message: "حدث خطأ في الاتصال",
-        subtitle: "يرجى المحاولة مرة أخرى",
+        message: t("errorConnection"),
+        subtitle: t("errorRetry"),
       })
     }
-  }, [])
+  }, [t])
 
   const initializeScanner = useCallback(async () => {
     try {
       // Wait a bit for the DOM element to be available
       await new Promise(resolve => setTimeout(resolve, 100))
-      
+
       const scanner = new Html5Qrcode("qr-reader")
       scannerRef.current = scanner
 
       // Try to get available cameras
       const cameras = await Html5Qrcode.getCameras()
-      
+
       if (cameras && cameras.length > 0) {
         // Prefer back camera if available
-        const backCamera = cameras.find(cam => 
-          cam.label.toLowerCase().includes('back') || 
+        const backCamera = cameras.find(cam =>
+          cam.label.toLowerCase().includes('back') ||
           cam.label.toLowerCase().includes('rear') ||
           cam.label.toLowerCase().includes('environment')
         )
-        
+
         const cameraId = backCamera?.id || cameras[0].id
 
         await scanner.start(
@@ -158,32 +160,31 @@ export default function ScannerPage() {
       setIsScanning(true)
     } catch (err: unknown) {
       console.error("Scanner error:", err)
-      
-      // Provide more helpful error messages
-      let errorMessage = "فشل في تشغيل الكاميرا"
-      
+
       const error = err as { name?: string; message?: string }
-      
+
+      let errorMessage = t("cameraFailed")
+
       if (error.name === "NotAllowedError" || error.message?.includes("Permission")) {
-        errorMessage = "يرجى السماح بالوصول للكاميرا من إعدادات المتصفح"
+        errorMessage = t("cameraPermissionSettings")
       } else if (error.name === "NotFoundError" || error.message?.includes("not found")) {
-        errorMessage = "لم يتم العثور على كاميرا. تأكد من توصيل الكاميرا"
+        errorMessage = t("cameraNotFound")
       } else if (error.name === "NotReadableError" || error.message?.includes("in use")) {
-        errorMessage = "الكاميرا قيد الاستخدام من تطبيق آخر"
+        errorMessage = t("cameraInUse")
       } else if (error.name === "OverconstrainedError") {
-        errorMessage = "الكاميرا لا تدعم الإعدادات المطلوبة"
+        errorMessage = t("cameraUnsupported")
       } else if (error.message?.includes("HTTPS")) {
-        errorMessage = "يجب استخدام HTTPS للوصول للكاميرا"
+        errorMessage = t("httpsRequired")
       } else if (error.message?.includes("not found")) {
-        errorMessage = "تعذر العثور على عنصر الكاميرا"
+        errorMessage = t("cameraElementNotFound")
       }
-      
+
       setError(errorMessage)
       setShowCamera(false)
     } finally {
       setIsInitializing(false)
     }
-  }, [handleScan])
+  }, [handleScan, t])
 
   const startScanner = useCallback(async () => {
     setIsInitializing(true)
@@ -191,10 +192,10 @@ export default function ScannerPage() {
 
     try {
       // Check if we're in a secure context (HTTPS or localhost)
-      const isSecureContext = window.isSecureContext || 
-        window.location.hostname === 'localhost' || 
+      const isSecureContext = window.isSecureContext ||
+        window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1'
-      
+
       // Check if mediaDevices API is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         if (!isSecureContext) {
@@ -210,28 +211,28 @@ export default function ScannerPage() {
 
       // Show the camera div first
       setShowCamera(true)
-      
+
     } catch (err: unknown) {
       console.error("Permission error:", err)
-      
+
       const error = err as { name?: string; message?: string }
-      
-      let errorMessage = "فشل في تشغيل الكاميرا"
-      
+
+      let errorMessage = t("cameraFailed")
+
       if (error.message === "HTTPS_REQUIRED") {
-        errorMessage = "يجب استخدام HTTPS للوصول للكاميرا. استخدم رابط آمن (https://)"
+        errorMessage = t("httpsRequiredFull")
       } else if (error.message === "MEDIA_DEVICES_NOT_SUPPORTED") {
-        errorMessage = "المتصفح لا يدعم الوصول للكاميرا. جرب متصفح Chrome أو Safari"
+        errorMessage = t("browserUnsupported")
       } else if (error.name === "NotAllowedError" || error.message?.includes("Permission")) {
-        errorMessage = "يرجى السماح بالوصول للكاميرا من إعدادات المتصفح"
+        errorMessage = t("cameraPermissionSettings")
       } else if (error.name === "NotFoundError") {
-        errorMessage = "لم يتم العثور على كاميرا. تأكد من توصيل الكاميرا"
+        errorMessage = t("cameraNotFound")
       }
-      
+
       setError(errorMessage)
       setIsInitializing(false)
     }
-  }, [])
+  }, [t])
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -268,7 +269,7 @@ export default function ScannerPage() {
           <div className="rounded-xl bg-primary-foreground/95 px-4 py-2 shadow-md">
             <BrandLogo variant="symbol" className="h-10 sm:h-11 w-auto max-w-[min(100%,320px)]" priority />
           </div>
-          <p className="text-sm opacity-90">نظام تسجيل الحضور</p>
+          <p className="text-sm opacity-90">{t("attendanceSystem")}</p>
         </div>
       </header>
 
@@ -283,9 +284,9 @@ export default function ScannerPage() {
                   {!error ? (
                     <>
                       <Camera className="h-16 w-16 text-muted-foreground mb-4" />
-                      <p className="text-lg font-medium mb-2">جاهز للمسح</p>
+                      <p className="text-lg font-medium mb-2">{t("readyToScan")}</p>
                       <p className="text-sm text-muted-foreground mb-4">
-                        اضغط على الزر أدناه لتشغيل الكاميرا
+                        {t("pressToStart")}
                       </p>
                     </>
                   ) : (
@@ -295,20 +296,20 @@ export default function ScannerPage() {
                       </div>
                       <p className="text-lg font-medium text-destructive mb-2">{error}</p>
                       <div className="text-sm text-muted-foreground mb-4 space-y-1">
-                        <p>نصائح لحل المشكلة:</p>
+                        <p>{t("troubleshootTitle")}</p>
                         <ul className="text-xs list-disc list-inside text-right">
-                          <li>تأكد من استخدام HTTPS (رابط آمن)</li>
-                          <li>تأكد من السماح بالوصول للكاميرا</li>
-                          <li>أغلق التطبيقات الأخرى التي تستخدم الكاميرا</li>
-                          <li>جرب استخدام متصفح Chrome أو Safari</li>
-                          <li>تأكد من توصيل الكاميرا بشكل صحيح</li>
+                          <li>{t("troubleshootHttps")}</li>
+                          <li>{t("troubleshootPermission")}</li>
+                          <li>{t("troubleshootOtherApps")}</li>
+                          <li>{t("troubleshootBrowser")}</li>
+                          <li>{t("troubleshootConnection")}</li>
                         </ul>
                       </div>
                     </>
                   )}
                   <div className="flex gap-2">
-                    <Button 
-                      onClick={startScanner} 
+                    <Button
+                      onClick={startScanner}
                       disabled={isInitializing}
                       size="lg"
                       variant={error ? "outline" : "default"}
@@ -316,17 +317,17 @@ export default function ScannerPage() {
                       {isInitializing ? (
                         <>
                           <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                          جاري التشغيل...
+                          {t("startingCamera")}
                         </>
                       ) : error ? (
                         <>
                           <RefreshCw className="ml-2 h-5 w-5" />
-                          إعادة المحاولة
+                          {t("retry")}
                         </>
                       ) : (
                         <>
                           <Camera className="ml-2 h-5 w-5" />
-                          تشغيل الكاميرا
+                          {t("startCamera")}
                         </>
                       )}
                     </Button>
@@ -347,20 +348,20 @@ export default function ScannerPage() {
               )}
 
               {scanResult && (
-                <div 
+                <div
                   className={`aspect-square relative flex flex-col items-center justify-center p-8 text-center transition-all ${
-                    scanResult.success 
-                      ? "scanner-success animate-success-pulse" 
+                    scanResult.success
+                      ? "scanner-success animate-success-pulse"
                       : "scanner-error animate-shake"
                   }`}
                 >
                   {/* Confetti on success */}
                   {scanResult.success && <Confetti />}
-                  
+
                   {/* Success/Error Icon with animation */}
                   <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 ${
-                    scanResult.success 
-                      ? "bg-linear-to-br from-primary/30 to-primary-accent/30 text-primary" 
+                    scanResult.success
+                      ? "bg-linear-to-br from-primary/30 to-primary-accent/30 text-primary"
                       : "bg-linear-to-br from-destructive/30 to-red-400/30 text-destructive"
                   }`}>
                     {scanResult.success && (
@@ -372,7 +373,7 @@ export default function ScannerPage() {
                       <XCircle className="h-12 w-12" />
                     )}
                   </div>
-                  
+
                   {/* Sparkle icons around success */}
                   {scanResult.success && (
                     <>
@@ -381,7 +382,7 @@ export default function ScannerPage() {
                       <Sparkles className="absolute bottom-20 right-12 h-5 w-5 text-primary-accent animate-sparkle delay-200" />
                     </>
                   )}
-                  
+
                   <h2 className={`text-2xl font-bold font-arabic mb-2 ${
                     scanResult.success ? "animate-slide-up" : ""
                   }`}>
@@ -407,12 +408,12 @@ export default function ScannerPage() {
           {/* Controls */}
           {showCamera && (
             <div className="flex justify-center">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={stopScanner}
               >
                 <RefreshCw className="ml-2 h-4 w-4" />
-                إيقاف الماسح
+                {t("stopScanner")}
               </Button>
             </div>
           )}
@@ -421,15 +422,15 @@ export default function ScannerPage() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-sm text-muted-foreground font-arabic">
-                وجّه الكاميرا نحو رمز QR الخاص بك
+                {t("pointCamera")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                سيتم تسجيل الحضور تلقائياً
+                {t("autoRecord")}
               </p>
             </CardContent>
           </Card>
 
-          {/* Quran Quote */}
+          {/* Quran Quote - kept as-is (religious text) */}
           <div className="text-center">
             <p className="text-sm font-arabic text-primary">
               بسم الله الرحمن الرحيم
@@ -448,4 +449,3 @@ export default function ScannerPage() {
     </div>
   )
 }
-

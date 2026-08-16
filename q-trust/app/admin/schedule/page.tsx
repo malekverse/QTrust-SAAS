@@ -36,6 +36,7 @@ import {
   Filter,
 } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 async function fetchSchedule(roomId?: string, teacherId?: string) {
   const params = new URLSearchParams()
@@ -132,6 +133,8 @@ const SLOT_TINTS = [
 ]
 
 export default function SchedulePage() {
+  const t = useTranslations("admin.schedule")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: showError } = useToast()
   const [filterRoom, setFilterRoom] = useState<string>("all")
@@ -217,11 +220,11 @@ export default function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="الجدول الزمني" description="إدارة الجدول الأسبوعي للحصص والقاعات">
+      <PageHeader title={t("title")} description={t("description")}>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? "animate-spin" : ""}`} />
-            تحديث
+            {tc("refresh")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleCheckConflicts}>
             <AlertTriangle className="h-4 w-4 ml-2" />
@@ -249,7 +252,7 @@ export default function SchedulePage() {
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Filter className="h-4 w-4" />
-              تصفية:
+              {tc("filter")}:
             </div>
             <Select value={filterRoom} onValueChange={setFilterRoom}>
               <SelectTrigger className="w-full sm:w-48">
@@ -576,7 +579,7 @@ export default function SchedulePage() {
           ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={() => setAutoAssignDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             {autoAssignPreview?.assignments?.length > 0 && (
               <Button

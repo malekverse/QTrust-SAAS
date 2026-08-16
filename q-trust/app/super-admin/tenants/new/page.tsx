@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, ArrowRight, CheckCircle2, Copy } from "lucide-react"
 import { PLANS, PLAN_LABELS } from "@/lib/constants"
+import { useTranslations } from "next-intl"
 
 type ProvisionResult = {
   tenant: { name: string; slug: string; plan: string }
@@ -25,6 +26,9 @@ const slugify = (s: string) =>
     .slice(0, 60)
 
 export default function NewTenantPage() {
+  const t = useTranslations("superAdmin")
+  const tc = useTranslations("common")
+
   const [form, setForm] = useState({
     name: "",
     slug: "",
@@ -62,12 +66,12 @@ export default function NewTenantPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.message || "حدث خطأ")
+        setError(data.message || tc("error"))
         return
       }
       setResult(data)
     } catch {
-      setError("حدث خطأ في الاتصال")
+      setError(t("tenants.connectionError"))
     } finally {
       setLoading(false)
     }
@@ -80,22 +84,22 @@ export default function NewTenantPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-emerald-600">
               <CheckCircle2 className="h-6 w-6" />
-              تم إنشاء المؤسسة بنجاح
+              {t("tenants.createdSuccess")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">المؤسسة</p>
+              <p className="text-sm text-muted-foreground">{t("tenants.organization")}</p>
               <p className="font-semibold">{result.tenant.name}</p>
             </div>
             <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
-              <p className="text-sm font-medium">بيانات دخول المدير — سلّمها للعميل:</p>
+              <p className="text-sm font-medium">{t("tenants.adminCredentials")}</p>
               <div>
-                <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
+                <p className="text-xs text-muted-foreground">{tc("email")}</p>
                 <p className="font-mono text-sm" dir="ltr">{result.admin.email}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">كلمة المرور المؤقتة</p>
+                <p className="text-xs text-muted-foreground">{t("tenants.tempPassword")}</p>
                 <div className="flex items-center gap-2">
                   <code className="font-mono text-sm bg-background px-2 py-1 rounded border" dir="ltr">
                     {result.admin.tempPassword}
@@ -112,16 +116,16 @@ export default function NewTenantPage() {
                 </div>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">رابط الدخول</p>
+                <p className="text-xs text-muted-foreground">{t("tenants.loginUrlLabel")}</p>
                 <p className="font-mono text-sm text-primary" dir="ltr">{result.loginUrl}</p>
               </div>
               <p className="text-xs text-amber-600">
-                سيُطلب من المدير تغيير كلمة المرور عند أول دخول.
+                {t("tenants.passwordChangeNotice")}
               </p>
             </div>
             <div className="flex gap-2">
               <Button asChild variant="outline" className="flex-1">
-                <Link href="/super-admin/tenants">العودة للقائمة</Link>
+                <Link href="/super-admin/tenants">{t("tenants.backToList")}</Link>
               </Button>
               <Button
                 className="flex-1"
@@ -140,7 +144,7 @@ export default function NewTenantPage() {
                   setSlugEdited(false)
                 }}
               >
-                إنشاء مؤسسة أخرى
+                {t("tenants.createAnother")}
               </Button>
             </div>
           </CardContent>
@@ -157,7 +161,7 @@ export default function NewTenantPage() {
             <ArrowRight className="h-5 w-5" />
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold">مؤسسة جديدة</h1>
+        <h1 className="text-2xl font-bold">{t("tenants.newTenant")}</h1>
       </div>
 
       <Card>
@@ -170,12 +174,12 @@ export default function NewTenantPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">اسم المؤسسة</Label>
+              <Label htmlFor="name">{t("tenants.tenantName")}</Label>
               <Input id="name" value={form.name} onChange={(e) => onNameChange(e.target.value)} required />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">المعرّف (للرابط)</Label>
+              <Label htmlFor="slug">{t("tenants.slugLabel")}</Label>
               <Input
                 id="slug"
                 value={form.slug}
@@ -193,7 +197,7 @@ export default function NewTenantPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="plan">الباقة</Label>
+              <Label htmlFor="plan">{t("tenants.planLabel")}</Label>
               <select
                 id="plan"
                 value={form.plan}
@@ -209,9 +213,9 @@ export default function NewTenantPage() {
             </div>
 
             <div className="border-t pt-4 space-y-4">
-              <p className="text-sm font-medium text-muted-foreground">حساب المدير الأول</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("tenants.firstAdminSection")}</p>
               <div className="space-y-2">
-                <Label htmlFor="adminFullName">اسم المدير</Label>
+                <Label htmlFor="adminFullName">{t("tenants.adminName")}</Label>
                 <Input
                   id="adminFullName"
                   value={form.adminFullName}
@@ -220,7 +224,7 @@ export default function NewTenantPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="adminEmail">بريد المدير الإلكتروني</Label>
+                <Label htmlFor="adminEmail">{t("tenants.adminEmailFull")}</Label>
                 <Input
                   id="adminEmail"
                   type="email"
@@ -232,7 +236,7 @@ export default function NewTenantPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="adminPhone">هاتف المدير (اختياري)</Label>
+                <Label htmlFor="adminPhone">{t("tenants.adminPhoneOptional")}</Label>
                 <Input
                   id="adminPhone"
                   value={form.adminPhone}
@@ -246,7 +250,7 @@ export default function NewTenantPage() {
 
             <div className="border-t pt-4 grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="setupFee">رسوم التركيب (د.ت)</Label>
+                <Label htmlFor="setupFee">{t("tenants.setupFee")}</Label>
                 <Input
                   id="setupFee"
                   type="number"
@@ -258,7 +262,7 @@ export default function NewTenantPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="annualFee">الرسوم السنوية (د.ت)</Label>
+                <Label htmlFor="annualFee">{t("tenants.annualFee")}</Label>
                 <Input
                   id="annualFee"
                   type="number"
@@ -275,10 +279,10 @@ export default function NewTenantPage() {
               {loading ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الإنشاء...
+                  {t("tenants.creating")}
                 </>
               ) : (
-                "إنشاء المؤسسة"
+                t("tenants.createTenant")
               )}
             </Button>
           </form>

@@ -1,6 +1,7 @@
 "use client"
 
 import { use, useState, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { PageHeader } from "@/components/layout/page-header"
@@ -111,6 +112,8 @@ export default function TeacherSessionDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+  const t = useTranslations("teacher.sessions")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error } = useToast()
   const [search, setSearch] = useState("")
@@ -148,10 +151,10 @@ export default function TeacherSessionDetailPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session-attendance", id, selectedDate] })
       setEditingStudent(null)
-      success("تم التحديث", "تم تحديث حالة الحضور بنجاح")
+      success(tc("success"), t("takeAttendance"))
     },
     onError: (err: Error) => {
-      error("فشل التحديث", err.message || "حدث خطأ أثناء تحديث الحضور")
+      error(tc("error"), err.message || tc("serverError"))
     },
   })
 
@@ -210,7 +213,7 @@ export default function TeacherSessionDetailPage({
   }
 
   if (!data) {
-    return <div>الحصة غير موجودة</div>
+    return <div>{tc("noData")}</div>
   }
 
   return (
@@ -219,7 +222,7 @@ export default function TeacherSessionDetailPage({
       <Button variant="ghost" asChild>
         <Link href="/teacher/sessions">
           <ArrowRight className="ml-2 h-4 w-4" />
-          العودة للقائمة
+          {tc("back")}
         </Link>
       </Button>
 
@@ -267,7 +270,7 @@ export default function TeacherSessionDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{data.stats.total}</p>
-              <p className="text-xs text-muted-foreground">إجمالي</p>
+              <p className="text-xs text-muted-foreground">{tc("total")}</p>
             </div>
           </CardContent>
         </Card>
@@ -278,7 +281,7 @@ export default function TeacherSessionDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{data.stats.present}</p>
-              <p className="text-xs text-muted-foreground">حاضر</p>
+              <p className="text-xs text-muted-foreground">{tc("present")}</p>
             </div>
           </CardContent>
         </Card>
@@ -289,7 +292,7 @@ export default function TeacherSessionDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{data.stats.late}</p>
-              <p className="text-xs text-muted-foreground">متأخر</p>
+              <p className="text-xs text-muted-foreground">{tc("late")}</p>
             </div>
           </CardContent>
         </Card>
@@ -300,7 +303,7 @@ export default function TeacherSessionDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{data.stats.absent}</p>
-              <p className="text-xs text-muted-foreground">غائب</p>
+              <p className="text-xs text-muted-foreground">{tc("absent")}</p>
             </div>
           </CardContent>
         </Card>
@@ -311,7 +314,7 @@ export default function TeacherSessionDetailPage({
         <TabsList className="grid w-full grid-cols-3 max-w-md">
           <TabsTrigger value="attendance" className="flex items-center gap-1.5">
             <Users className="h-4 w-4" />
-            الحضور
+            {t("takeAttendance")}
           </TabsTrigger>
           <TabsTrigger value="hifz" className="flex items-center gap-1.5">
             <BookOpen className="h-4 w-4" />
@@ -327,11 +330,11 @@ export default function TeacherSessionDetailPage({
         <TabsContent value="attendance" className="mt-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">الحضور</CardTitle>
+              <CardTitle className="text-lg">{t("takeAttendance")}</CardTitle>
               <div className="relative w-64">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="بحث..."
+                  placeholder={tc("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pr-10"
@@ -366,13 +369,13 @@ export default function TeacherSessionDetailPage({
                                     }`}
                                   >
                                     <CreditCard className="h-3 w-3" />
-                                    {isPaid ? "مدفوع" : "غير مدفوع"}
+                                    {isPaid ? tc("paid") : tc("unpaid")}
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   {isPaid
-                                    ? "الاشتراك الشهري مدفوع"
-                                    : "الاشتراك الشهري غير مدفوع"}
+                                    ? tc("paid")
+                                    : tc("unpaid")}
                                 </TooltipContent>
                               </Tooltip>
                             </div>
@@ -410,28 +413,28 @@ export default function TeacherSessionDetailPage({
           <Dialog open={!!editingStudent} onOpenChange={() => setEditingStudent(null)}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>تعديل الحضور</DialogTitle>
+                <DialogTitle>{tc("edit")}</DialogTitle>
                 <DialogDescription>
                   {editingStudent?.fullName}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">الحالة</label>
+                  <label className="text-sm font-medium">{tc("status")}</label>
                   <Select value={editStatus} onValueChange={setEditStatus}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ATTENDANCE_STATUS.PRESENT}>حاضر</SelectItem>
-                      <SelectItem value={ATTENDANCE_STATUS.LATE}>متأخر</SelectItem>
-                      <SelectItem value={ATTENDANCE_STATUS.ABSENT}>غائب</SelectItem>
-                      <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>غياب مبرر</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.PRESENT}>{tc("present")}</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.LATE}>{tc("late")}</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.ABSENT}>{tc("absent")}</SelectItem>
+                      <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>{tc("excused")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">ملاحظات</label>
+                  <label className="text-sm font-medium">{tc("notes")}</label>
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
@@ -441,11 +444,11 @@ export default function TeacherSessionDetailPage({
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setEditingStudent(null)}>
-                  إلغاء
+                  {tc("cancel")}
                 </Button>
                 <Button onClick={handleSaveAttendance} disabled={mutation.isPending}>
                   {mutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                  حفظ
+                  {tc("save")}
                 </Button>
               </DialogFooter>
             </DialogContent>

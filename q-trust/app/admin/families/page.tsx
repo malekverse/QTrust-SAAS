@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
@@ -85,6 +86,8 @@ export default function FamiliesPage() {
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
   const [studentSearch, setStudentSearch] = useState("")
   const [page, setPage] = useState(1)
+  const t = useTranslations("admin.families")
+  const tc = useTranslations("common")
 
   const { data: familiesResponse, isLoading } = useQuery({ queryKey: ["families", page], queryFn: () => fetchFamilies(page) })
   const families = familiesResponse?.data
@@ -190,10 +193,10 @@ export default function FamiliesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="العائلات" description="تجميع الإخوة تحت عائلة واحدة مع خصم الإخوة">
+      <PageHeader title={t("title")} description={t("description")}>
         <Button onClick={openCreate}>
           <Plus className="ml-2 h-4 w-4" />
-          عائلة جديدة
+          {t("addFamily")}
         </Button>
       </PageHeader>
 
@@ -207,13 +210,13 @@ export default function FamiliesPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <UsersRound className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
-            <p className="font-medium text-muted-foreground">لا توجد عائلات بعد</p>
+            <p className="font-medium text-muted-foreground">{t("noFamilies")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
               أنشئ عائلة لتجميع الإخوة وتطبيق خصم الإخوة تلقائياً
             </p>
             <Button className="mt-4" onClick={openCreate}>
               <Plus className="ml-2 h-4 w-4" />
-              عائلة جديدة
+              {t("addFamily")}
             </Button>
           </CardContent>
         </Card>
@@ -303,12 +306,12 @@ export default function FamiliesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? "تعديل العائلة" : "عائلة جديدة"}</DialogTitle>
+            <DialogTitle>{editing ? "تعديل العائلة" : t("addFamily")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-1">
             <div className="space-y-1.5">
-              <Label>اسم الولي *</Label>
+              <Label>{t("guardianName")}</Label>
               <Input
                 value={form.primaryGuardianName}
                 onChange={(e) => setForm({ ...form, primaryGuardianName: e.target.value })}
@@ -318,7 +321,7 @@ export default function FamiliesPage() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>الهاتف</Label>
+                <Label>{tc("phone")}</Label>
                 <Input
                   value={form.primaryGuardianPhone}
                   onChange={(e) => setForm({ ...form, primaryGuardianPhone: e.target.value })}
@@ -327,7 +330,7 @@ export default function FamiliesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>البريد الإلكتروني</Label>
+                <Label>{tc("email")}</Label>
                 <Input
                   type="email"
                   value={form.primaryGuardianEmail}
@@ -364,7 +367,7 @@ export default function FamiliesPage() {
 
             {/* Student picker */}
             <div className="space-y-1.5">
-              <Label>الطلاب في هذه العائلة</Label>
+              <Label>{t("linkedStudents")}</Label>
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -410,11 +413,11 @@ export default function FamiliesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={() => saveMutation.mutate()} disabled={!canSave || saveMutation.isPending}>
               {saveMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              حفظ
+              {tc("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

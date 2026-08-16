@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 import dbConnect from "@/lib/db"
 import SessionTemplate from "@/models/SessionTemplate"
 import StudentSession from "@/models/StudentSession"
@@ -7,11 +8,11 @@ import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  Clock, 
-  Users, 
+import {
+  Clock,
+  Users,
   Calendar,
-  ArrowLeft 
+  ArrowLeft
 } from "lucide-react"
 import { getDayName } from "@/lib/utils"
 import { DAYS_OF_WEEK } from "@/lib/constants"
@@ -55,6 +56,9 @@ export default async function TeacherSessionsPage() {
   const session = await auth()
   if (!session) redirect("/auth/login")
 
+  const t = await getTranslations("teacher.sessions")
+  const tc = await getTranslations("common")
+
   const { sessions, groupedByDay } = await getTeacherSessions(session.user.id)
 
   const daysWithSessions = DAYS_OF_WEEK.filter(
@@ -64,15 +68,15 @@ export default async function TeacherSessionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="حصصي"
-        description="قائمة الحصص المسندة إليك"
+        title={t("title")}
+        description={t("description")}
       />
 
       {sessions.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg font-medium mb-2">لا توجد حصص مسندة</p>
+            <p className="text-lg font-medium mb-2">{t("noSessions")}</p>
             <p className="text-muted-foreground">
               تواصل مع الإدارة لإضافة حصص جديدة
             </p>
@@ -102,7 +106,7 @@ export default async function TeacherSessionsPage() {
                         <p className="font-medium">{s.name}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Users className="h-4 w-4" />
-                          <span>{s.studentCount} طالب</span>
+                          <span>{s.studentCount} {tc("student")}</span>
                         </div>
                       </div>
                     </div>
@@ -128,7 +132,7 @@ export default async function TeacherSessionsPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">إجمالي الحصص الأسبوعية</span>
+            <span className="text-muted-foreground">{t("description")}</span>
             <Badge>{sessions.length} حصة</Badge>
           </div>
         </CardContent>

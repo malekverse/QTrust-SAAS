@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import { GENDER } from "@/lib/constants"
+import { useTranslations } from "next-intl"
 
 interface ParsedStudent {
   firstName: string
@@ -59,6 +60,8 @@ export default function ImportStudentsPage() {
   const [parsedStudents, setParsedStudents] = useState<ParsedStudent[]>([])
   const [isImporting, setIsImporting] = useState(false)
   const [importResult, setImportResult] = useState<ImportResult | null>(null)
+  const t = useTranslations("admin.students")
+  const tc = useTranslations("common")
 
   const parseCSV = useCallback((content: string): ParsedStudent[] => {
     const lines = content.split("\n").filter(line => line.trim())
@@ -85,10 +88,10 @@ export default function ImportStudentsPage() {
 
       // Validate required fields
       if (!firstName || firstName.length < 2) {
-        errors.push("الاسم مطلوب (2 حروف على الأقل)")
+        errors.push(t("firstNameValidation"))
       }
       if (!lastName || lastName.length < 2) {
-        errors.push("اللقب مطلوب (2 حروف على الأقل)")
+        errors.push(t("lastNameValidation"))
       }
 
       // Get gender (required, default to MALE)
@@ -194,7 +197,7 @@ export default function ImportStudentsPage() {
   const handleImport = async () => {
     const validStudents = parsedStudents.filter(s => s.valid)
     if (validStudents.length === 0) {
-      warning("تنبيه", "لا توجد بيانات صالحة للاستيراد")
+      warning(t("importWarningTitle"), t("noValidData"))
       return
     }
 
@@ -236,7 +239,7 @@ export default function ImportStudentsPage() {
         }
       } catch (err) {
         failedCount++
-        importErrors.push(`${student.firstName} ${student.lastName}: خطأ في الاتصال`)
+        importErrors.push(`${student.firstName} ${student.lastName}: ${t("connectionError")}`)
       }
     }
 
@@ -244,11 +247,11 @@ export default function ImportStudentsPage() {
     setIsImporting(false)
 
     if (successCount > 0 && failedCount === 0) {
-      success("تم الاستيراد", `تم استيراد ${successCount} طالب بنجاح`)
+      success(t("importSuccessTitle"), t("importSuccessMessage", { count: successCount }))
     } else if (successCount > 0 && failedCount > 0) {
-      warning("تم الاستيراد جزئياً", `نجح: ${successCount} | فشل: ${failedCount}`)
+      warning(t("importPartialTitle"), t("importPartialMessage", { success: successCount, failed: failedCount }))
     } else if (failedCount > 0) {
-      error("فشل الاستيراد", `فشل استيراد ${failedCount} طالب`)
+      error(t("importFailedTitle"), t("importFailedMessage", { count: failedCount }))
     }
   }
 
@@ -273,14 +276,14 @@ export default function ImportStudentsPage() {
       <Button variant="ghost" asChild>
         <Link href="/admin/students">
           <ArrowRight className="ml-2 h-4 w-4" />
-          العودة للقائمة
+          {t("backToList")}
         </Link>
       </Button>
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">استيراد الطلاب</h1>
-        <p className="text-muted-foreground">استيراد قائمة طلاب من ملف CSV</p>
+        <h1 className="text-2xl font-bold">{t("importStudents")}</h1>
+        <p className="text-muted-foreground">{t("importDescription")}</p>
       </div>
 
       {/* Instructions */}
@@ -288,29 +291,29 @@ export default function ImportStudentsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            تعليمات الاستيراد
+            {t("importInstructions")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            قم بتحميل ملف CSV يحتوي على بيانات الطلاب. يجب أن يحتوي الملف على الأعمدة التالية:
+            {t("importInstructionsDesc")}
           </p>
           <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-            <li><strong>firstName</strong> أو <strong>الاسم</strong> (مطلوب) - الاسم الأول</li>
-            <li><strong>lastName</strong> أو <strong>اللقب</strong> (مطلوب) - اللقب</li>
-            <li><strong>gender</strong> أو <strong>الجنس</strong> (اختياري) - MALE/FEMALE أو ذكر/أنثى</li>
-            <li><strong>fatherName</strong> أو <strong>اسم الأب</strong> (اختياري)</li>
-            <li><strong>phone</strong> أو <strong>الهاتف</strong> (اختياري) - 8 أرقام</li>
-            <li><strong>cin</strong> أو <strong>رقم ب. ت. و</strong> (اختياري) - 8 أرقام</li>
-            <li><strong>address</strong> أو <strong>العنوان</strong> (اختياري)</li>
-            <li><strong>dateOfBirth</strong> أو <strong>تاريخ الولادة</strong> (اختياري) - YYYY-MM-DD</li>
-            <li><strong>placeOfBirth</strong> أو <strong>مكان الولادة</strong> (اختياري)</li>
-            <li><strong>educationLevel</strong> أو <strong>المستوى التعليمي</strong> (اختياري)</li>
-            <li><strong>notes</strong> أو <strong>ملاحظات</strong> (اختياري)</li>
+            <li><strong>firstName</strong> {t("importCol_firstName")}</li>
+            <li><strong>lastName</strong> {t("importCol_lastName")}</li>
+            <li><strong>gender</strong> {t("importCol_gender")}</li>
+            <li><strong>fatherName</strong> {t("importCol_fatherName")}</li>
+            <li><strong>phone</strong> {t("importCol_phone")}</li>
+            <li><strong>cin</strong> {t("importCol_cin")}</li>
+            <li><strong>address</strong> {t("importCol_address")}</li>
+            <li><strong>dateOfBirth</strong> {t("importCol_dateOfBirth")}</li>
+            <li><strong>placeOfBirth</strong> {t("importCol_placeOfBirth")}</li>
+            <li><strong>educationLevel</strong> {t("importCol_educationLevel")}</li>
+            <li><strong>notes</strong> {t("importCol_notes")}</li>
           </ul>
           <Button variant="outline" size="sm" onClick={downloadTemplate}>
             <Download className="ml-2 h-4 w-4" />
-            تحميل نموذج CSV
+            {t("downloadCSVTemplate")}
           </Button>
         </CardContent>
       </Card>
@@ -318,12 +321,12 @@ export default function ImportStudentsPage() {
       {/* File Upload */}
       <Card>
         <CardHeader>
-          <CardTitle>رفع الملف</CardTitle>
+          <CardTitle>{t("uploadFile")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="csvFile">ملف CSV</Label>
+              <Label htmlFor="csvFile">{t("csvFile")}</Label>
               <Input
                 id="csvFile"
                 type="file"
@@ -334,7 +337,7 @@ export default function ImportStudentsPage() {
             </div>
             {file && (
               <p className="text-sm text-muted-foreground">
-                الملف المحدد: {file.name}
+                {t("selectedFile")} {file.name}
               </p>
             )}
           </div>
@@ -346,16 +349,16 @@ export default function ImportStudentsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>معاينة البيانات</span>
+              <span>{t("dataPreview")}</span>
               <div className="flex gap-2">
                 <Badge variant="success">
                   <CheckCircle className="ml-1 h-3 w-3" />
-                  {validCount} صالح
+                  {validCount} {t("valid")}
                 </Badge>
                 {invalidCount > 0 && (
                   <Badge variant="destructive">
                     <XCircle className="ml-1 h-3 w-3" />
-                    {invalidCount} غير صالح
+                    {invalidCount} {t("invalid")}
                   </Badge>
                 )}
               </div>
@@ -366,13 +369,13 @@ export default function ImportStudentsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>الاسم</TableHead>
-                    <TableHead>اللقب</TableHead>
-                    <TableHead>الجنس</TableHead>
-                    <TableHead>اسم الأب</TableHead>
-                    <TableHead>الهاتف</TableHead>
-                    <TableHead>ب.ت.و</TableHead>
+                    <TableHead>{tc("status")}</TableHead>
+                    <TableHead>{t("firstName")}</TableHead>
+                    <TableHead>{t("lastName")}</TableHead>
+                    <TableHead>{t("gender")}</TableHead>
+                    <TableHead>{t("fatherName")}</TableHead>
+                    <TableHead>{tc("phone")}</TableHead>
+                    <TableHead>{t("cinShortLabel")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -389,7 +392,7 @@ export default function ImportStudentsPage() {
                       <TableCell>{student.lastName}</TableCell>
                       <TableCell>
                         <Badge variant={student.gender === 'MALE' ? 'secondary' : 'outline'}>
-                          {student.gender === 'MALE' ? 'ذكر' : 'أنثى'}
+                          {student.gender === 'MALE' ? tc("male") : tc("female")}
                         </Badge>
                       </TableCell>
                       <TableCell>{student.fatherName || "-"}</TableCell>
@@ -408,11 +411,11 @@ export default function ImportStudentsPage() {
       {importResult && (
         <Alert variant={importResult.failed > 0 ? "destructive" : "default"}>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>نتيجة الاستيراد</AlertTitle>
+          <AlertTitle>{t("importResult")}</AlertTitle>
           <AlertDescription>
-            <p>تم استيراد {importResult.success} طالب بنجاح.</p>
+            <p>{t("importSuccessCount", { count: importResult.success })}</p>
             {importResult.failed > 0 && (
-              <p>فشل استيراد {importResult.failed} طالب.</p>
+              <p>{t("importFailedCount", { count: importResult.failed })}</p>
             )}
             {importResult.errors.length > 0 && (
               <ul className="mt-2 text-sm list-disc list-inside">
@@ -420,7 +423,7 @@ export default function ImportStudentsPage() {
                   <li key={i}>{error}</li>
                 ))}
                 {importResult.errors.length > 5 && (
-                  <li>... و {importResult.errors.length - 5} أخطاء أخرى</li>
+                  <li>{t("moreErrors", { count: importResult.errors.length - 5 })}</li>
                 )}
               </ul>
             )}
@@ -438,12 +441,12 @@ export default function ImportStudentsPage() {
             {isImporting ? (
               <>
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                جاري الاستيراد...
+                {t("importing")}
               </>
             ) : (
               <>
                 <Upload className="ml-2 h-4 w-4" />
-                استيراد {validCount} طالب
+                {t("importNStudents", { count: validCount })}
               </>
             )}
           </Button>
@@ -455,7 +458,7 @@ export default function ImportStudentsPage() {
               setImportResult(null)
             }}
           >
-            إلغاء
+            {tc("cancel")}
           </Button>
         </div>
       )}
@@ -463,7 +466,7 @@ export default function ImportStudentsPage() {
       {importResult && importResult.success > 0 && (
         <Button asChild>
           <Link href="/admin/students">
-            العودة لقائمة الطلاب
+            {t("backToStudentList")}
           </Link>
         </Button>
       )}

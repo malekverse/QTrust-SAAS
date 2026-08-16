@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
@@ -128,6 +129,8 @@ export default function TeachersPage() {
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all")
   const [showPassword, setShowPassword] = useState(false)
   const [page, setPage] = useState(1)
+  const t = useTranslations("admin.teachers")
+  const tc = useTranslations("common")
 
   useEffect(() => {
     setMounted(true)
@@ -239,20 +242,20 @@ export default function TeachersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="إدارة المعلمين"
-        description="إضافة وتعديل وحذف حسابات المعلمين"
+        title={t("title")}
+        description={t("description")}
       >
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? 'animate-spin' : ''}`} />
-            تحديث
+            {tc("refresh")}
           </Button>
           {mounted ? (
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => { reset(); setShowPassword(false); }}>
                   <Plus className="ml-2 h-4 w-4" />
-                  إضافة معلم
+                  {t("addTeacher")}
                 </Button>
               </DialogTrigger>
             <DialogContent>
@@ -265,7 +268,7 @@ export default function TeachersPage() {
               <form onSubmit={handleSubmit(onCreateSubmit)}>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">الاسم الكامل *</Label>
+                    <Label htmlFor="fullName">{t("fullName")} *</Label>
                     <Input
                       id="fullName"
                       placeholder="محمد أحمد"
@@ -276,7 +279,7 @@ export default function TeachersPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني *</Label>
+                    <Label htmlFor="email">{t("email")} *</Label>
                     <Controller
                       name="email"
                       control={control}
@@ -295,7 +298,7 @@ export default function TeachersPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">كلمة المرور المؤقتة *</Label>
+                    <Label htmlFor="password">{t("password")} *</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -331,13 +334,13 @@ export default function TeachersPage() {
                     variant="outline"
                     onClick={() => { setIsCreateOpen(false); setShowPassword(false); }}
                   >
-                    إلغاء
+                    {tc("cancel")}
                   </Button>
                   <Button type="submit" disabled={createMutation.isPending}>
                     {createMutation.isPending && (
                       <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                     )}
-                    إضافة المعلم
+                    {t("addTeacher")}
                   </Button>
                 </DialogFooter>
                 {createMutation.error && (
@@ -351,7 +354,7 @@ export default function TeachersPage() {
           ) : (
             <Button onClick={() => { reset(); setShowPassword(false); }}>
               <Plus className="ml-2 h-4 w-4" />
-              إضافة معلم
+              {t("addTeacher")}
             </Button>
           )}
         </div>
@@ -397,7 +400,7 @@ export default function TeachersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.inactive}</p>
-              <p className="text-xs text-muted-foreground">غير نشط</p>
+              <p className="text-xs text-muted-foreground">{tc("inactive")}</p>
             </div>
           </CardContent>
         </Card>
@@ -410,7 +413,7 @@ export default function TeachersPage() {
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="البحث عن معلم بالاسم أو البريد الإلكتروني..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pr-10"
@@ -418,9 +421,9 @@ export default function TeachersPage() {
             </div>
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full sm:w-auto">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="all">الكل</TabsTrigger>
-                <TabsTrigger value="active">نشط</TabsTrigger>
-                <TabsTrigger value="inactive">غير نشط</TabsTrigger>
+                <TabsTrigger value="all">{tc("all")}</TabsTrigger>
+                <TabsTrigger value="active">{tc("active")}</TabsTrigger>
+                <TabsTrigger value="inactive">{tc("inactive")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -447,7 +450,7 @@ export default function TeachersPage() {
               <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-50" />
               {search ? (
                 <>
-                  <p className="font-medium">لا توجد نتائج للبحث</p>
+                  <p className="font-medium">{tc("noResults")}</p>
                   <p className="text-sm mt-1">جرب البحث بكلمات مختلفة</p>
                   <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>
                     مسح البحث
@@ -462,11 +465,11 @@ export default function TeachersPage() {
                 </>
               ) : (
                 <>
-                  <p className="font-medium">لا يوجد معلمون مسجلون</p>
+                  <p className="font-medium">{t("noTeachers")}</p>
                   <p className="text-sm mt-1">ابدأ بإضافة معلم جديد</p>
                   <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
                     <Plus className="h-4 w-4 ml-2" />
-                    إضافة معلم
+                    {t("addTeacher")}
                   </Button>
                 </>
               )}
@@ -476,8 +479,8 @@ export default function TeachersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>المعلم</TableHead>
-                  <TableHead className="hidden sm:table-cell">البريد الإلكتروني</TableHead>
-                  <TableHead>الحالة</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t("email")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
                   <TableHead className="hidden md:table-cell">تاريخ الإضافة</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
@@ -516,7 +519,7 @@ export default function TeachersPage() {
                           variant={teacher.isActive ? "success" : "destructive"}
                           className="font-normal"
                         >
-                          {teacher.isActive ? "نشط" : "معطل"}
+                          {teacher.isActive ? tc("active") : "معطل"}
                         </Badge>
                         {teacher.isEmailVerified && (
                           <Badge variant="outline" className="text-xs font-normal">
@@ -544,13 +547,13 @@ export default function TeachersPage() {
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/teachers/${teacher._id}`}>
                                 <Eye className="ml-2 h-4 w-4" />
-                                عرض التفاصيل
+                                {tc("details")}
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/teachers/${teacher._id}`}>
                                 <Pencil className="ml-2 h-4 w-4" />
-                                تعديل
+                                {tc("edit")}
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -579,7 +582,7 @@ export default function TeachersPage() {
                               onClick={() => setDeleteId(teacher._id)}
                             >
                               <Trash2 className="ml-2 h-4 w-4" />
-                              حذف
+                              {tc("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -613,13 +616,13 @@ export default function TeachersPage() {
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+              <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
               <AlertDialogDescription>
                 سيتم حذف هذا المعلم نهائياً مع جميع الحصص المرتبطة به. لا يمكن التراجع عن هذا الإجراء.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => deleteId && deleteMutation.mutate(deleteId)}
@@ -627,7 +630,7 @@ export default function TeachersPage() {
                 {deleteMutation.isPending && (
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 )}
-                حذف
+                {tc("delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

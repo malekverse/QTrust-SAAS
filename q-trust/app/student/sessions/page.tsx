@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +36,8 @@ interface WeeklyDay {
 }
 
 export default function StudentSessions() {
+  const t = useTranslations("student.sessions")
+  const tc = useTranslations("common")
   const [sessions, setSessions] = useState<SessionData[]>([])
   const [weeklyCalendar, setWeeklyCalendar] = useState<WeeklyDay[]>([])
   const [loading, setLoading] = useState(true)
@@ -136,9 +139,9 @@ export default function StudentSessions() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <Calendar className="h-7 w-7 text-primary" />
-          حلقاتي
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground mt-1">جدول الحصص والحلقات المسجلة</p>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -153,7 +156,7 @@ export default function StudentSessions() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد حلقات مسجلة حالياً</p>
+                <p className="text-muted-foreground">{t("noSessions")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -204,9 +207,9 @@ export default function StudentSessions() {
                         </div>
                         <div className="shrink-0">
                           {!s.isActive ? (
-                            <Badge variant="outline" className="text-muted-foreground">معلّقة</Badge>
+                            <Badge variant="outline" className="text-muted-foreground">{tc("inactive")}</Badge>
                           ) : (
-                            <Badge variant="outline" className="student-surface-emerald-chip">نشطة</Badge>
+                            <Badge variant="outline" className="student-surface-emerald-chip">{tc("active")}</Badge>
                           )}
                         </div>
                       </div>
@@ -247,7 +250,7 @@ export default function StudentSessions() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد حلقات مسجلة حالياً</p>
+                <p className="text-muted-foreground">{t("noSessions")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -259,9 +262,9 @@ export default function StudentSessions() {
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-lg">{s.name}</h3>
                         {s.isActive ? (
-                          <Badge variant="outline" className="student-surface-emerald-chip">نشطة</Badge>
+                          <Badge variant="outline" className="student-surface-emerald-chip">{tc("active")}</Badge>
                         ) : (
-                          <Badge variant="outline" className="text-muted-foreground">معلّقة</Badge>
+                          <Badge variant="outline" className="text-muted-foreground">{tc("inactive")}</Badge>
                         )}
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">

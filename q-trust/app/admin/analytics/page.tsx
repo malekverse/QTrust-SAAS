@@ -21,6 +21,7 @@ import {
   CircleDollarSign,
   CheckCircle,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface DropoutRow {
   studentId: string
@@ -64,6 +65,8 @@ async function fetchAnalytics(): Promise<Analytics> {
 }
 
 export default function AnalyticsPage() {
+  const t = useTranslations("admin.analytics")
+  const tc = useTranslations("common")
   const { data, isLoading, error } = useQuery({ queryKey: ["analytics"], queryFn: fetchAnalytics })
 
   if (isLoading) {
@@ -83,7 +86,7 @@ export default function AnalyticsPage() {
   if (error || !data) {
     return (
       <div className="space-y-6">
-        <PageHeader title="التحليلات" description="مؤشرات المتابعة والأداء" />
+        <PageHeader title={t("title")} description={t("description")} />
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             تعذّر تحميل التحليلات
@@ -98,7 +101,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="التحليلات" description="مؤشرات المتابعة والأداء المبنية على بياناتك" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       {/* Summary tiles */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -146,7 +149,7 @@ export default function AnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5" />
-            المداخيل الشهرية
+            {t("monthlyOverview")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -180,7 +183,7 @@ export default function AnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <AlertTriangle className="h-5 w-5" />
-            طلاب في خطر الانقطاع
+            {t("riskStudents")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -250,27 +253,27 @@ export default function AnalyticsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.teachers.map((t) => (
-                  <TableRow key={t.teacherId}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell dir="ltr" className="text-start">{t.finished}</TableCell>
-                    <TableCell dir="ltr" className="text-start">{t.cancelled}</TableCell>
-                    <TableCell className="hidden sm:table-cell" dir="ltr">{t.scheduled}</TableCell>
+                {data.teachers.map((tr) => (
+                  <TableRow key={tr.teacherId}>
+                    <TableCell className="font-medium">{tr.name}</TableCell>
+                    <TableCell dir="ltr" className="text-start">{tr.finished}</TableCell>
+                    <TableCell dir="ltr" className="text-start">{tr.cancelled}</TableCell>
+                    <TableCell className="hidden sm:table-cell" dir="ltr">{tr.scheduled}</TableCell>
                     <TableCell>
-                      {t.fulfillmentRate === null ? (
+                      {tr.fulfillmentRate === null ? (
                         <span className="text-muted-foreground">—</span>
                       ) : (
                         <Badge
                           variant="outline"
                           className={
-                            t.fulfillmentRate >= 80
+                            tr.fulfillmentRate >= 80
                               ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400"
-                              : t.fulfillmentRate >= 50
+                              : tr.fulfillmentRate >= 50
                               ? "border-amber-500/40 text-amber-700 dark:text-amber-400"
                               : "border-red-500/40 text-red-700 dark:text-red-400"
                           }
                         >
-                          {t.fulfillmentRate}%
+                          {tr.fulfillmentRate}%
                         </Badge>
                       )}
                     </TableCell>

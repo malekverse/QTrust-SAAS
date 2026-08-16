@@ -56,6 +56,7 @@ import {
 import { MONTH_LABELS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 import { FileUpload } from "@/components/ui/file-upload"
+import { useTranslations } from "next-intl"
 
 interface StudentPayment {
   _id: string
@@ -125,6 +126,8 @@ async function bulkUpdatePayments(data: {
 }
 
 export default function SubscriptionsPage() {
+  const t = useTranslations("admin.subscriptions")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: toastError } = useToast()
 
@@ -316,13 +319,13 @@ export default function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="إدارة الاشتراكات"
-        description="متابعة دفعات الطلاب الشهرية"
+        title={t("title")}
+        description={t("description")}
       >
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? "animate-spin" : ""}`} />
-            تحديث
+            {tc("refresh")}
           </Button>
         </div>
       </PageHeader>
@@ -391,7 +394,7 @@ export default function SubscriptionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">إجمالي الطلاب</p>
+              <p className="text-xs text-muted-foreground">{t("totalDue")}</p>
             </div>
           </CardContent>
         </Card>
@@ -405,7 +408,7 @@ export default function SubscriptionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.paid}</p>
-              <p className="text-xs text-muted-foreground">دفعوا</p>
+              <p className="text-xs text-muted-foreground">{t("totalPaid")}</p>
             </div>
           </CardContent>
         </Card>
@@ -419,7 +422,7 @@ export default function SubscriptionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.unpaid}</p>
-              <p className="text-xs text-muted-foreground">لم يدفعوا</p>
+              <p className="text-xs text-muted-foreground">{t("totalPending")}</p>
             </div>
           </CardContent>
         </Card>
@@ -456,9 +459,9 @@ export default function SubscriptionsPage() {
                 className="w-auto"
               >
                 <TabsList className="grid grid-cols-3">
-                  <TabsTrigger value="all">الكل</TabsTrigger>
-                  <TabsTrigger value="paid">مدفوع</TabsTrigger>
-                  <TabsTrigger value="unpaid">غير مدفوع</TabsTrigger>
+                  <TabsTrigger value="all">{tc("all")}</TabsTrigger>
+                  <TabsTrigger value="paid">{tc("paid")}</TabsTrigger>
+                  <TabsTrigger value="unpaid">{tc("unpaid")}</TabsTrigger>
                 </TabsList>
               </Tabs>
               {selectedStudents.size > 0 && (
@@ -530,12 +533,12 @@ export default function SubscriptionsPage() {
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>الطالب</TableHead>
-                  <TableHead className="hidden sm:table-cell">الهاتف</TableHead>
-                  <TableHead className="hidden md:table-cell">رقم الانخراط</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead className="hidden lg:table-cell">تاريخ الدفع</TableHead>
-                  <TableHead className="w-[200px]">إجراء</TableHead>
+                  <TableHead>{tc("name")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{tc("phone")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{tc("details")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
+                  <TableHead className="hidden lg:table-cell">{tc("date")}</TableHead>
+                  <TableHead className="w-[200px]">{tc("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -586,7 +589,7 @@ export default function SubscriptionsPage() {
                         variant={student.isPaid ? "success" : "destructive"}
                         className="font-normal"
                       >
-                        {student.isPaid ? "مدفوع" : "غير مدفوع"}
+                        {student.isPaid ? tc("paid") : tc("unpaid")}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
@@ -616,12 +619,12 @@ export default function SubscriptionsPage() {
                           ) : student.isPaid ? (
                             <>
                               <XCircle className="ml-1 h-4 w-4" />
-                              إلغاء
+                              {tc("cancel")}
                             </>
                           ) : (
                             <>
                               <CheckCircle className="ml-1 h-4 w-4" />
-                              تأكيد الدفع
+                              {t("markPaid")}
                             </>
                           )}
                         </Button>
@@ -701,7 +704,7 @@ export default function SubscriptionsPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>المبلغ (اختياري)</Label>
+              <Label>{tc("amount")} ({tc("optional")})</Label>
               <Input
                 type="number"
                 value={paymentAmount}
@@ -713,7 +716,7 @@ export default function SubscriptionsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>ملاحظات (اختياري)</Label>
+              <Label>{tc("notes")} ({tc("optional")})</Label>
               <Textarea
                 value={paymentNotes}
                 onChange={(e) => setPaymentNotes(e.target.value)}
@@ -732,7 +735,7 @@ export default function SubscriptionsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button
               onClick={handleConfirmPayment}
@@ -740,7 +743,7 @@ export default function SubscriptionsPage() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {paymentMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              تأكيد الدفع
+              {t("markPaid")}
             </Button>
           </DialogFooter>
         </DialogContent>

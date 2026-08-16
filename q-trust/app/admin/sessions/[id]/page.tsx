@@ -52,6 +52,7 @@ import {
 } from "lucide-react"
 import { getDayName } from "@/lib/utils"
 import { useToast } from "@/components/ui/toast"
+import { useTranslations } from "next-intl"
 
 interface SessionDetail {
   _id: string
@@ -114,6 +115,8 @@ export default function SessionDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+  const t = useTranslations("admin.sessions")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: showError, warning } = useToast()
   const [search, setSearch] = useState("")
@@ -233,17 +236,17 @@ export default function SessionDetailPage({
         <Button variant="ghost" asChild>
           <Link href="/admin/sessions">
             <ArrowRight className="ml-2 h-4 w-4" />
-            العودة للقائمة
+            {tc("back")}
           </Link>
         </Button>
         <Card>
           <CardContent className="p-6 text-center">
             <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-destructive" />
-            <p className="text-destructive font-medium">حدث خطأ أثناء تحميل بيانات الحصة</p>
+            <p className="text-destructive font-medium">{tc("serverError")}</p>
             <p className="text-sm text-muted-foreground mt-1">يرجى المحاولة مرة أخرى</p>
             <Button className="mt-4" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 ml-2" />
-              إعادة المحاولة
+              {tc("refresh")}
             </Button>
           </CardContent>
         </Card>
@@ -257,7 +260,7 @@ export default function SessionDetailPage({
         <Button variant="ghost" asChild>
           <Link href="/admin/sessions">
             <ArrowRight className="ml-2 h-4 w-4" />
-            العودة للقائمة
+            {tc("back")}
           </Link>
         </Button>
         <Card>
@@ -282,13 +285,13 @@ export default function SessionDetailPage({
         <Button variant="ghost" asChild>
           <Link href="/admin/sessions">
             <ArrowRight className="ml-2 h-4 w-4" />
-            العودة للقائمة
+            {tc("back")}
           </Link>
         </Button>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? 'animate-spin' : ''}`} />
-            تحديث
+            {tc("refresh")}
           </Button>
           <Button variant="outline" asChild>
             <Link href="/admin/attendance">
@@ -311,7 +314,7 @@ export default function SessionDetailPage({
             </Badge>
           )}
           <Badge variant={session.isActive ? "success" : "destructive"}>
-            {session.isActive ? "فعالة" : "معطلة"}
+            {session.isActive ? tc("active") : tc("inactive")}
           </Badge>
         </div>
       </PageHeader>
@@ -324,7 +327,7 @@ export default function SessionDetailPage({
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">المعلم</p>
+              <p className="text-sm text-muted-foreground">{t("teacher")}</p>
               <p className="font-medium">{session.teacherId?.fullName}</p>
             </div>
           </CardContent>
@@ -335,7 +338,7 @@ export default function SessionDetailPage({
               <Clock className="h-5 w-5 text-blue-700 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">الوقت</p>
+              <p className="text-sm text-muted-foreground">{t("time")}</p>
               <p className="font-medium" dir="ltr">{session.startTime} - {session.endTime}</p>
             </div>
           </CardContent>
@@ -346,8 +349,8 @@ export default function SessionDetailPage({
               <UserCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">طلاب نشطون</p>
-              <p className="font-medium">{stats.active} طالب</p>
+              <p className="text-sm text-muted-foreground">{t("studentCount")}</p>
+              <p className="font-medium">{stats.active} {tc("student")}</p>
             </div>
           </CardContent>
         </Card>
@@ -357,8 +360,8 @@ export default function SessionDetailPage({
               <Users className="h-5 w-5 text-amber-700 dark:text-amber-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">إجمالي الطلاب</p>
-              <p className="font-medium">{stats.total} طالب</p>
+              <p className="text-sm text-muted-foreground">{tc("total")}</p>
+              <p className="font-medium">{stats.total} {tc("student")}</p>
             </div>
           </CardContent>
         </Card>
@@ -374,7 +377,7 @@ export default function SessionDetailPage({
                   <DoorOpen className="h-5 w-5 text-violet-700 dark:text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">القاعة</p>
+                  <p className="text-sm text-muted-foreground">{t("room")}</p>
                   <p className="font-medium">{session.roomId.name}</p>
                   {session.roomId.location && (
                     <p className="text-xs text-muted-foreground">{session.roomId.location}</p>
@@ -408,7 +411,7 @@ export default function SessionDetailPage({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-1">
-            <CardTitle className="text-lg">الطلاب المسجلون</CardTitle>
+            <CardTitle className="text-lg">{t("enrollStudents")}</CardTitle>
             {session.students.length > 0 && (
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -432,12 +435,12 @@ export default function SessionDetailPage({
             <DialogTrigger asChild>
               <Button>
                 <Plus className="ml-2 h-4 w-4" />
-                إضافة طلاب
+                {tc("add")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>إضافة طلاب للحصة</DialogTitle>
+                <DialogTitle>{t("enrollStudents")}</DialogTitle>
                 <DialogDescription>
                   اختر الطلاب الذين تريد إضافتهم لهذه الحصة ({availableStudents.length} متاح)
                 </DialogDescription>
@@ -481,7 +484,7 @@ export default function SessionDetailPage({
                   {filteredAvailableStudents.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>{search ? "لا توجد نتائج للبحث" : "لا يوجد طلاب متاحون"}</p>
+                      <p>{search ? tc("noResults") : "لا يوجد طلاب متاحون"}</p>
                     </div>
                   ) : (
                     filteredAvailableStudents.map((student) => (
@@ -528,7 +531,7 @@ export default function SessionDetailPage({
                   variant="outline"
                   onClick={() => setIsAddOpen(false)}
                 >
-                  إلغاء
+                  {tc("cancel")}
                 </Button>
                 <Button
                   onClick={() => addMutation.mutate({ studentIds: selectedStudents })}
@@ -551,15 +554,15 @@ export default function SessionDetailPage({
               <p className="text-sm mt-1">ابدأ بإضافة طلاب للحصة</p>
               <Button className="mt-4" onClick={() => setIsAddOpen(true)}>
                 <Plus className="h-4 w-4 ml-2" />
-                إضافة طلاب
+                {tc("add")}
               </Button>
             </div>
           ) : filteredSessionStudents.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>لا توجد نتائج للبحث</p>
+              <p>{tc("noResults")}</p>
               <Button variant="outline" className="mt-4" onClick={() => setStudentSearch("")}>
-                مسح البحث
+                {tc("reset")}
               </Button>
             </div>
           ) : (
@@ -588,7 +591,7 @@ export default function SessionDetailPage({
                           {student.fullName}
                         </Link>
                         {!student.isActive && (
-                          <Badge variant="outline" className="text-xs">غير نشط</Badge>
+                          <Badge variant="outline" className="text-xs">{tc("inactive")}</Badge>
                         )}
                       </div>
                       {student.phone && (
@@ -654,7 +657,7 @@ export default function SessionDetailPage({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-amber-600 text-white hover:bg-amber-700"
               onClick={() => {
@@ -678,7 +681,7 @@ export default function SessionDetailPage({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => removeStudentId && removeMutation.mutate(removeStudentId)}
@@ -686,7 +689,7 @@ export default function SessionDetailPage({
               {removeMutation.isPending && (
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
               )}
-              إزالة
+              {tc("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

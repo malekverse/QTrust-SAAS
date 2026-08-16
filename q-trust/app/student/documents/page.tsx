@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -70,6 +71,8 @@ function getFileIcon(fileType: string): React.ReactNode {
 }
 
 export default function StudentDocuments() {
+  const t = useTranslations("student.documents")
+  const tc = useTranslations("common")
   const [documents, setDocuments] = useState<DocumentData[]>([])
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
@@ -165,16 +168,16 @@ export default function StudentDocuments() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <BookOpen className="h-7 w-7 text-primary" />
-          المكتبة
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground mt-1">المستندات والموارد التعليمية</p>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       {/* Search */}
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="ابحث عن مستند..."
+          placeholder={tc("searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pr-10"
@@ -189,7 +192,7 @@ export default function StudentDocuments() {
           onClick={() => setActiveCategory("all")}
           className="text-xs"
         >
-          الكل ({Object.values(categoryCounts).reduce((a, b) => a + b, 0)})
+          {tc("all")} ({Object.values(categoryCounts).reduce((a, b) => a + b, 0)})
         </Button>
         {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => {
           const count = categoryCounts[key] || 0
@@ -214,7 +217,7 @@ export default function StudentDocuments() {
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
             <p className="text-muted-foreground">
-              {searchQuery ? "لا توجد نتائج للبحث" : "لا توجد مستندات متاحة حالياً"}
+              {searchQuery ? tc("noResults") : t("noDocuments")}
             </p>
           </CardContent>
         </Card>
@@ -265,7 +268,7 @@ export default function StudentDocuments() {
                     className="shrink-0 gap-1"
                   >
                     <Download className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">تحميل</span>
+                    <span className="hidden sm:inline">{t("download")}</span>
                   </Button>
                 </div>
               </CardContent>

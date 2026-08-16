@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Eye, EyeOff, ShieldCheck, KeyRound } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { BrandLogo } from "@/components/brand-logo"
 
 export default function OnboardingPage() {
@@ -21,17 +22,20 @@ export default function OnboardingPage() {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
+  const t = useTranslations("auth.onboarding")
+  const tc = useTranslations("common")
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
     if (newPassword.length < 6) {
-      setError("كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل")
+      setError(t("passwordTooShort"))
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setError("كلمات المرور غير متطابقة")
+      setError(t("passwordMismatch"))
       return
     }
 
@@ -47,7 +51,7 @@ export default function OnboardingPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.message || "حدث خطأ")
+        setError(data.message || tc("error"))
         return
       }
 
@@ -57,7 +61,7 @@ export default function OnboardingPage() {
       router.push("/student/dashboard")
       router.refresh()
     } catch {
-      setError("حدث خطأ غير متوقع")
+      setError(tc("error"))
     } finally {
       setIsLoading(false)
     }
@@ -81,7 +85,7 @@ export default function OnboardingPage() {
             />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            مرحباً بك في بوابة الطلاب
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
             {session?.user?.fullName && `أهلاً ${session.user.fullName}`}
@@ -94,9 +98,9 @@ export default function OnboardingPage() {
             <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
               <KeyRound className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <CardTitle className="text-lg">تغيير كلمة المرور المؤقتة</CardTitle>
+            <CardTitle className="text-lg">{t("changePassword")}</CardTitle>
             <CardDescription className="text-sm">
-              لأمان حسابك، يجب تغيير كلمة المرور المؤقتة قبل المتابعة
+              {t("subtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -108,7 +112,7 @@ export default function OnboardingPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                <Label htmlFor="newPassword">{t("newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
@@ -132,7 +136,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -165,10 +169,10 @@ export default function OnboardingPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    جاري الحفظ...
+                    {t("changing")}
                   </>
                 ) : (
-                  "تأكيد والدخول إلى البوابة"
+                  t("changePassword")
                 )}
               </Button>
             </form>

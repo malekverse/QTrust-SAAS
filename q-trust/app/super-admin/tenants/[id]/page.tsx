@@ -18,6 +18,7 @@ import {
   INVOICE_TYPE_LABELS,
 } from "@/lib/constants"
 import { PlanStatusForm, InvoicePaymentControl } from "./tenant-actions"
+import { getTranslations } from "next-intl/server"
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -41,6 +42,8 @@ export default async function TenantDetailPage({
   if (!mongoose.Types.ObjectId.isValid(id)) notFound()
 
   await dbConnect()
+  const t = await getTranslations("superAdmin")
+
   const tenant: any = await Tenant.findById(id).lean()
   if (!tenant) notFound()
 
@@ -69,7 +72,7 @@ export default async function TenantDetailPage({
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">الاشتراك</CardTitle>
+            <CardTitle className="text-base">{t("tenants.subscription")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <PlanStatusForm
@@ -79,7 +82,7 @@ export default async function TenantDetailPage({
             />
             <div className="grid grid-cols-2 gap-4 border-t pt-4">
               <Field
-                label="عدد الطلاب"
+                label={t("tenants.studentCountLabel")}
                 value={
                   <span className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
@@ -88,49 +91,49 @@ export default async function TenantDetailPage({
                   </span>
                 }
               />
-              <Field label="حصة الذكاء الاصطناعي / شهر" value={tenant.aiQuotaMonthly} />
-              <Field label="بداية الفترة" value={fmtDate(tenant.billing?.currentPeriodStart)} />
-              <Field label="نهاية الفترة" value={fmtDate(tenant.billing?.currentPeriodEnd)} />
+              <Field label={t("tenants.aiQuota")} value={tenant.aiQuotaMonthly} />
+              <Field label={t("tenants.periodStart")} value={fmtDate(tenant.billing?.currentPeriodStart)} />
+              <Field label={t("tenants.periodEnd")} value={fmtDate(tenant.billing?.currentPeriodEnd)} />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">المدير</CardTitle>
+            <CardTitle className="text-base">{t("tenants.adminSection")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
-            <Field label="الاسم" value={adminDoc?.fullName} />
-            <Field label="البريد الإلكتروني" value={<span dir="ltr">{adminDoc?.email}</span>} />
-            <Field label="الهاتف" value={adminDoc?.phone ? <span dir="ltr">{adminDoc.phone}</span> : "—"} />
+            <Field label={t("tenants.adminName")} value={adminDoc?.fullName} />
+            <Field label={t("tenants.adminEmail")} value={<span dir="ltr">{adminDoc?.email}</span>} />
+            <Field label={t("leads.phone")} value={adminDoc?.phone ? <span dir="ltr">{adminDoc.phone}</span> : "—"} />
             <Field
-              label="تغيير كلمة المرور"
-              value={adminDoc?.mustChangePassword ? "مطلوب عند الدخول" : "تم"}
+              label={t("tenants.passwordChangeLabel")}
+              value={adminDoc?.mustChangePassword ? t("tenants.passwordRequired") : t("tenants.passwordDone")}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">التواصل والفوترة</CardTitle>
+            <CardTitle className="text-base">{t("tenants.contactBilling")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
-            <Field label="بريد المؤسسة" value={tenant.contact?.email ? <span dir="ltr">{tenant.contact.email}</span> : "—"} />
-            <Field label="هاتف المؤسسة" value={tenant.contact?.phone ? <span dir="ltr">{tenant.contact.phone}</span> : "—"} />
-            <Field label="رسوم التركيب" value={`${tenant.billing?.setupFeeAmountTND ?? 0} د.ت`} />
-            <Field label="الرسوم السنوية" value={`${tenant.billing?.annualFeeAmountTND ?? 0} د.ت`} />
-            <Field label="طريقة الدفع" value={PAYMENT_METHOD_LABELS[tenant.billing?.paymentMethod] ?? "—"} />
-            <Field label="سداد التركيب" value={tenant.billing?.setupFeePaid ? "مدفوع" : "غير مدفوع"} />
+            <Field label={t("tenants.orgEmail")} value={tenant.contact?.email ? <span dir="ltr">{tenant.contact.email}</span> : "—"} />
+            <Field label={t("tenants.orgPhone")} value={tenant.contact?.phone ? <span dir="ltr">{tenant.contact.phone}</span> : "—"} />
+            <Field label={t("tenants.setupFeeLabel")} value={`${tenant.billing?.setupFeeAmountTND ?? 0} ${t("billing.currency")}`} />
+            <Field label={t("tenants.annualFeeLabel")} value={`${tenant.billing?.annualFeeAmountTND ?? 0} ${t("billing.currency")}`} />
+            <Field label={t("tenants.paymentMethod")} value={PAYMENT_METHOD_LABELS[tenant.billing?.paymentMethod] ?? "—"} />
+            <Field label={t("tenants.setupPayment")} value={tenant.billing?.setupFeePaid ? t("billing.paid") : t("billing.pending")} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">الفواتير ({invoices.length})</CardTitle>
+            <CardTitle className="text-base">{t("tenants.invoicesCount", { count: invoices.length })}</CardTitle>
           </CardHeader>
           <CardContent>
             {invoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">لا توجد فواتير</p>
+              <p className="text-sm text-muted-foreground">{t("billing.noInvoices")}</p>
             ) : (
               <div className="space-y-2">
                 {invoices.map((inv: any) => (
@@ -140,7 +143,7 @@ export default async function TenantDetailPage({
                   >
                     <div>
                       <p className="text-sm font-medium">{INVOICE_TYPE_LABELS[inv.type] ?? inv.type}</p>
-                      <p className="text-xs text-muted-foreground">استحقاق {fmtDate(inv.dueDate)}</p>
+                      <p className="text-xs text-muted-foreground">{t("tenants.dueLabel")} {fmtDate(inv.dueDate)}</p>
                     </div>
                     <InvoicePaymentControl
                       invoiceId={inv._id.toString()}

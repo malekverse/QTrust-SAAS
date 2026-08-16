@@ -36,6 +36,7 @@ import { EmailInput } from "@/components/ui/email-input"
 import { DateInput } from "@/components/ui/date-input"
 import { FileUpload } from "@/components/ui/file-upload"
 import { useToast } from "@/components/ui/toast"
+import { useTranslations } from "next-intl"
 import { z } from "zod"
 
 interface Student {
@@ -147,6 +148,8 @@ export default function EditStudentPage({
   const router = useRouter()
   const queryClient = useQueryClient()
   const { success, error } = useToast()
+  const t = useTranslations("admin.students")
+  const tc = useTranslations("common")
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["student", id],
@@ -158,11 +161,11 @@ export default function EditStudentPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student", id] })
       queryClient.invalidateQueries({ queryKey: ["students"] })
-      success("تم التحديث", "تم تحديث بيانات الطالب بنجاح")
+      success(t("updateSuccessTitle"), t("updateSuccessMessage"))
       router.push(`/admin/students/${id}`)
     },
     onError: (err: Error) => {
-      error("فشل التحديث", err.message || "حدث خطأ أثناء تحديث بيانات الطالب")
+      error(t("updateFailedTitle"), err.message || t("updateFailedMessage"))
     },
   })
 
@@ -244,12 +247,12 @@ export default function EditStudentPage({
   }
 
   if (!student) {
-    return <div>الطالب غير موجود</div>
+    return <div>{t("studentNotFound")}</div>
   }
 
   const displayName = student.firstName && student.lastName 
     ? `${student.firstName} ${student.lastName}`
-    : student.fullName || "غير محدد"
+    : student.fullName || t("notSpecified")
 
   return (
     <div className="space-y-6">
@@ -257,12 +260,12 @@ export default function EditStudentPage({
       <Button variant="ghost" asChild>
         <Link href={`/admin/students/${id}`}>
           <ArrowRight className="ml-2 h-4 w-4" />
-          العودة للملف
+          {t("backToProfile")}
         </Link>
       </Button>
 
       <PageHeader
-        title="تعديل بيانات الطالب"
+        title={t("editStudent")}
         description={displayName}
       />
 
@@ -272,19 +275,19 @@ export default function EditStudentPage({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
                 <FileText className="h-4 w-4" />
-                المعلومات الشخصية
+                {t("personalInfo")}
               </div>
               <div className="space-y-4 rounded-xl border bg-card/50 p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="enrollmentNumber">رقم الانخراط</Label>
+                    <Label htmlFor="enrollmentNumber">{t("enrollmentId")}</Label>
                     <Input
                       id="enrollmentNumber"
                       {...register("enrollmentNumber")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="cin">رقم ب. ت. و</Label>
+                    <Label htmlFor="cin">{t("cinNumber")}</Label>
                     <Controller
                       name="cin"
                       control={control}
@@ -304,7 +307,7 @@ export default function EditStudentPage({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">الاسم *</Label>
+                    <Label htmlFor="firstName">{t("firstNameRequired")}</Label>
                     <Input
                       id="firstName"
                       {...register("firstName")}
@@ -314,7 +317,7 @@ export default function EditStudentPage({
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">اللقب *</Label>
+                    <Label htmlFor="lastName">{t("lastNameRequired")}</Label>
                     <Input
                       id="lastName"
                       {...register("lastName")}
@@ -327,21 +330,21 @@ export default function EditStudentPage({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="fatherName">اسم الأب</Label>
+                    <Label htmlFor="fatherName">{t("fatherName")}</Label>
                     <Input
                       id="fatherName"
                       {...register("fatherName")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="gender">الجنس *</Label>
+                    <Label htmlFor="gender">{t("genderRequired")}</Label>
                     <Controller
                       name="gender"
                       control={control}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر الجنس" />
+                            <SelectValue placeholder={t("selectGender")} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value={GENDER.MALE}>{GENDER_LABELS.MALE}</SelectItem>
@@ -358,21 +361,21 @@ export default function EditStudentPage({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="profession">المهنة</Label>
+                    <Label htmlFor="profession">{t("profession")}</Label>
                     <Input
                       id="profession"
                       {...register("profession")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="educationLevel">المستوى التعليمي</Label>
+                    <Label htmlFor="educationLevel">{t("educationLevelLabel")}</Label>
                     <Controller
                       name="educationLevel"
                       control={control}
                       render={({ field }) => (
                         <Select value={field.value || ''} onValueChange={field.onChange}>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر المستوى" />
+                            <SelectValue placeholder={t("selectLevel")} />
                           </SelectTrigger>
                           <SelectContent>
                             {EDUCATION_LEVELS.map(level => (
@@ -387,7 +390,7 @@ export default function EditStudentPage({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">تاريخ الولادة</Label>
+                    <Label htmlFor="dateOfBirth">{t("birthDate")}</Label>
                     <Controller
                       name="dateOfBirth"
                       control={control}
@@ -402,7 +405,7 @@ export default function EditStudentPage({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="placeOfBirth">مكان الولادة</Label>
+                    <Label htmlFor="placeOfBirth">{t("placeOfBirth")}</Label>
                     <Input
                       id="placeOfBirth"
                       {...register("placeOfBirth")}
@@ -411,7 +414,7 @@ export default function EditStudentPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">العنوان</Label>
+                  <Label htmlFor="address">{t("address")}</Label>
                   <Input
                     id="address"
                     {...register("address")}
@@ -420,7 +423,7 @@ export default function EditStudentPage({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="phone">الهاتف</Label>
+                    <Label htmlFor="phone">{tc("phone")}</Label>
                     <Controller
                       name="phone"
                       control={control}
@@ -437,7 +440,7 @@ export default function EditStudentPage({
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Label htmlFor="email">{tc("email")}</Label>
                     <Controller
                       name="email"
                       control={control}
@@ -461,7 +464,7 @@ export default function EditStudentPage({
             {/* Section B - مجال النشاط */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                اختيار مجال النشاط داخل الجمعية
+                {t("selectActivityArea")}
               </div>
               <div className="rounded-xl border bg-card/50 p-4">
                 <Controller
@@ -501,7 +504,7 @@ export default function EditStudentPage({
             {/* Section C - الإقرار */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                الإقرار <span className="text-destructive">*</span>
+                {t("declarationLabel")} <span className="text-destructive">*</span>
               </div>
               <div className="rounded-xl border bg-card/50 p-4 space-y-4">
                 <p className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg leading-relaxed">
@@ -520,7 +523,7 @@ export default function EditStudentPage({
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      <span className="text-sm font-medium">أوافق على الإقرار أعلاه</span>
+                      <span className="text-sm font-medium">{t("declarationAccept")}</span>
                     </label>
                   )}
                 />
@@ -533,20 +536,20 @@ export default function EditStudentPage({
             {/* Section D - معلومات الإمضاء */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                معلومات الإمضاء
+                {t("signatureInfo")}
               </div>
               <div className="rounded-xl border bg-card/50 p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="signatureLocation">الممضى في</Label>
+                    <Label htmlFor="signatureLocation">{t("signedAt")}</Label>
                     <Input
                       id="signatureLocation"
-                      placeholder="المدينة"
+                      placeholder={t("cityPlaceholder")}
                       {...register("signatureLocation")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signatureDate">التاريخ</Label>
+                    <Label htmlFor="signatureDate">{tc("date")}</Label>
                     <Controller
                       name="signatureDate"
                       control={control}
@@ -567,7 +570,7 @@ export default function EditStudentPage({
             {/* Section E - المرفقات */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                المرفقات المطلوبة
+                {t("requiredAttachments")}
               </div>
               <div className="rounded-xl border bg-card/50 p-4 space-y-4">
                 <Controller
@@ -575,7 +578,7 @@ export default function EditStudentPage({
                   control={control}
                   render={({ field }) => (
                     <FileUpload
-                      label="صورة شمسية"
+                      label={t("personalPhoto")}
                       value={field.value}
                       onChange={field.onChange}
                       uploadType="photo"
@@ -590,7 +593,7 @@ export default function EditStudentPage({
                   control={control}
                   render={({ field }) => (
                     <FileUpload
-                      label="نسخة مصورة من بطاقة التعريف الوطنية (الجهة الأمامية)"
+                      label={t("cinFrontUploadLabel")}
                       value={field.value}
                       onChange={field.onChange}
                       uploadType="cin_front"
@@ -605,7 +608,7 @@ export default function EditStudentPage({
                   control={control}
                   render={({ field }) => (
                     <FileUpload
-                      label="نسخة مصورة من بطاقة التعريف الوطنية (الجهة الخلفية)"
+                      label={t("cinBackUploadLabel")}
                       value={field.value}
                       onChange={field.onChange}
                       uploadType="cin_back"
@@ -621,7 +624,7 @@ export default function EditStudentPage({
             {/* Notes */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                ملاحظات
+                {tc("notes")}
               </div>
               <Textarea
                 id="notes"
@@ -633,9 +636,9 @@ export default function EditStudentPage({
             {/* Status */}
             <div className="flex items-center justify-between p-4 rounded-xl border bg-card/50">
               <div>
-                <Label htmlFor="isActive" className="font-medium">حالة الطالب</Label>
+                <Label htmlFor="isActive" className="font-medium">{t("studentStatus")}</Label>
                 <p className="text-sm text-muted-foreground">
-                  {isActive ? "الطالب نشط ويمكنه تسجيل الحضور" : "الطالب غير نشط"}
+                  {isActive ? t("studentActiveDesc") : t("studentInactiveDesc")}
                 </p>
               </div>
               <Switch
@@ -656,10 +659,10 @@ export default function EditStudentPage({
             ) : (
               <Save className="ml-2 h-4 w-4" />
             )}
-            حفظ التغييرات
+            {t("saveChanges")}
           </Button>
           <Button type="button" variant="outline" asChild>
-            <Link href={`/admin/students/${id}`}>إلغاء</Link>
+            <Link href={`/admin/students/${id}`}>{tc("cancel")}</Link>
           </Button>
         </div>
 

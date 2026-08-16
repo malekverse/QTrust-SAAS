@@ -46,6 +46,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import { DOCUMENT_CATEGORY_LABELS } from "@/lib/constants"
+import { useTranslations } from "next-intl"
 
 type UploadMode = "file" | "url"
 
@@ -100,6 +101,8 @@ function formatDate(dateStr: string) {
 
 export default function AdminDocuments() {
   const { toast } = useToast()
+  const t = useTranslations("admin.documents")
+  const tc = useTranslations("common")
   const [documents, setDocuments] = useState<DocumentItem[]>([])
   const [paginationInfo, setPaginationInfo] = useState<{ page: number; pages: number; total: number } | null>(null)
   const [page, setPage] = useState(1)
@@ -379,13 +382,13 @@ export default function AdminDocuments() {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <BookOpen className="h-7 w-7 text-primary" />
-            إدارة المكتبة
+            {t("title")}
           </h1>
-          <p className="text-muted-foreground mt-1">رفع وإدارة الوثائق والمواد التعليمية</p>
+          <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
         <Button onClick={() => { resetUploadDialog(); setUploadDialogOpen(true) }} className="gap-2">
           <Plus className="h-4 w-4" />
-          إضافة مستند
+          {t("addDocument")}
         </Button>
       </div>
 
@@ -394,7 +397,7 @@ export default function AdminDocuments() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="بحث في المستندات..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10"
@@ -402,10 +405,10 @@ export default function AdminDocuments() {
         </div>
         <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); setLoading(true) }}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="جميع الفئات" />
+            <SelectValue placeholder={t("allCategories")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">جميع الفئات</SelectItem>
+            <SelectItem value="all">{t("allCategories")}</SelectItem>
             {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => (
               <SelectItem key={key} value={key}>
                 {label}
@@ -421,7 +424,7 @@ export default function AdminDocuments() {
           <Card>
             <CardContent className="py-12 text-center">
               <BookOpen className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-              <p className="text-muted-foreground">لا توجد مستندات بعد</p>
+              <p className="text-muted-foreground">{t("noDocuments")}</p>
               <Button variant="outline" className="mt-4 gap-2" onClick={() => { resetUploadDialog(); setUploadDialogOpen(true) }}>
                 <Upload className="h-4 w-4" />
                 رفع أول مستند
@@ -626,7 +629,7 @@ export default function AdminDocuments() {
             {/* URL Input */}
             {uploadMode === "url" && (
               <div className="space-y-2">
-                <Label>رابط الملف</Label>
+                <Label>{t("fileUrl")}</Label>
                 <Input
                   value={uploadForm.fileUrl}
                   onChange={(e) => setUploadForm({ ...uploadForm, fileUrl: e.target.value })}
@@ -652,7 +655,7 @@ export default function AdminDocuments() {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label>الوصف</Label>
+              <Label>{tc("description")}</Label>
               <Textarea
                 value={uploadForm.description}
                 onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
@@ -663,7 +666,7 @@ export default function AdminDocuments() {
 
             {/* Category */}
             <div className="space-y-2">
-              <Label>الفئة</Label>
+              <Label>{t("category")}</Label>
               <Select
                 value={uploadForm.category}
                 onValueChange={(v) => setUploadForm({ ...uploadForm, category: v })}
@@ -711,7 +714,7 @@ export default function AdminDocuments() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setUploadDialogOpen(false)} disabled={uploading}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={uploadDocument} disabled={uploading}>
               {uploading ? (
@@ -741,7 +744,7 @@ export default function AdminDocuments() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button variant="destructive" onClick={deleteDocument} disabled={deleting}>
               {deleting ? (
@@ -752,7 +755,7 @@ export default function AdminDocuments() {
               ) : (
                 <>
                   <Trash2 className="ml-2 h-4 w-4" />
-                  حذف
+                  {tc("delete")}
                 </>
               )}
             </Button>

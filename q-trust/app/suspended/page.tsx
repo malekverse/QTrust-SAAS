@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 import { SignOutButton } from "./sign-out-button"
 
 export const metadata: Metadata = {
@@ -6,7 +7,9 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default function SuspendedPage() {
+export default async function SuspendedPage() {
+  const t = await getTranslations("suspended")
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4" dir="rtl">
       <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
@@ -17,10 +20,9 @@ export default function SuspendedPage() {
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-neutral-900">الحساب معلّق مؤقتاً</h1>
+        <h1 className="text-xl font-bold text-neutral-900">{t("title")}</h1>
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-          تم تعليق وصول مؤسستكم إلى المنصة. غالباً ما يكون السبب متعلقاً بتجديد الاشتراك.
-          يرجى التواصل مع إدارة المنصة لإعادة تفعيل الحساب.
+          {t("message")}
         </p>
         <div className="mt-6">
           <SignOutButton />

@@ -53,6 +53,7 @@ import {
 import { getAttendanceStatusLabel, getDayName } from "@/lib/utils"
 import { ATTENDANCE_STATUS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
+import { useTranslations } from "next-intl"
 
 interface StudentAttendance {
   _id: string
@@ -270,6 +271,8 @@ function MiniCalendar({
 }
 
 export default function AttendancePage() {
+  const t = useTranslations("admin.attendance")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: showError } = useToast()
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -476,8 +479,8 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="إدارة الحضور"
-        description="عرض وتعديل سجلات حضور الطلاب حسب اليوم"
+        title={t("title")}
+        description={t("description")}
       >
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => window.print()}>
@@ -486,7 +489,7 @@ export default function AttendancePage() {
           </Button>
           <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!data?.sessions?.length}>
             <Download className="h-4 w-4 ml-2" />
-            تصدير
+            {tc("export")}
           </Button>
         </div>
       </PageHeader>
@@ -595,7 +598,7 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{overallStats.present}</p>
-              <p className="text-xs text-muted-foreground">حاضر</p>
+              <p className="text-xs text-muted-foreground">{tc("present")}</p>
             </div>
           </CardContent>
         </Card>
@@ -606,7 +609,7 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{overallStats.late}</p>
-              <p className="text-xs text-muted-foreground">متأخر</p>
+              <p className="text-xs text-muted-foreground">{tc("late")}</p>
             </div>
           </CardContent>
         </Card>
@@ -617,7 +620,7 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{overallStats.absent}</p>
-              <p className="text-xs text-muted-foreground">غائب</p>
+              <p className="text-xs text-muted-foreground">{tc("absent")}</p>
             </div>
           </CardContent>
         </Card>
@@ -664,7 +667,7 @@ export default function AttendancePage() {
         <Card>
           <CardContent className="p-6 text-center">
             <XCircle className="h-12 w-12 mx-auto mb-3 text-destructive opacity-50" />
-            <p className="text-destructive font-medium">حدث خطأ أثناء جلب البيانات</p>
+            <p className="text-destructive font-medium">{tc("serverError")}</p>
             <p className="text-sm text-muted-foreground mt-1">يرجى المحاولة مرة أخرى</p>
             <Button 
               variant="outline" 
@@ -682,7 +685,7 @@ export default function AttendancePage() {
             <Calendar className="h-16 w-16 mx-auto mb-4 opacity-30" />
             {searchQuery ? (
               <>
-                <p className="font-medium text-lg">لا توجد نتائج للبحث</p>
+                <p className="font-medium text-lg">{tc("noResults")}</p>
                 <p className="text-sm mt-1">جرب البحث باسم مختلف</p>
                 <Button 
                   variant="outline" 
@@ -694,7 +697,7 @@ export default function AttendancePage() {
               </>
             ) : (
               <>
-                <p className="font-medium text-lg">لا توجد حصص في هذا اليوم</p>
+                <p className="font-medium text-lg">{t("noAttendance")}</p>
                 <p className="text-sm mt-1">{getDayName(data?.dayOfWeek || 0)}</p>
               </>
             )}
@@ -772,20 +775,20 @@ export default function AttendancePage() {
                           onClick={() => handleBulkAction(session._id, ATTENDANCE_STATUS.PRESENT, session.students)}
                         >
                           <CheckCheck className="h-4 w-4 ml-2 text-emerald-600" />
-                          تسجيل الجميع حاضر
+                          {t("markAttendance")} - {tc("present")}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleBulkAction(session._id, ATTENDANCE_STATUS.ABSENT, session.students)}
                         >
                           <UserX className="h-4 w-4 ml-2 text-red-600" />
-                          تسجيل الجميع غائب
+                          {t("markAttendance")} - {tc("absent")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           onClick={() => handleBulkAction(session._id, ATTENDANCE_STATUS.LATE, session.students)}
                         >
                           <Clock className="h-4 w-4 ml-2 text-amber-600" />
-                          تسجيل الجميع متأخر
+                          {t("markAttendance")} - {tc("late")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -828,7 +831,7 @@ export default function AttendancePage() {
                                         }`}
                                       >
                                         <CreditCard className="h-3 w-3" />
-                                        {isPaid ? "مدفوع" : "غير مدفوع"}
+                                        {isPaid ? tc("paid") : tc("unpaid")}
                                       </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -866,25 +869,25 @@ export default function AttendancePage() {
                                   <SelectItem value={ATTENDANCE_STATUS.PRESENT}>
                                     <div className="flex items-center gap-2">
                                       <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                      حاضر
+                                      {tc("present")}
                                     </div>
                                   </SelectItem>
                                   <SelectItem value={ATTENDANCE_STATUS.LATE}>
                                     <div className="flex items-center gap-2">
                                       <Clock className="h-4 w-4 text-amber-600" />
-                                      متأخر
+                                      {tc("late")}
                                     </div>
                                   </SelectItem>
                                   <SelectItem value={ATTENDANCE_STATUS.ABSENT}>
                                     <div className="flex items-center gap-2">
                                       <XCircle className="h-4 w-4 text-red-600" />
-                                      غائب
+                                      {tc("absent")}
                                     </div>
                                   </SelectItem>
                                   <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>
                                     <div className="flex items-center gap-2">
                                       <XCircle className="h-4 w-4 text-blue-600" />
-                                      غياب مبرر
+                                      {tc("excused")}
                                     </div>
                                   </SelectItem>
                                 </SelectContent>

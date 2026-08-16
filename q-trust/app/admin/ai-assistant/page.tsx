@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect, KeyboardEvent } from "react"
+import { useState, useRef, useEffect, KeyboardEvent, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { useAI } from "@/components/ai-assistant/ai-provider"
 import { AIActionCard } from "@/components/ai-assistant/ai-action-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -36,78 +37,85 @@ import {
   RotateCcw,
 } from "lucide-react"
 
-const CAPABILITY_CARDS = [
+const CAPABILITY_KEYS = [
   {
     icon: GraduationCap,
-    title: "إدارة الطلاب",
-    description: "إضافة وتعديل وحذف الطلاب، إنشاء حسابات البوابة",
+    titleKey: "capStudentsTitle",
+    descKey: "capStudentsDesc",
+    exKeys: ["capStudentsEx1", "capStudentsEx2", "capStudentsEx3"],
     color: "from-blue-500 to-indigo-600",
-    examples: ["أضف طالب جديد اسمه محمد", "ابحث عن الطالب أحمد", "أنشئ حساب بوابة للطالب"],
   },
   {
     icon: Users,
-    title: "إدارة المعلمين",
-    description: "إضافة معلمين جدد، تحديث البيانات، إدارة الحسابات",
+    titleKey: "capTeachersTitle",
+    descKey: "capTeachersDesc",
+    exKeys: ["capTeachersEx1", "capTeachersEx2", "capTeachersEx3"],
     color: "from-violet-500 to-purple-600",
-    examples: ["اعرض قائمة المعلمين", "أضف معلم جديد", "عدّل بيانات المعلم"],
   },
   {
     icon: Calendar,
-    title: "الحصص والجدول",
-    description: "إنشاء حصص، تسجيل طلاب، إنشاء حصص فعلية",
+    titleKey: "capSessionsTitle",
+    descKey: "capSessionsDesc",
+    exKeys: ["capSessionsEx1", "capSessionsEx2", "capSessionsEx3"],
     color: "from-emerald-500 to-teal-600",
-    examples: ["أنشئ حصة تجويد يوم الأحد", "سجّل محمد في حصة الحفظ", "اعرض الجدول الأسبوعي"],
   },
   {
     icon: ClipboardCheck,
-    title: "الحضور والغياب",
-    description: "عرض إحصائيات الحضور، تحديث سجلات الحضور",
+    titleKey: "capAttendanceTitle",
+    descKey: "capAttendanceDesc",
+    exKeys: ["capAttendanceEx1", "capAttendanceEx2", "capAttendanceEx3"],
     color: "from-amber-500 to-orange-600",
-    examples: ["كم طالب حضر اليوم؟", "اعرض نسبة الحضور هذا الأسبوع", "عدّل حضور طالب"],
   },
   {
     icon: CreditCard,
-    title: "الاشتراكات والمدفوعات",
-    description: "عرض المدفوعات الشهرية، تسجيل الدفعات",
+    titleKey: "capPaymentsTitle",
+    descKey: "capPaymentsDesc",
+    exKeys: ["capPaymentsEx1", "capPaymentsEx2", "capPaymentsEx3"],
     color: "from-pink-500 to-rose-600",
-    examples: ["اعرض مدفوعات شهر أفريل", "سجّل دفع الطالب محمد", "من لم يدفع هذا الشهر؟"],
   },
   {
     icon: DoorOpen,
-    title: "القاعات والتعارضات",
-    description: "إدارة القاعات، كشف التعارضات، التعيين التلقائي",
+    titleKey: "capRoomsTitle",
+    descKey: "capRoomsDesc",
+    exKeys: ["capRoomsEx1", "capRoomsEx2", "capRoomsEx3"],
     color: "from-cyan-500 to-sky-600",
-    examples: ["اعرض القاعات المتاحة", "هل يوجد تعارضات؟", "عيّن القاعات تلقائياً"],
   },
 ]
 
-const QUICK_PROMPTS = [
-  { text: "كم عدد الطلاب المسجلين؟", icon: GraduationCap },
-  { text: "اعرض إحصائيات الحضور اليوم", icon: ClipboardCheck },
-  { text: "اعرض الجدول الزمني الأسبوعي", icon: Calendar },
-  { text: "هل توجد تعارضات في الجدول؟", icon: BarChart3 },
-  { text: "اعرض المدفوعات الشهرية", icon: CreditCard },
-  { text: "اعرض الاعتراضات المعلقة", icon: MessagesSquare },
-  { text: "أنشئ حصة جديدة", icon: Plus },
-  { text: "أضف طالب جديد", icon: GraduationCap },
+const QUICK_PROMPT_KEYS = [
+  { key: "qpStudentCount", icon: GraduationCap },
+  { key: "qpTodayAttendance", icon: ClipboardCheck },
+  { key: "qpWeeklySchedule", icon: Calendar },
+  { key: "qpConflicts", icon: BarChart3 },
+  { key: "qpMonthlyPayments", icon: CreditCard },
+  { key: "qpPendingClaims", icon: MessagesSquare },
+  { key: "qpCreateSession", icon: Plus },
+  { key: "qpAddStudent", icon: GraduationCap },
 ]
 
-function formatConvDate(dateStr: string) {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
+function useFormatConvDate() {
+  const t = useTranslations("admin.aiAssistant")
 
-  if (diffMins < 1) return "الآن"
-  if (diffMins < 60) return `منذ ${diffMins} د`
-  if (diffHours < 24) return `منذ ${diffHours} س`
-  if (diffDays < 7) return `منذ ${diffDays} أيام`
-  return date.toLocaleDateString("ar-TN", { day: "numeric", month: "short" })
+  return (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return t("timeNow")
+    if (diffMins < 60) return t("timeMinutes", { count: diffMins })
+    if (diffHours < 24) return t("timeHours", { count: diffHours })
+    if (diffDays < 7) return t("timeDays", { count: diffDays })
+    return date.toLocaleDateString("ar-TN", { day: "numeric", month: "short" })
+  }
 }
 
 export default function AIAssistantPage() {
+  const t = useTranslations("admin.aiAssistant")
+  const formatConvDate = useFormatConvDate()
+
   const {
     messages,
     pendingActions,
@@ -133,6 +141,25 @@ export default function AIAssistantPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const stickToBottomRef = useRef(true)
+
+  const capabilityCards = useMemo(() =>
+    CAPABILITY_KEYS.map((cap) => ({
+      icon: cap.icon,
+      title: t(cap.titleKey),
+      description: t(cap.descKey),
+      examples: cap.exKeys.map((k) => t(k)),
+      color: cap.color,
+    })),
+    [t]
+  )
+
+  const quickPrompts = useMemo(() =>
+    QUICK_PROMPT_KEYS.map((qp) => ({
+      text: t(qp.key),
+      icon: qp.icon,
+    })),
+    [t]
+  )
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -207,10 +234,10 @@ export default function AIAssistantPage() {
                 onClick={startNewConversation}
               >
                 <Plus className="w-3 h-3" />
-                جديد
+                {t("new")}
               </Button>
               <div className="flex items-center gap-2 text-white">
-                <span className="font-semibold text-sm">المحادثات</span>
+                <span className="font-semibold text-sm">{t("conversations")}</span>
                 <MessagesSquare className="w-4 h-4 text-white/70" />
               </div>
             </div>
@@ -223,10 +250,10 @@ export default function AIAssistantPage() {
                   <MessageSquare className="w-5 h-5 text-muted-foreground/40" />
                 </div>
                 <p className="text-xs text-muted-foreground font-medium">
-                  لا توجد محادثات سابقة
+                  {t("noPreviousConversations")}
                 </p>
                 <p className="text-[11px] text-muted-foreground/50 mt-1">
-                  ابدأ محادثة جديدة مع أحمد
+                  {t("startConversationHint")}
                 </p>
               </div>
             ) : (
@@ -235,16 +262,16 @@ export default function AIAssistantPage() {
                   <div className="flex items-start rounded-lg border-s-[3px] border-s-primary bg-muted/50 px-2.5 py-2 dark:bg-muted/30">
                     <div className="flex-1 min-w-0 text-right">
                       <p className="text-[13px] font-semibold leading-relaxed text-foreground">
-                        {isSending ? "جارٍ المحادثة..." : "محادثة جديدة"}
+                        {isSending ? t("conversing") : t("newConversation")}
                       </p>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">الآن</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">{t("now")}</p>
                     </div>
                   </div>
                 )}
                 {conversations.map((conv) => {
                   const isActive = currentConversationId === conv._id
-                  const isDefaultTitle = !conv.title?.trim() || conv.title === 'محادثة جديدة'
-                  const title = isDefaultTitle ? "محادثة جارية..." : conv.title.trim()
+                  const isDefaultTitle = !conv.title?.trim() || conv.title === t("newConversation")
+                  const title = isDefaultTitle ? t("ongoingConversation") : conv.title.trim()
                   return (
                     <div
                       key={conv._id}
@@ -277,12 +304,12 @@ export default function AIAssistantPage() {
                         className="mx-0.5 mt-1.5 shrink-0 rounded-md p-1.5 text-muted-foreground/40 opacity-0 transition-all group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (confirm("هل تريد حذف هذه المحادثة؟")) {
+                          if (confirm(t("confirmDeleteConversation"))) {
                             deleteConversation(conv._id)
                           }
                         }}
                         disabled={isDeleting}
-                        title="حذف المحادثة"
+                        title={t("deleteConversation")}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -300,14 +327,14 @@ export default function AIAssistantPage() {
                 variant="ghost"
                 className="w-full h-8 text-[11px] text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 gap-1.5"
                 onClick={() => {
-                  if (confirm("هل تريد حذف جميع المحادثات؟ لا يمكن التراجع عن هذا الإجراء.")) {
+                  if (confirm(t("confirmDeleteAll"))) {
                     conversations.forEach((c) => deleteConversation(c._id))
                   }
                 }}
                 disabled={isDeleting}
               >
                 <Trash2 className="w-3 h-3" />
-                حذف الكل
+                {t("deleteAll")}
               </Button>
             </div>
           )}
@@ -330,12 +357,12 @@ export default function AIAssistantPage() {
             <div className={cn(
               "w-2 h-2 rounded-full",
               isSending ? "bg-amber-300 animate-pulse" : "bg-emerald-300"
-            )} title={isSending ? "يعمل" : "متصل"} />
+            )} title={isSending ? t("working") : t("connected")} />
           </div>
           <div className="flex items-center gap-6">
             <div>
               <h2 className="font-bold text-white text-[15px] leading-none">
-                أحمد: المساعد الذكي
+                {t("assistantName")}
               </h2>
               {isSending && statusText ? (
                 <p className="text-[11px] text-emerald-200 mt-1 flex items-center gap-1.5">
@@ -344,7 +371,7 @@ export default function AIAssistantPage() {
                 </p>
               ) : (
                 <p className="text-[11px] text-white/50 mt-1">
-                  مدعوم بالذكاء الاصطناعي
+                  {t("poweredByAI")}
                 </p>
               )}
             </div>
@@ -362,7 +389,7 @@ export default function AIAssistantPage() {
                 <div className="text-center">
                   <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground">
-                    جاري تحميل المحادثة...
+                    {t("loadingConversation")}
                   </p>
                 </div>
               </div>
@@ -379,20 +406,19 @@ export default function AIAssistantPage() {
                     </div>
                   </div>
                   <h2 className="text-2xl font-bold mb-2">
-                    السلام عليكم ورحمة الله وبركاته
+                    {t("greeting")}
                   </h2>
                   <p className="text-muted-foreground max-w-md mx-auto">
-                    أنا أحمد، مساعدك الذكي لإدارة منصة Q-Trust. اطلب مني أي شيء
-                    وسأساعدك في إنجازه.
+                    {t("introText")}
                   </p>
                 </div>
 
                 {/* Feature badges */}
                 <div className="flex flex-wrap justify-center gap-2 mb-8">
                   {[
-                    { icon: Brain, label: "ذكاء اصطناعي متقدم" },
-                    { icon: Shield, label: "موافقة قبل التنفيذ" },
-                    { icon: Zap, label: "تنفيذ فوري" },
+                    { icon: Brain, label: t("advancedAI") },
+                    { icon: Shield, label: t("approvalRequired") },
+                    { icon: Zap, label: t("instantExecution") },
                   ].map((badge) => (
                     <div
                       key={badge.label}
@@ -407,10 +433,10 @@ export default function AIAssistantPage() {
                 {/* Quick Prompts */}
                 <div className="mb-8">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3 text-center">
-                    ابدأ بسؤال سريع
+                    {t("quickStart")}
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {QUICK_PROMPTS.map((prompt) => (
+                    {quickPrompts.map((prompt) => (
                       <button
                         key={prompt.text}
                         onClick={() => handleQuickPrompt(prompt.text)}
@@ -429,10 +455,10 @@ export default function AIAssistantPage() {
                 {/* Capability Cards */}
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3 text-center">
-                    ما يمكنني فعله
+                    {t("whatICando")}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {CAPABILITY_CARDS.map((cap) => (
+                    {capabilityCards.map((cap) => (
                       <div
                         key={cap.title}
                         className="group rounded-xl border border-border/60 p-4 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
@@ -541,7 +567,7 @@ export default function AIAssistantPage() {
                   size="icon"
                   className="h-11 w-11 rounded-xl bg-linear-to-br from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/20 shrink-0 transition-all duration-200"
                   onClick={handleStop}
-                  title="إيقاف التوليد"
+                  title={t("stopGeneration")}
                 >
                   <Square className="w-5 h-5 fill-current" />
                 </Button>
@@ -551,7 +577,7 @@ export default function AIAssistantPage() {
                   className="h-11 w-11 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20 shrink-0 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-500/30"
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  title="إرسال"
+                  title={t("send")}
                 >
                   <Send className="w-5 h-5" />
                 </Button>
@@ -562,7 +588,7 @@ export default function AIAssistantPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={isSending ? "يكتب أحمد..." : "اكتب رسالتك هنا... (Enter للإرسال، Shift+Enter لسطر جديد)"}
+                  placeholder={isSending ? t("assistantTyping") : t("typingPlaceholder")}
                   disabled={isSending}
                   className="w-full resize-none rounded-xl border border-input bg-muted/30 px-5 py-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 placeholder:text-muted-foreground/60 min-h-[48px] max-h-[160px] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                   rows={1}
@@ -571,7 +597,7 @@ export default function AIAssistantPage() {
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground/50 text-center mt-2">
-              أحمد قد يخطئ أحياناً. تحقق دائماً من المعلومات المهمة.
+              {t("disclaimer")}
             </p>
           </div>
         </div>
@@ -595,6 +621,7 @@ function ChatMessage({
 }) {
   const isUser = role === "user"
   const [copied, setCopied] = useState(false)
+  const t = useTranslations("admin.aiAssistant")
 
   const handleCopy = async () => {
     try {
@@ -656,19 +683,19 @@ function ChatMessage({
             <button
               onClick={handleCopy}
               className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md hover:bg-muted hover:text-foreground transition-colors"
-              title="نسخ"
+              title={t("copyText")}
             >
               {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-              {copied ? 'تم النسخ' : 'نسخ'}
+              {copied ? t("copied") : t("copyText")}
             </button>
             {onRegenerate && (
               <button
                 onClick={onRegenerate}
                 className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md hover:bg-muted hover:text-foreground transition-colors"
-                title="إعادة التوليد"
+                title={t("regenerate")}
               >
                 <RotateCcw className="w-3 h-3" />
-                إعادة التوليد
+                {t("regenerate")}
               </button>
             )}
           </div>

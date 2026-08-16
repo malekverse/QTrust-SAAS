@@ -5,12 +5,15 @@ import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, ArrowRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { Suspense } from "react"
 
 function ErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get("error")
+  const t = useTranslations("auth.error")
+  const tc = useTranslations("common")
 
   const errorMessages: Record<string, string> = {
     Configuration: "خطأ في إعدادات الخادم",
@@ -28,14 +31,14 @@ function ErrorContent() {
           <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <AlertCircle className="w-6 h-6 text-destructive" />
           </div>
-          <CardTitle>خطأ في تسجيل الدخول</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription>{errorMessage}</CardDescription>
         </CardHeader>
         <CardContent className="text-center">
           <Button asChild>
             <Link href="/auth/login">
               <ArrowRight className="ml-2 h-4 w-4" />
-              العودة لتسجيل الدخول
+              {t("backToLogin")}
             </Link>
           </Button>
         </CardContent>
@@ -45,10 +48,11 @@ function ErrorContent() {
 }
 
 export default function AuthErrorPage() {
+  const tc = useTranslations("common")
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">جاري التحميل...</div>
+        <div className="animate-pulse">{tc("loading")}</div>
       </div>
     }>
       <ErrorContent />

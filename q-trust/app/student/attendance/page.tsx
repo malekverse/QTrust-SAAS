@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -62,30 +63,32 @@ interface AttendanceStats {
   rate: number
 }
 
-const statusConfig: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
+const statusConfig: Record<string, { labelKey: string; icon: React.ReactNode; className: string }> = {
   [ATTENDANCE_STATUS.PRESENT]: {
-    label: 'حاضر',
+    labelKey: 'present',
     icon: <CheckCircle2 className="h-5 w-5" />,
     className: 'bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800'
   },
   [ATTENDANCE_STATUS.LATE]: {
-    label: 'متأخر',
+    labelKey: 'late',
     icon: <AlertCircle className="h-5 w-5" />,
     className: 'bg-amber-500/10 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800'
   },
   [ATTENDANCE_STATUS.ABSENT]: {
-    label: 'غائب',
+    labelKey: 'absent',
     icon: <XCircle className="h-5 w-5" />,
     className: 'bg-red-500/10 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-800'
   },
   [ATTENDANCE_STATUS.JUSTIFIED_ABSENCE]: {
-    label: 'غياب مبرر',
+    labelKey: 'excused',
     icon: <Info className="h-5 w-5" />,
     className: 'bg-blue-500/10 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-800'
   }
 }
 
 export default function StudentAttendance() {
+  const t = useTranslations("student.attendance")
+  const tc = useTranslations("common")
   const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [stats, setStats] = useState<AttendanceStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -148,21 +151,21 @@ export default function StudentAttendance() {
 
       if (res.ok) {
         toast({
-          title: "تم تقديم الاعتراض",
-          description: "سيتم مراجعته من قبل الإدارة",
+          title: tc("success"),
+          description: t("claimSubmitted"),
         })
         setClaimDialogOpen(false)
         fetchAttendance()
       } else {
         toast({
-          title: "خطأ",
+          title: tc("error"),
           description: data.message,
           variant: "destructive"
         })
       }
     } catch {
       toast({
-        title: "خطأ",
+        title: tc("error"),
         description: "حدث خطأ أثناء تقديم الاعتراض",
         variant: "destructive"
       })
@@ -216,9 +219,9 @@ export default function StudentAttendance() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <ClipboardCheck className="h-7 w-7 text-primary" />
-          سجل الحضور
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground mt-1">سجل تفصيلي لحضورك في الحلقات</p>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       {/* Stats Summary */}
@@ -233,25 +236,25 @@ export default function StudentAttendance() {
           <Card className="card-lift">
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.present}</p>
-              <p className="text-xs text-muted-foreground">حاضر</p>
+              <p className="text-xs text-muted-foreground">{tc("present")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.late}</p>
-              <p className="text-xs text-muted-foreground">متأخر</p>
+              <p className="text-xs text-muted-foreground">{tc("late")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.absent}</p>
-              <p className="text-xs text-muted-foreground">غائب</p>
+              <p className="text-xs text-muted-foreground">{tc("absent")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.justified}</p>
-              <p className="text-xs text-muted-foreground">مبرر</p>
+              <p className="text-xs text-muted-foreground">{tc("excused")}</p>
             </CardContent>
           </Card>
         </div>
@@ -265,11 +268,11 @@ export default function StudentAttendance() {
             <SelectValue placeholder="تصفية حسب الحالة" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value={ATTENDANCE_STATUS.PRESENT}>حاضر</SelectItem>
-            <SelectItem value={ATTENDANCE_STATUS.LATE}>متأخر</SelectItem>
-            <SelectItem value={ATTENDANCE_STATUS.ABSENT}>غائب</SelectItem>
-            <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>غياب مبرر</SelectItem>
+            <SelectItem value="all">{tc("all")}</SelectItem>
+            <SelectItem value={ATTENDANCE_STATUS.PRESENT}>{tc("present")}</SelectItem>
+            <SelectItem value={ATTENDANCE_STATUS.LATE}>{tc("late")}</SelectItem>
+            <SelectItem value={ATTENDANCE_STATUS.ABSENT}>{tc("absent")}</SelectItem>
+            <SelectItem value={ATTENDANCE_STATUS.JUSTIFIED_ABSENCE}>{tc("excused")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -280,7 +283,7 @@ export default function StudentAttendance() {
           <Card>
             <CardContent className="py-12 text-center">
               <ClipboardCheck className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-              <p className="text-muted-foreground">لا توجد سجلات حضور</p>
+              <p className="text-muted-foreground">{t("noRecords")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -300,7 +303,7 @@ export default function StudentAttendance() {
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-foreground text-sm">{record.sessionName}</h4>
                         <Badge variant="outline" className={`text-xs ${config.className}`}>
-                          {config.label}
+                          {tc(config.labelKey)}
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -336,8 +339,8 @@ export default function StudentAttendance() {
                                 : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400'
                           }`}
                         >
-                          {record.claimStatus === CLAIM_STATUS.APPROVED ? 'تمت الموافقة' :
-                           record.claimStatus === CLAIM_STATUS.REJECTED ? 'مرفوض' : 'قيد المراجعة'}
+                          {record.claimStatus === CLAIM_STATUS.APPROVED ? tc("approved") :
+                           record.claimStatus === CLAIM_STATUS.REJECTED ? tc("rejected") : tc("pending")}
                         </Badge>
                       ) : (
                         (record.status === ATTENDANCE_STATUS.ABSENT || record.status === ATTENDANCE_STATUS.LATE) && (
@@ -348,7 +351,7 @@ export default function StudentAttendance() {
                             className="text-xs gap-1"
                           >
                             <MessageSquare className="h-3 w-3" />
-                            اعتراض
+                            {t("submitClaim")}
                           </Button>
                         )
                       )}
@@ -365,7 +368,7 @@ export default function StudentAttendance() {
       <Dialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تقديم اعتراض على الحضور</DialogTitle>
+            <DialogTitle>{t("submitClaim")}</DialogTitle>
             <DialogDescription>
               {selectedRecord && (
                 <span>
@@ -376,7 +379,7 @@ export default function StudentAttendance() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="reason">سبب الاعتراض</Label>
+              <Label htmlFor="reason">{t("claimReason")}</Label>
               <Textarea
                 id="reason"
                 value={claimReason}
@@ -390,7 +393,7 @@ export default function StudentAttendance() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setClaimDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button 
               onClick={submitClaim} 
@@ -402,7 +405,7 @@ export default function StudentAttendance() {
                   جاري الإرسال...
                 </>
               ) : (
-                "تقديم الاعتراض"
+                tc("submit")
               )}
             </Button>
           </DialogFooter>

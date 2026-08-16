@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { LEAD_STATUS } from "@/models/Lead"
+const LEAD_STATUS_VALUES = ["NEW", "CONTACTED", "CONVERTED", "CLOSED"] as const
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: "جديد",
@@ -46,7 +46,7 @@ export function LeadStatusSelect({
       disabled={saving}
       className={selectCls}
     >
-      {Object.values(LEAD_STATUS).map((s) => (
+      {LEAD_STATUS_VALUES.map((s) => (
         <option key={s} value={s}>
           {STATUS_LABELS[s] ?? s}
         </option>

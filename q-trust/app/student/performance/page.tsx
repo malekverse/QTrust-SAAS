@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -97,6 +98,8 @@ const badgeIconMap: Record<string, React.ReactNode> = {
 }
 
 export default function StudentPerformance() {
+  const t = useTranslations("student.performance")
+  const tc = useTranslations("common")
   const [grades, setGrades] = useState<GradeData[]>([])
   const [feedback, setFeedback] = useState<FeedbackData[]>([])
   const [badges, setBadges] = useState<BadgeData[]>([])
@@ -206,9 +209,9 @@ export default function StudentPerformance() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <BarChart3 className="h-7 w-7 text-primary" />
-          النتائج والتقييم
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground mt-1">متابعة أدائك وتقدمك في الحفظ</p>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       {/* Stats Overview */}
@@ -220,7 +223,7 @@ export default function StudentPerformance() {
                 <Star className="h-5 w-5 text-primary" />
               </div>
               <p className="text-2xl font-bold">{stats.overallAverage}%</p>
-              <p className="text-xs text-muted-foreground">المعدل العام</p>
+              <p className="text-xs text-muted-foreground">{t("overallGrade")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
@@ -258,7 +261,7 @@ export default function StudentPerformance() {
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-sm">تقدم الحفظ</h3>
+              <h3 className="font-semibold text-sm">{t("hifzProgress")}</h3>
               <span className="text-sm text-muted-foreground">{stats.completedJuz} / {stats.totalJuz} جزء</span>
             </div>
             <div className="h-4 rounded-full bg-muted overflow-hidden">
@@ -291,7 +294,7 @@ export default function StudentPerformance() {
             <Card>
               <CardContent className="py-12 text-center">
                 <BarChart3 className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد تقييمات بعد</p>
+                <p className="text-muted-foreground">{t("noResults")}</p>
               </CardContent>
             </Card>
           ) : (

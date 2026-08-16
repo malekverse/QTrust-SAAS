@@ -38,6 +38,7 @@ import { IslamicDivider } from "@/components/layout/islamic-divider"
 import { GENDER_LABELS, ACTIVITY_AREA_LABELS, MONTH_LABELS } from "@/lib/constants"
 import QRCode from "qrcode"
 import Image from "next/image"
+import { getTranslations } from "next-intl/server"
 
 async function getStudentData(id: string) {
   try {
@@ -138,6 +139,8 @@ export default async function StudentDetailPage({
 }) {
   const { id } = await params
   const data = await getStudentData(id)
+  const t = await getTranslations("admin.students")
+  const tc = await getTranslations("common")
 
   if (!data) {
     notFound()
@@ -162,7 +165,7 @@ export default async function StudentDetailPage({
 
   const displayName = student.firstName && student.lastName 
     ? `${student.firstName} ${student.lastName}`
-    : student.fullName || "غير محدد"
+    : student.fullName || t("notSpecified")
 
   return (
     <div className="space-y-6">
@@ -170,7 +173,7 @@ export default async function StudentDetailPage({
       <Button variant="ghost" asChild>
         <Link href="/admin/students">
           <ArrowRight className="ml-2 h-4 w-4" />
-          العودة للقائمة
+          {t("backToList")}
         </Link>
       </Button>
 
@@ -195,24 +198,24 @@ export default async function StudentDetailPage({
                     {GENDER_LABELS[student.gender as keyof typeof GENDER_LABELS] || student.gender}
                   </Badge>
                   <Badge variant={student.isActive ? "success" : "destructive"}>
-                    {student.isActive ? "نشط" : "غير نشط"}
+                    {student.isActive ? tc("active") : tc("inactive")}
                   </Badge>
                   <Badge variant={currentMonthPaid ? "success" : "destructive"} className="flex items-center gap-1">
                     <CreditCard className="h-3 w-3" />
-                    {currentMonthPaid ? "مدفوع" : "غير مدفوع"}
+                    {currentMonthPaid ? tc("paid") : tc("unpaid")}
                   </Badge>
                 </div>
                 <div className="space-y-1 text-sm text-muted-foreground">
                   {student.fatherName && (
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      <span>اسم الأب: {student.fatherName}</span>
+                      <span>{t("fatherName")}: {student.fatherName}</span>
                     </div>
                   )}
                   {student.cin && (
                     <div className="flex items-center gap-2">
                       <IdCard className="h-4 w-4" />
-                      <span dir="ltr">ب.ت.و: {student.cin}</span>
+                      <span dir="ltr">{t("cinShortLabel")}: {student.cin}</span>
                     </div>
                   )}
                   {student.phone && (
@@ -243,7 +246,7 @@ export default async function StudentDetailPage({
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/admin/students/${id}/edit`}>
                     <Pencil className="ml-1 h-4 w-4" />
-                    تعديل
+                    {tc("edit")}
                   </Link>
                 </Button>
               </div>
@@ -256,7 +259,7 @@ export default async function StudentDetailPage({
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              رمز QR
+              {t("qrCode")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
@@ -274,7 +277,7 @@ export default async function StudentDetailPage({
             <Button variant="outline" size="sm" className="mt-3" asChild>
               <Link href={`/admin/students/${id}/qr`}>
                 <QrCode className="ml-1 h-4 w-4" />
-                طباعة البطاقة
+                {t("printCard")}
               </Link>
             </Button>
           </CardContent>
@@ -290,7 +293,7 @@ export default async function StudentDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.totalSessions}</p>
-              <p className="text-sm text-muted-foreground">إجمالي الحصص</p>
+              <p className="text-sm text-muted-foreground">{t("totalSessions")}</p>
             </div>
           </CardContent>
         </Card>
@@ -301,7 +304,7 @@ export default async function StudentDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.presentCount}</p>
-              <p className="text-sm text-muted-foreground">حضور</p>
+              <p className="text-sm text-muted-foreground">{t("attendanceCount")}</p>
             </div>
           </CardContent>
         </Card>
@@ -312,7 +315,7 @@ export default async function StudentDetailPage({
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.attendanceRate}%</p>
-              <p className="text-sm text-muted-foreground">نسبة الحضور</p>
+              <p className="text-sm text-muted-foreground">{t("attendanceRate")}</p>
             </div>
           </CardContent>
         </Card>
@@ -327,38 +330,38 @@ export default async function StudentDetailPage({
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              المعلومات الشخصية
+              {t("personalInfo")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               {student.enrollmentNumber && (
                 <>
-                  <div className="text-muted-foreground">رقم الانخراط</div>
+                  <div className="text-muted-foreground">{t("enrollmentId")}</div>
                   <div>{student.enrollmentNumber}</div>
                 </>
               )}
               {student.dateOfBirth && (
                 <>
-                  <div className="text-muted-foreground">تاريخ الولادة</div>
+                  <div className="text-muted-foreground">{t("birthDate")}</div>
                   <div>{new Date(student.dateOfBirth).toLocaleDateString("ar-TN")}</div>
                 </>
               )}
               {student.placeOfBirth && (
                 <>
-                  <div className="text-muted-foreground">مكان الولادة</div>
+                  <div className="text-muted-foreground">{t("placeOfBirth")}</div>
                   <div>{student.placeOfBirth}</div>
                 </>
               )}
               {student.profession && (
                 <>
-                  <div className="text-muted-foreground">المهنة</div>
+                  <div className="text-muted-foreground">{t("profession")}</div>
                   <div>{student.profession}</div>
                 </>
               )}
               {student.educationLevel && (
                 <>
-                  <div className="text-muted-foreground">المستوى التعليمي</div>
+                  <div className="text-muted-foreground">{t("educationLevelLabel")}</div>
                   <div>{student.educationLevel}</div>
                 </>
               )}
@@ -368,7 +371,7 @@ export default async function StudentDetailPage({
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">مجالات النشاط</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t("activityAreasLabel")}</p>
                   <div className="flex flex-wrap gap-2">
                     {student.activityAreas.map((area: string) => (
                       <Badge key={area} variant="outline">
@@ -384,7 +387,7 @@ export default async function StudentDetailPage({
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">ملاحظات</p>
+                  <p className="text-sm text-muted-foreground mb-1">{tc("notes")}</p>
                   <p className="text-sm">{student.notes}</p>
                 </div>
               </>
@@ -395,12 +398,12 @@ export default async function StudentDetailPage({
         {/* Enrolled Sessions */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">الحصص المسجل فيها</CardTitle>
+            <CardTitle className="text-lg">{t("enrolledSessions")}</CardTitle>
           </CardHeader>
           <CardContent>
             {sessions.length === 0 ? (
               <p className="text-center py-4 text-muted-foreground">
-                لم يتم تسجيل الطالب في أي حصة بعد
+                {t("noEnrolledSessions")}
               </p>
             ) : (
               <div className="space-y-3">
@@ -430,17 +433,17 @@ export default async function StudentDetailPage({
       {(student.photoUrl || student.cinFrontUrl || student.cinBackUrl) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">المرفقات</CardTitle>
+            <CardTitle className="text-lg">{t("attachments")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-3">
               {student.photoUrl && (
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">صورة شمسية</p>
+                  <p className="text-sm text-muted-foreground">{t("personalPhoto")}</p>
                   <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
                     <Image 
                       src={student.photoUrl} 
-                      alt="صورة الطالب" 
+                      alt={t("studentPhotoAlt")}
                       fill 
                       className="object-cover"
                     />
@@ -449,11 +452,11 @@ export default async function StudentDetailPage({
               )}
               {student.cinFrontUrl && (
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">بطاقة التعريف (الأمامية)</p>
+                  <p className="text-sm text-muted-foreground">{t("cinFrontLabel")}</p>
                   <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
                     <Image 
                       src={student.cinFrontUrl} 
-                      alt="بطاقة التعريف - الأمامية" 
+                      alt={t("cinFrontAlt")}
                       fill 
                       className="object-cover"
                     />
@@ -462,11 +465,11 @@ export default async function StudentDetailPage({
               )}
               {student.cinBackUrl && (
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">بطاقة التعريف (الخلفية)</p>
+                  <p className="text-sm text-muted-foreground">{t("cinBackLabel")}</p>
                   <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
                     <Image 
                       src={student.cinBackUrl} 
-                      alt="بطاقة التعريف - الخلفية" 
+                      alt={t("cinBackAlt")}
                       fill 
                       className="object-cover"
                     />
@@ -483,18 +486,18 @@ export default async function StudentDetailPage({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            سجل الاشتراكات
+            {t("subscriptionHistory")}
           </CardTitle>
           <Button variant="outline" size="sm" asChild>
             <Link href="/admin/subscriptions">
-              إدارة الاشتراكات
+              {t("manageSubscriptions")}
             </Link>
           </Button>
         </CardHeader>
         <CardContent>
           {paymentRecords.length === 0 ? (
             <p className="text-center py-4 text-muted-foreground">
-              لا توجد سجلات اشتراك بعد
+              {t("noSubscriptionRecords")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -514,7 +517,7 @@ export default async function StudentDetailPage({
                     )}
                   </div>
                   <Badge variant={record.isPaid ? "success" : "destructive"}>
-                    {record.isPaid ? "مدفوع" : "غير مدفوع"}
+                    {record.isPaid ? tc("paid") : tc("unpaid")}
                   </Badge>
                 </div>
               ))}
@@ -526,12 +529,12 @@ export default async function StudentDetailPage({
       {/* Recent Attendance */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">سجل الحضور الأخير</CardTitle>
+          <CardTitle className="text-lg">{t("recentAttendance")}</CardTitle>
         </CardHeader>
         <CardContent>
           {attendanceRecords.length === 0 ? (
             <p className="text-center py-4 text-muted-foreground">
-              لا توجد سجلات حضور بعد
+              {t("noAttendanceRecords")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -542,7 +545,7 @@ export default async function StudentDetailPage({
                 >
                   <div>
                     <p className="font-medium">
-                      {record.sessionOccurrenceId?.sessionTemplateId?.name || "حصة محذوفة"}
+                      {record.sessionOccurrenceId?.sessionTemplateId?.name || t("deletedSession")}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(record.createdAt)}

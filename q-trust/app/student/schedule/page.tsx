@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { useTranslations } from "next-intl"
 import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,8 @@ const COLORS = [
 ]
 
 export default function StudentSchedulePage() {
+  const t = useTranslations("student.schedule")
+  const tc = useTranslations("common")
   const { data, isLoading } = useQuery({
     queryKey: ["my-schedule"],
     queryFn: fetchMySchedule,
@@ -40,7 +43,7 @@ export default function StudentSchedulePage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="جدولي" description="الجدول الأسبوعي للحلقات" />
+        <PageHeader title={t("title")} description={t("description")} />
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 7 }).map((_, i) => (
             <Card key={i} className="animate-pulse">
@@ -57,7 +60,7 @@ export default function StudentSchedulePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="جدولي" description="الجدول الأسبوعي للحلقات">
+      <PageHeader title={t("title")} description={t("description")}>
         <Badge variant="outline" className="text-sm">
           <CalendarClock className="h-3.5 w-3.5 ml-1" />
           {sessions.length} حلقة
@@ -68,8 +71,8 @@ export default function StudentSchedulePage() {
         <Card>
           <CardContent className="p-12 text-center">
             <CalendarClock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-1">لا توجد حلقات مسجلة</h3>
-            <p className="text-muted-foreground">لم يتم تسجيلك في أي حلقة بعد</p>
+            <h3 className="text-lg font-medium mb-1">{t("noSchedule")}</h3>
+            <p className="text-muted-foreground">{t("noSchedule")}</p>
           </CardContent>
         </Card>
       ) : (

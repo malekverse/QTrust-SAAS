@@ -32,6 +32,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
+import { useTranslations } from "next-intl"
 
 interface Claim {
   _id: string
@@ -56,6 +57,8 @@ interface ClaimStats {
 
 export default function AdminClaims() {
   const { toast } = useToast()
+  const t = useTranslations("admin.claims")
+  const tc = useTranslations("common")
   const [claims, setClaims] = useState<Claim[]>([])
   const [paginationInfo, setPaginationInfo] = useState<{ page: number; pages: number; total: number } | null>(null)
   const [page, setPage] = useState(1)
@@ -114,7 +117,7 @@ export default function AdminClaims() {
 
       if (res.ok) {
         const data = await res.json()
-        toast({ title: "تمت المراجعة", description: data.message })
+        toast({ title: t("reviewed"), description: data.message })
         setReviewDialogOpen(false)
         fetchClaims()
       } else {
@@ -142,21 +145,21 @@ export default function AdminClaims() {
         return (
           <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-900/20">
             <Clock className="h-3 w-3 ml-1" />
-            قيد الانتظار
+            {tc("pending")}
           </Badge>
         )
       case "APPROVED":
         return (
           <Badge variant="outline" className="text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20">
             <CheckCircle2 className="h-3 w-3 ml-1" />
-            مقبول
+            {tc("approved")}
           </Badge>
         )
       case "REJECTED":
         return (
           <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50 dark:bg-red-900/20">
             <XCircle className="h-3 w-3 ml-1" />
-            مرفوض
+            {tc("rejected")}
           </Badge>
         )
       default:
@@ -188,9 +191,9 @@ export default function AdminClaims() {
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <MessageSquareWarning className="h-7 w-7 text-primary" />
-          إدارة الاعتراضات
+          {t("title")}
         </h1>
-        <p className="text-muted-foreground mt-1">مراجعة اعتراضات الحضور المقدمة من الطلاب</p>
+        <p className="text-muted-foreground mt-1">{t("description")}</p>
       </div>
 
       {/* Stats */}
@@ -198,41 +201,41 @@ export default function AdminClaims() {
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground mt-1">إجمالي الاعتراضات</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("totalClaims")}</p>
           </CardContent>
         </Card>
         <Card className="border-amber-200 dark:border-amber-800/40">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
-            <p className="text-xs text-muted-foreground mt-1">قيد الانتظار</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("pendingClaims")}</p>
           </CardContent>
         </Card>
         <Card className="border-emerald-200 dark:border-emerald-800/40">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-emerald-600">{stats.approved}</p>
-            <p className="text-xs text-muted-foreground mt-1">مقبول</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("approvedClaims")}</p>
           </CardContent>
         </Card>
         <Card className="border-red-200 dark:border-red-800/40">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-            <p className="text-xs text-muted-foreground mt-1">مرفوض</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("rejectedClaims")}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filter */}
       <div className="flex items-center gap-3">
-        <Label>حالة الاعتراض:</Label>
+        <Label>{t("filterLabel")}</Label>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); setLoading(true); }}>
           <SelectTrigger className="w-44">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="PENDING">قيد الانتظار</SelectItem>
-            <SelectItem value="APPROVED">مقبول</SelectItem>
-            <SelectItem value="REJECTED">مرفوض</SelectItem>
+            <SelectItem value="all">{tc("all")}</SelectItem>
+            <SelectItem value="PENDING">{tc("pending")}</SelectItem>
+            <SelectItem value="APPROVED">{tc("approved")}</SelectItem>
+            <SelectItem value="REJECTED">{tc("rejected")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -243,7 +246,7 @@ export default function AdminClaims() {
           <Card>
             <CardContent className="py-12 text-center">
               <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-              <p className="text-muted-foreground">لا توجد اعتراضات</p>
+              <p className="text-muted-foreground">{t("noClaims")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -257,15 +260,15 @@ export default function AdminClaims() {
                       {getStatusBadge(claim.status)}
                     </div>
                     <div className="text-xs text-muted-foreground space-y-1">
-                      <p><span className="font-medium">الحلقة:</span> {claim.sessionName || "—"}</p>
-                      <p><span className="font-medium">التاريخ:</span> {formatDate(claim.date)}</p>
-                      <p><span className="font-medium">السبب:</span> {claim.reason}</p>
+                      <p><span className="font-medium">{t("session")}:</span> {claim.sessionName || "—"}</p>
+                      <p><span className="font-medium">{tc("date")}:</span> {formatDate(claim.date)}</p>
+                      <p><span className="font-medium">{t("reason")}:</span> {claim.reason}</p>
                       {claim.reviewNotes && (
-                        <p><span className="font-medium">ملاحظات المراجعة:</span> {claim.reviewNotes}</p>
+                        <p><span className="font-medium">{t("reviewNotes")}:</span> {claim.reviewNotes}</p>
                       )}
                       {claim.reviewedBy && (
                         <p className="text-xs">
-                          <span className="font-medium">راجع بواسطة:</span> {claim.reviewedBy} - {claim.reviewedAt ? formatDate(claim.reviewedAt) : ""}
+                          <span className="font-medium">{t("reviewedBy")}:</span> {claim.reviewedBy} - {claim.reviewedAt ? formatDate(claim.reviewedAt) : ""}
                         </p>
                       )}
                     </div>
@@ -278,7 +281,7 @@ export default function AdminClaims() {
                         onClick={() => openReviewDialog(claim, "APPROVED")}
                       >
                         <CheckCircle2 className="h-4 w-4" />
-                        قبول
+                        {t("approve")}
                       </Button>
                       <Button
                         size="sm"
@@ -287,7 +290,7 @@ export default function AdminClaims() {
                         onClick={() => openReviewDialog(claim, "REJECTED")}
                       >
                         <XCircle className="h-4 w-4" />
-                        رفض
+                        {t("reject")}
                       </Button>
                     </div>
                   )}
@@ -307,7 +310,7 @@ export default function AdminClaims() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === "APPROVED" ? "قبول الاعتراض" : "رفض الاعتراض"}
+              {reviewAction === "APPROVED" ? t("approveTitle") : t("rejectTitle")}
             </DialogTitle>
             <DialogDescription>
               {selectedClaim && (
@@ -325,18 +328,18 @@ export default function AdminClaims() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>ملاحظات المراجعة (اختياري)</Label>
+              <Label>{t("reviewNotesOptional")}</Label>
               <Textarea
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                placeholder="أضف ملاحظات على قرارك..."
+                placeholder={t("addNotesPlaceholder")}
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReviewDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button
               onClick={submitReview}
@@ -346,12 +349,12 @@ export default function AdminClaims() {
               {submitting ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري المراجعة...
+                  {t("reviewing")}
                 </>
               ) : reviewAction === "APPROVED" ? (
-                "تأكيد القبول"
+                t("confirmApprove")
               ) : (
-                "تأكيد الرفض"
+                t("confirmReject")
               )}
             </Button>
           </DialogFooter>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -216,6 +217,8 @@ export default function StudentsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all")
+  const t = useTranslations("admin.students")
+  const tc = useTranslations("common")
 
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 300)
@@ -392,24 +395,24 @@ export default function StudentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="إدارة الطلاب"
-        description="إضافة وتعديل وحذف بيانات الطلاب"
+        title={t("title")}
+        description={t("description")}
       >
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? 'animate-spin' : ''}`} />
-            تحديث
+            {tc("refresh")}
           </Button>
           <Button variant="outline" asChild>
             <Link href="/admin/students/import">
               <Upload className="ml-2 h-4 w-4" />
-              استيراد
+              {tc("import")}
             </Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/admin/students/qr-cards">
               <Printer className="ml-2 h-4 w-4" />
-              طباعة البطاقات
+              {t("printQR")}
             </Link>
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={(open) => {
@@ -419,7 +422,7 @@ export default function StudentsPage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="ml-2 h-4 w-4" />
-                إضافة طالب
+                {t("addStudent")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden">
@@ -478,7 +481,7 @@ export default function StudentsPage() {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="firstName">الاسم *</Label>
+                            <Label htmlFor="firstName">{t("firstName")} *</Label>
                             <Input
                               id="firstName"
                               {...register("firstName")}
@@ -488,7 +491,7 @@ export default function StudentsPage() {
                             )}
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="lastName">اللقب *</Label>
+                            <Label htmlFor="lastName">{t("lastName")} *</Label>
                             <Input
                               id="lastName"
                               {...register("lastName")}
@@ -594,7 +597,7 @@ export default function StudentsPage() {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="phone">الهاتف</Label>
+                            <Label htmlFor="phone">{tc("phone")}</Label>
                             <Controller
                               name="phone"
                               control={control}
@@ -611,7 +614,7 @@ export default function StudentsPage() {
                             )}
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="email">البريد الإلكتروني</Label>
+                            <Label htmlFor="email">{tc("email")}</Label>
                             <Controller
                               name="email"
                               control={control}
@@ -758,7 +761,7 @@ export default function StudentsPage() {
                           control={control}
                           render={({ field }) => (
                             <FileUpload
-                              label="صورة شمسية"
+                              label={t("personalPhoto")}
                               value={field.value}
                               onChange={field.onChange}
                               uploadType="photo"
@@ -808,7 +811,7 @@ export default function StudentsPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <FileText className="h-4 w-4" />
-                        ملاحظات
+                        {tc("notes")}
                       </div>
                       <Textarea
                         id="notes"
@@ -825,10 +828,10 @@ export default function StudentsPage() {
                     variant="ghost"
                     onClick={() => setIsCreateOpen(false)}
                   >
-                    إلغاء
+                    {tc("cancel")}
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={createMutation.isPending || !declarationAccepted}
                     className="min-w-[140px]"
                   >
@@ -861,7 +864,7 @@ export default function StudentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{activeTab === 'all' ? total : '—'}</p>
-              <p className="text-xs text-muted-foreground">إجمالي الطلاب</p>
+              <p className="text-xs text-muted-foreground">{t("totalStudents")}</p>
             </div>
           </CardContent>
         </Card>
@@ -875,7 +878,7 @@ export default function StudentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{activeTab === 'active' ? total : '—'}</p>
-              <p className="text-xs text-muted-foreground">طالب نشط</p>
+              <p className="text-xs text-muted-foreground">{t("activeCount")}</p>
             </div>
           </CardContent>
         </Card>
@@ -889,7 +892,7 @@ export default function StudentsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{activeTab === 'inactive' ? total : '—'}</p>
-              <p className="text-xs text-muted-foreground">غير نشط</p>
+              <p className="text-xs text-muted-foreground">{t("inactiveCount")}</p>
             </div>
           </CardContent>
         </Card>
@@ -902,7 +905,7 @@ export default function StudentsPage() {
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="البحث عن طالب بالاسم أو رقم الهاتف أو رقم ب.ت.و..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pr-10"
@@ -910,9 +913,9 @@ export default function StudentsPage() {
             </div>
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full sm:w-auto">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="all">الكل</TabsTrigger>
-                <TabsTrigger value="active">نشط</TabsTrigger>
-                <TabsTrigger value="inactive">غير نشط</TabsTrigger>
+                <TabsTrigger value="all">{t("allStudents")}</TabsTrigger>
+                <TabsTrigger value="active">{t("activeStudents")}</TabsTrigger>
+                <TabsTrigger value="inactive">{t("inactiveStudents")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -939,7 +942,7 @@ export default function StudentsPage() {
               <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-50" />
               {search ? (
                 <>
-                  <p className="font-medium">لا توجد نتائج للبحث</p>
+                  <p className="font-medium">{tc("noResults")}</p>
                   <p className="text-sm mt-1">جرب البحث بكلمات مختلفة</p>
                   <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>
                     مسح البحث
@@ -954,11 +957,11 @@ export default function StudentsPage() {
                 </>
               ) : (
                 <>
-                  <p className="font-medium">لا يوجد طلاب مسجلون</p>
+                  <p className="font-medium">{t("noStudents")}</p>
                   <p className="text-sm mt-1">ابدأ بإضافة طالب جديد</p>
                   <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
                     <Plus className="h-4 w-4 ml-2" />
-                    إضافة طالب
+                    {t("addStudent")}
                   </Button>
                 </>
               )}
@@ -968,10 +971,10 @@ export default function StudentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>الطالب</TableHead>
-                  <TableHead className="hidden md:table-cell">الجنس</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("gender")}</TableHead>
                   <TableHead className="hidden md:table-cell">اسم الأب</TableHead>
-                  <TableHead className="hidden sm:table-cell">الهاتف</TableHead>
-                  <TableHead>الحالة</TableHead>
+                  <TableHead className="hidden sm:table-cell">{tc("phone")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
                   <TableHead className="hidden lg:table-cell">تاريخ التسجيل</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
@@ -998,7 +1001,7 @@ export default function StudentsPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <Badge variant={student.gender === 'MALE' ? 'secondary' : 'outline'}>
-                        {student.gender === 'MALE' ? 'ذكر' : 'أنثى'}
+                        {student.gender === 'MALE' ? tc("male") : tc("female")}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
@@ -1023,7 +1026,7 @@ export default function StudentsPage() {
                         variant={student.isActive ? "success" : "destructive"}
                         className="font-normal"
                       >
-                        {student.isActive ? "نشط" : "غير نشط"}
+                        {student.isActive ? tc("active") : tc("inactive")}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-muted-foreground">
@@ -1043,19 +1046,19 @@ export default function StudentsPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/students/${student._id}`}>
                               <Eye className="ml-2 h-4 w-4" />
-                              عرض التفاصيل
+                              {tc("details")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/students/${student._id}/edit`}>
                               <Pencil className="ml-2 h-4 w-4" />
-                              تعديل
+                              {tc("edit")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/students/${student._id}/qr`}>
                               <QrCode className="ml-2 h-4 w-4" />
-                              رمز QR
+                              {t("qrCode")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
@@ -1080,7 +1083,7 @@ export default function StudentsPage() {
                             onClick={() => setDeleteId(student._id)}
                           >
                             <Trash2 className="ml-2 h-4 w-4" />
-                            حذف
+                            {tc("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -1101,13 +1104,13 @@ export default function StudentsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+            <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
             <AlertDialogDescription>
               سيتم حذف هذا الطالب وجميع سجلات حضوره نهائياً. لا يمكن التراجع عن هذا الإجراء.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
@@ -1115,7 +1118,7 @@ export default function StudentsPage() {
               {deleteMutation.isPending && (
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
               )}
-              حذف
+              {tc("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1152,7 +1155,7 @@ export default function StudentsPage() {
                 </p>
               </div>
               <DialogFooter>
-                <Button onClick={() => setAccountDialogOpen(false)}>إغلاق</Button>
+                <Button onClick={() => setAccountDialogOpen(false)}>{tc("close")}</Button>
               </DialogFooter>
             </div>
           ) : (
@@ -1202,7 +1205,7 @@ export default function StudentsPage() {
                 </>
               )}
               <DialogFooter>
-                <Button variant="outline" onClick={() => setAccountDialogOpen(false)}>إلغاء</Button>
+                <Button variant="outline" onClick={() => setAccountDialogOpen(false)}>{tc("cancel")}</Button>
                 <Button
                   onClick={createPortalAccount}
                   disabled={accountCreating || (!accountStudent?.email && !accountParentEmail && !accountParentPhone && !accountStudent?.phone)}
@@ -1247,7 +1250,7 @@ export default function StudentsPage() {
                 </p>
               </div>
               <DialogFooter>
-                <Button onClick={() => setResetPasswordDialogOpen(false)}>إغلاق</Button>
+                <Button onClick={() => setResetPasswordDialogOpen(false)}>{tc("close")}</Button>
               </DialogFooter>
             </div>
           )}

@@ -50,6 +50,7 @@ import { AttendanceCharts } from "./attendance-charts"
 import { formatDistanceToNow } from "date-fns"
 import { ar } from "date-fns/locale"
 import { getDayName } from "@/lib/utils"
+import { getTranslations } from "next-intl/server"
 
 async function DashboardStats() {
   try {
@@ -151,6 +152,7 @@ async function getWeeklyAttendanceData() {
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return { weeklyData: [], distribution: [] }
     await dbConnect()
+    const tc = await getTranslations("common")
 
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
@@ -211,7 +213,7 @@ async function getWeeklyAttendanceData() {
         absent: d.absent
       })),
       distribution: distribution.map((d: any) => ({
-        name: d._id === "PRESENT" ? "حاضر" : d._id === "LATE" ? "متأخر" : d._id === "ABSENT" ? "غائب" : "مبرر",
+        name: d._id === "PRESENT" ? tc("present") : d._id === "LATE" ? tc("late") : d._id === "ABSENT" ? tc("absent") : tc("excused"),
         value: d.count,
         color: d._id === "PRESENT" ? "hsl(156, 71%, 25%)" : 
                d._id === "LATE" ? "hsl(42, 87%, 50%)" : 
@@ -457,13 +459,14 @@ async function RoomOverview() {
   }
 }
 
-function QuickActions() {
+async function QuickActions() {
+  const t = await getTranslations("admin.dashboard")
   return (
     <Card className="bg-gradient-to-br from-primary/5 via-transparent to-transparent">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Plus className="h-5 w-5 text-primary" />
-          إجراءات سريعة
+          {t("quickActions")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -530,6 +533,7 @@ function QuickActions() {
 
 async function TodaysSessions() {
   try {
+    const t = await getTranslations("admin.dashboard")
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return <SessionsLoading />
     await dbConnect()
@@ -561,7 +565,7 @@ async function TodaysSessions() {
       return (
         <div className="text-center py-8 text-muted-foreground">
           <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p className="font-medium">لا توجد حصص مجدولة لهذا اليوم</p>
+          <p className="font-medium">{t("noUpcoming")}</p>
           <p className="text-sm mt-1">{getDayName(dayOfWeek)}</p>
         </div>
       )
@@ -722,6 +726,7 @@ const activityTypeConfig: Record<string, { color: string; label: string; icon: a
 
 async function RecentActivity() {
   try {
+    const t = await getTranslations("admin.dashboard")
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return <ActivityLoading />
     await dbConnect()
@@ -735,7 +740,7 @@ async function RecentActivity() {
       return (
         <div className="text-center py-8 text-muted-foreground">
           <Activity className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p>لا يوجد نشاط مسجل بعد</p>
+          <p>{t("noActivity")}</p>
         </div>
       )
     }
@@ -893,7 +898,9 @@ async function ChartsSection() {
   )
 }
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const t = await getTranslations("admin.dashboard")
+
   return (
     <div className="space-y-6">
       {/* Greeting */}
@@ -901,7 +908,7 @@ export default function AdminDashboardPage() {
 
       {/* Page Header */}
       <PageHeader
-        title="لوحة التحكم"
+        title={t("title")}
         description="نظرة عامة على نشاط الجمعية"
       />
 
@@ -931,7 +938,9 @@ export default function AdminDashboardPage() {
       </Suspense>
 
       {/* Quick Actions */}
-      <QuickActions />
+      <Suspense fallback={null}>
+        <QuickActions />
+      </Suspense>
 
       <IslamicDivider />
 
@@ -953,7 +962,7 @@ export default function AdminDashboardPage() {
         {/* Recent Activity */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">النشاط الأخير</CardTitle>
+            <CardTitle className="text-lg font-semibold">{t("recentActivity")}</CardTitle>
             <Activity className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>

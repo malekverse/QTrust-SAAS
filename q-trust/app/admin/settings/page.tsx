@@ -42,6 +42,7 @@ import {
 import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations"
 import { IslamicDivider } from "@/components/layout/islamic-divider"
 import { DEFAULT_QR_SETTINGS } from "@/lib/constants"
+import { useTranslations } from "next-intl"
 
 // Scanner kiosk device reported via heartbeat
 interface ScannerDeviceInfo {
@@ -144,6 +145,8 @@ async function saveEnrollmentSettings(settings: EnrollmentSettings) {
 }
 
 export default function AdminSettingsPage() {
+  const t = useTranslations("admin.settings")
+  const tc = useTranslations("common")
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
   const { success, error, warning } = useToast()
@@ -293,23 +296,23 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="الإعدادات"
-        description="إدارة إعدادات النظام"
+        title={t("title")}
+        description={t("description")}
       />
 
       <Tabs defaultValue="account" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="account">
             <User className="h-4 w-4 ml-2" />
-            الحساب
+            {t("general")}
           </TabsTrigger>
           <TabsTrigger value="system">
             <Settings2 className="h-4 w-4 ml-2" />
-            النظام
+            {t("notifications")}
           </TabsTrigger>
           <TabsTrigger value="appearance">
             <Palette className="h-4 w-4 ml-2" />
-            المظهر
+            {t("branding")}
           </TabsTrigger>
         </TabsList>
 
@@ -348,7 +351,7 @@ export default function AdminSettingsPage() {
               </div>
               <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10">
                 <Shield className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium">مسؤول النظام</span>
+                <span className="text-sm font-medium">{tc("admin")}</span>
               </div>
             </CardContent>
           </Card>
@@ -367,7 +370,7 @@ export default function AdminSettingsPage() {
             <CardContent>
               {!isChangingPassword ? (
                 <Button onClick={() => setIsChangingPassword(true)}>
-                  تغيير كلمة المرور
+                  {tc("update")}
                 </Button>
               ) : (
                 <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
@@ -459,7 +462,7 @@ export default function AdminSettingsPage() {
                       ) : (
                         <Save className="ml-2 h-4 w-4" />
                       )}
-                      حفظ
+                      {tc("save")}
                     </Button>
                     <Button
                       type="button"
@@ -472,7 +475,7 @@ export default function AdminSettingsPage() {
                         setShowConfirmPassword(false)
                       }}
                     >
-                      إلغاء
+                      {tc("cancel")}
                     </Button>
                   </div>
                 </form>
@@ -632,7 +635,7 @@ export default function AdminSettingsPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Button 
+                    <Button
                       onClick={() => enrollmentMutation.mutate(localEnrollmentSettings)}
                       disabled={enrollmentMutation.isPending}
                     >
@@ -641,15 +644,15 @@ export default function AdminSettingsPage() {
                       ) : (
                         <Save className="ml-2 h-4 w-4" />
                       )}
-                      حفظ الإعدادات
+                      {t("saveSettings")}
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => setLocalEnrollmentSettings(enrollmentSettings || DEFAULT_ENROLLMENT_SETTINGS)}
                       disabled={enrollmentMutation.isPending}
                     >
                       <RefreshCw className="ml-2 h-4 w-4" />
-                      إعادة تعيين
+                      {tc("reset")}
                     </Button>
                   </div>
                 </>
@@ -671,7 +674,7 @@ export default function AdminSettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>اسم المؤسسة</Label>
+                  <Label>{t("orgName")}</Label>
                   <Input
                     value={session?.user?.tenantName || ""}
                     className="bg-muted"
@@ -747,7 +750,7 @@ export default function AdminSettingsPage() {
               </div>
               <Button onClick={handleSaveQrSettings}>
                 <Save className="ml-2 h-4 w-4" />
-                حفظ الإعدادات
+                {t("saveSettings")}
               </Button>
             </CardContent>
           </Card>

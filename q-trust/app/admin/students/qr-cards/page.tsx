@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowRight, Printer, Download, CheckSquare, Square } from "lucide-react"
 import QRCode from "qrcode"
+import { useTranslations } from "next-intl"
 
 interface Student {
   _id: string
@@ -26,6 +27,7 @@ async function fetchStudents(): Promise<Student[]> {
 }
 
 function QRCard({ student, qrDataUrl, orgName }: { student: Student; qrDataUrl: string; orgName: string }) {
+  const t = useTranslations("admin.students")
   return (
     <div className="qr-card p-4 border rounded-xl bg-white text-black break-inside-avoid mb-4">
       {/* Header — the tenant's own branding, from the session */}
@@ -47,7 +49,7 @@ function QRCard({ student, qrDataUrl, orgName }: { student: Student; qrDataUrl: 
       <div className="text-center">
         <h4 className="font-bold text-lg">{student.fullName}</h4>
         {student.parentName && (
-          <p className="text-sm text-gray-600">ابن/ابنة {student.parentName}</p>
+          <p className="text-sm text-gray-600">{t("childOf")} {student.parentName}</p>
         )}
       </div>
 
@@ -59,7 +61,7 @@ function QRCard({ student, qrDataUrl, orgName }: { student: Student; qrDataUrl: 
       {/* Footer */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mt-3 mb-2" />
       <p className="text-center text-[10px] text-gray-500">
-        امسح هذا الرمز عند الدخول
+        {t("scanToEnter")}
       </p>
     </div>
   )
@@ -72,6 +74,7 @@ export default function BulkQRCardsPage() {
   const [qrCodes, setQrCodes] = useState<Map<string, string>>(new Map())
   const [generating, setGenerating] = useState(false)
 
+  const t = useTranslations("admin.students")
   const { data: students, isLoading } = useQuery({
     queryKey: ["students"],
     queryFn: fetchStudents,
@@ -158,32 +161,32 @@ export default function BulkQRCardsPage() {
         <Button variant="ghost" asChild>
           <Link href="/admin/students">
             <ArrowRight className="ml-2 h-4 w-4" />
-            العودة للقائمة
+            {t("backToList")}
           </Link>
         </Button>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
           <div>
-            <h1 className="text-2xl font-bold">طباعة بطاقات QR</h1>
+            <h1 className="text-2xl font-bold">{t("printQRCards")}</h1>
             <p className="text-muted-foreground">
-              اختر الطلاب لطباعة بطاقاتهم
+              {t("selectStudentsToPrint")}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={selectAll}>
               <CheckSquare className="ml-2 h-4 w-4" />
-              تحديد الكل
+              {t("selectAll")}
             </Button>
             <Button variant="outline" onClick={deselectAll}>
               <Square className="ml-2 h-4 w-4" />
-              إلغاء التحديد
+              {t("deselectAll")}
             </Button>
             <Button 
               onClick={handlePrint} 
               disabled={selectedIds.size === 0 || generating}
             >
               <Printer className="ml-2 h-4 w-4" />
-              طباعة ({selectedIds.size})
+              {t("printCount", { count: selectedIds.size })}
             </Button>
           </div>
         </div>
@@ -224,7 +227,7 @@ export default function BulkQRCardsPage() {
       {/* QR Cards Preview / Print Area */}
       {selectedIds.size > 0 && (
         <div className="print-area">
-          <h2 className="text-lg font-semibold mb-4 no-print">معاينة البطاقات</h2>
+          <h2 className="text-lg font-semibold mb-4 no-print">{t("cardsPreview")}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:grid-cols-3">
             {Array.from(selectedIds).map((id) => {
               const student = activeStudents.find(s => s._id === id)

@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 import { PageHeader } from "@/components/layout/page-header"
 import { GreetingCard } from "@/components/layout/greeting-card"
 import { StatCard } from "@/components/layout/stat-card"
@@ -20,6 +21,8 @@ import { SESSION_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
 import Link from "next/link"
 
 async function TeacherStats({ teacherId }: { teacherId: string }) {
+  const t = await getTranslations("teacher.dashboard")
+  const tc = await getTranslations("common")
   const tenantId = (await auth())?.user?.tenantId
   if (!tenantId) return <StatsLoading />
   await dbConnect()
@@ -69,21 +72,21 @@ async function TeacherStats({ teacherId }: { teacherId: string }) {
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <StatCard
-        title="حصصي"
+        title={t("todaySessions")}
         value={sessionCount}
         subtitle="حصة أسبوعية"
         icon={Calendar}
       />
       <StatCard
-        title="طلابي"
+        title={t("totalStudents")}
         value={studentCount}
-        subtitle="طالب مسجل"
+        subtitle={tc("student")}
         icon={Users}
       />
       <StatCard
-        title="نسبة الحضور اليوم"
+        title={t("weeklyAttendance")}
         value={`${attendanceRate}%`}
-        subtitle="من إجمالي الطلاب"
+        subtitle={t("totalStudents")}
         icon={ClipboardCheck}
       />
     </div>
@@ -91,6 +94,8 @@ async function TeacherStats({ teacherId }: { teacherId: string }) {
 }
 
 async function TodaysSessions({ teacherId }: { teacherId: string }) {
+  const t = await getTranslations("teacher.dashboard")
+  const tc = await getTranslations("common")
   const tenantId = (await auth())?.user?.tenantId
   if (!tenantId) return <SessionsLoading />
   await dbConnect()
@@ -190,7 +195,7 @@ async function TodaysSessions({ teacherId }: { teacherId: string }) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-        <p>لا توجد حصص مجدولة لهذا اليوم</p>
+        <p>{t("noSessionsToday")}</p>
       </div>
     )
   }
@@ -209,7 +214,7 @@ async function TodaysSessions({ teacherId }: { teacherId: string }) {
             <div>
               <p className="font-medium">{session.name}</p>
               <p className="text-sm text-muted-foreground">
-                {session.studentCount} طالب • {session.presentCount} حاضر
+                {session.studentCount} {tc("student")} • {session.presentCount} {tc("present")}
               </p>
             </div>
           </div>
@@ -268,6 +273,8 @@ export default async function TeacherDashboardPage() {
   const session = await auth()
   if (!session) redirect("/auth/login")
 
+  const t = await getTranslations("teacher.dashboard")
+
   const teacherId = session.user.id
 
   return (
@@ -277,7 +284,7 @@ export default async function TeacherDashboardPage() {
 
       {/* Page Header */}
       <PageHeader
-        title="لوحة التحكم"
+        title={t("title")}
         description="نظرة عامة على حصصك وطلابك"
       />
 
@@ -291,7 +298,7 @@ export default async function TeacherDashboardPage() {
       {/* Today's Sessions */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold">حصص اليوم</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("todaySessions")}</CardTitle>
           <Badge variant="outline">{getDayName(new Date().getDay())}</Badge>
         </CardHeader>
         <CardContent>

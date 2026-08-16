@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
@@ -76,6 +77,9 @@ export default function SubstitutesPage() {
   const [notes, setNotes] = useState("")
   const [page, setPage] = useState(1)
 
+  const t = useTranslations("admin.substitutes")
+  const tc = useTranslations("common")
+
   const { data: subsResponse, isLoading } = useQuery({ queryKey: ["substitutes", page], queryFn: () => fetchAssignments(page) })
   const assignments = subsResponse?.data
   const pagination = subsResponse?.pagination
@@ -142,10 +146,10 @@ export default function SubstitutesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="المعلمون النواب" description="تكليف معلم بتغطية حصة معلم آخر لفترة محددة">
+      <PageHeader title={t("title")} description={t("description")}>
         <Button onClick={openCreate}>
           <Plus className="ml-2 h-4 w-4" />
-          تكليف نائب
+          {t("addSubstitute")}
         </Button>
       </PageHeader>
 
@@ -159,13 +163,13 @@ export default function SubstitutesPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <UserCog className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
-            <p className="font-medium text-muted-foreground">لا توجد تكليفات نيابة</p>
+            <p className="font-medium text-muted-foreground">{t("noSubstitutes")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
               كلّف معلماً بتغطية حصة عند غياب المعلم الأصلي
             </p>
             <Button className="mt-4" onClick={openCreate}>
               <Plus className="ml-2 h-4 w-4" />
-              تكليف نائب
+              {t("addSubstitute")}
             </Button>
           </CardContent>
         </Card>
@@ -229,7 +233,7 @@ export default function SubstitutesPage() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر الحصة" />
+                  <SelectValue placeholder={t("selectSession")} />
                 </SelectTrigger>
                 <SelectContent>
                   {(sessions || []).map((s) => (
@@ -243,10 +247,10 @@ export default function SubstitutesPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>المعلم النائب</Label>
+              <Label>{t("substituteTeacher")}</Label>
               <Select value={substituteUserId} onValueChange={setSubstituteUserId} disabled={!sessionTemplateId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={sessionTemplateId ? "اختر النائب" : "اختر الحصة أولاً"} />
+                  <SelectValue placeholder={sessionTemplateId ? t("selectTeacher") : "اختر الحصة أولاً"} />
                 </SelectTrigger>
                 <SelectContent>
                   {eligibleSubs.map((t) => (
@@ -260,23 +264,23 @@ export default function SubstitutesPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>من تاريخ</Label>
+                <Label>{t("startDate")}</Label>
                 <Input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>إلى تاريخ</Label>
+                <Label>{t("endDate")}</Label>
                 <Input type="date" value={validTo} onChange={(e) => setValidTo(e.target.value)} dir="ltr" />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>ملاحظات (اختياري)</Label>
+              <Label>{tc("notes")} ({tc("optional")})</Label>
               <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="سبب النيابة..." />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={() => createMutation.mutate()} disabled={!canSave || createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}

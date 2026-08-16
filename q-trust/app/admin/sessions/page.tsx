@@ -70,6 +70,7 @@ import { getDayName } from "@/lib/utils"
 import { DateInput } from "@/components/ui/date-input"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 interface SessionTemplate {
   _id: string
@@ -259,6 +260,8 @@ function SessionCard({ session, onEdit, onDelete }: {
 }
 
 export default function SessionsPage() {
+  const t = useTranslations("admin.sessions")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error } = useToast()
   const [search, setSearch] = useState("")
@@ -439,13 +442,13 @@ export default function SessionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="إدارة الحصص"
-        description="إنشاء وتعديل جداول الحصص الأسبوعية"
+        title={t("title")}
+        description={t("description")}
       >
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ml-2 ${isFetching ? 'animate-spin' : ''}`} />
-            تحديث
+            {tc("refresh")}
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={(open) => {
             setIsCreateOpen(open)
@@ -454,12 +457,12 @@ export default function SessionsPage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="ml-2 h-4 w-4" />
-                إضافة حصة
+                {t("addSession")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>إضافة حصة جديدة</DialogTitle>
+                <DialogTitle>{t("addSession")}</DialogTitle>
                 <DialogDescription>
                   أنشئ قالب حصة أسبوعية جديد
                 </DialogDescription>
@@ -467,7 +470,7 @@ export default function SessionsPage() {
               <form onSubmit={handleSubmit(onCreateSubmit)}>
                 <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                   <div className="space-y-2">
-                    <Label htmlFor="name">اسم الحصة *</Label>
+                    <Label htmlFor="name">{t("sessionName")} *</Label>
                     <Input
                       id="name"
                       placeholder="حصة الحفظ المسائية - المستوى 1"
@@ -479,7 +482,7 @@ export default function SessionsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="teacherId">المعلم *</Label>
+                    <Label htmlFor="teacherId">{t("teacher")} *</Label>
                     <Controller
                       name="teacherId"
                       control={control}
@@ -526,17 +529,17 @@ export default function SessionsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dayOfWeek">يوم الأسبوع *</Label>
+                    <Label htmlFor="dayOfWeek">{t("day")} *</Label>
                     <Controller
                       name="dayOfWeek"
                       control={control}
                       render={({ field }) => (
-                        <Select 
-                          onValueChange={(val) => field.onChange(parseInt(val))} 
+                        <Select
+                          onValueChange={(val) => field.onChange(parseInt(val))}
                           value={field.value?.toString()}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر اليوم" />
+                            <SelectValue placeholder={t("day")} />
                           </SelectTrigger>
                           <SelectContent>
                             {DAYS_OF_WEEK.map((day) => (
@@ -555,7 +558,7 @@ export default function SessionsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="startTime">وقت البداية *</Label>
+                      <Label htmlFor="startTime">{t("startTime")} *</Label>
                       <Input
                         id="startTime"
                         type="time"
@@ -567,7 +570,7 @@ export default function SessionsPage() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="endTime">وقت النهاية *</Label>
+                      <Label htmlFor="endTime">{t("endTime")} *</Label>
                       <Input
                         id="endTime"
                         type="time"
@@ -581,7 +584,7 @@ export default function SessionsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="effectiveFromDate">تاريخ البدء *</Label>
+                    <Label htmlFor="effectiveFromDate">{t("effectiveFrom")} *</Label>
                     <Controller
                       name="effectiveFromDate"
                       control={control}
@@ -638,13 +641,13 @@ export default function SessionsPage() {
                     variant="outline"
                     onClick={() => setIsCreateOpen(false)}
                   >
-                    إلغاء
+                    {tc("cancel")}
                   </Button>
                   <Button type="submit" disabled={createMutation.isPending}>
                     {createMutation.isPending && (
                       <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                     )}
-                    إضافة الحصة
+                    {t("addSession")}
                   </Button>
                 </DialogFooter>
                 {createMutation.error && (
@@ -667,7 +670,7 @@ export default function SessionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">إجمالي الحصص</p>
+              <p className="text-xs text-muted-foreground">{t("title")}</p>
             </div>
           </CardContent>
         </Card>
@@ -766,11 +769,11 @@ export default function SessionsPage() {
               </>
             ) : (
               <>
-                <p className="font-medium">لا توجد حصص مسجلة</p>
+                <p className="font-medium">{t("noSessions")}</p>
                 <p className="text-sm mt-1">ابدأ بإضافة حصة جديدة</p>
                 <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
                   <Plus className="h-4 w-4 ml-2" />
-                  إضافة حصة
+                  {t("addSession")}
                 </Button>
               </>
             )}
@@ -807,7 +810,7 @@ export default function SessionsPage() {
         }}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>تعديل الحصة</DialogTitle>
+              <DialogTitle>{tc("edit")}</DialogTitle>
               <DialogDescription>
                 تعديل بيانات الحصة
               </DialogDescription>
@@ -815,7 +818,7 @@ export default function SessionsPage() {
             <form onSubmit={handleSubmitEdit(onEditSubmit)}>
               <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-name">اسم الحصة *</Label>
+                  <Label htmlFor="edit-name">{t("sessionName")} *</Label>
                   <Input
                     id="edit-name"
                     placeholder="حصة الحفظ المسائية"
@@ -827,7 +830,7 @@ export default function SessionsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-teacherId">المعلم *</Label>
+                  <Label htmlFor="edit-teacherId">{t("teacher")} *</Label>
                   <Controller
                     name="teacherId"
                     control={controlEdit}
@@ -871,7 +874,7 @@ export default function SessionsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-dayOfWeek">يوم الأسبوع *</Label>
+                  <Label htmlFor="edit-dayOfWeek">{t("day")} *</Label>
                   <Controller
                     name="dayOfWeek"
                     control={controlEdit}
@@ -897,7 +900,7 @@ export default function SessionsPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-startTime">وقت البداية *</Label>
+                    <Label htmlFor="edit-startTime">{t("startTime")} *</Label>
                     <Input
                       id="edit-startTime"
                       type="time"
@@ -906,7 +909,7 @@ export default function SessionsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-endTime">وقت النهاية *</Label>
+                    <Label htmlFor="edit-endTime">{t("endTime")} *</Label>
                     <Input
                       id="edit-endTime"
                       type="time"
@@ -917,7 +920,7 @@ export default function SessionsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-effectiveFromDate">تاريخ البدء *</Label>
+                  <Label htmlFor="edit-effectiveFromDate">{t("effectiveFrom")} *</Label>
                   <Controller
                     name="effectiveFromDate"
                     control={controlEdit}
@@ -971,13 +974,13 @@ export default function SessionsPage() {
                   variant="outline"
                   onClick={() => setIsEditOpen(false)}
                 >
-                  إلغاء
+                  {tc("cancel")}
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending}>
                   {updateMutation.isPending && (
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   )}
-                  حفظ التعديلات
+                  {tc("save")}
                 </Button>
               </DialogFooter>
               {updateMutation.error && (
@@ -995,13 +998,13 @@ export default function SessionsPage() {
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+              <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
               <AlertDialogDescription>
                 سيتم حذف هذه الحصة نهائياً. لا يمكن التراجع عن هذا الإجراء.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => deleteId && deleteMutation.mutate(deleteId)}
@@ -1009,7 +1012,7 @@ export default function SessionsPage() {
                 {deleteMutation.isPending && (
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 )}
-                حذف
+                {tc("delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

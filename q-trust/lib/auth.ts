@@ -1,11 +1,11 @@
-import NextAuth, { type NextAuthConfig, type User as NextAuthUser } from 'next-auth'
+import NextAuth, { type NextAuthConfig } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import dbConnect from './db'
 import User from '@/models/User'
 import Tenant from '@/models/Tenant'
 import { loginSchema } from './validations'
-import { ROLES, type Role } from './constants'
+import { ROLES, TENANT_STATUS, type Role } from './constants'
 
 // Extend the built-in types
 declare module 'next-auth' {
@@ -126,8 +126,15 @@ export const authConfig: NextAuthConfig = {
           if (user.tenantId) {
             tenantId = user.tenantId.toString()
             const tenant = await Tenant.findById(user.tenantId)
-              .select('slug plan name branding.displayName')
-              .lean<{ slug: string; plan: string; name: string; branding?: { displayName?: string } }>()
+              .select('slug plan name status branding.displayName')
+              .lean<{ slug: string; plan: string; name: string; status: string; branding?: { displayName?: string } }>()
+            // Block sign-in for suspended/cancelled tenants.
+            if (
+              tenant &&
+              (tenant.status === TENANT_STATUS.SUSPENDED || tenant.status === TENANT_STATUS.CANCELLED)
+            ) {
+              throw new Error('الحساب معلّق. يرجى التواصل مع إدارة المنصة')
+            }
             tenantSlug = tenant?.slug
             tenantPlan = tenant?.plan
             tenantName = tenant?.branding?.displayName || tenant?.name

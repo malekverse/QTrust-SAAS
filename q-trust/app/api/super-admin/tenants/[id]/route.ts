@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import { z } from 'zod'
 import dbConnect from '@/lib/db'
 import { requireSuperAdmin, TenantAuthError } from '@/lib/tenant'
+import { clearTenantStatusCache } from '@/lib/tenant-status'
 import Tenant from '@/models/Tenant'
 import { PLANS, PLAN_LIMITS, TENANT_STATUS } from '@/lib/constants'
 
@@ -60,6 +61,9 @@ export async function PATCH(
       tenant.status = d.status
     }
     await tenant.save()
+
+    // Reflect the change immediately in the per-instance status cache.
+    clearTenantStatusCache(id)
 
     return NextResponse.json({
       _id: tenant._id,

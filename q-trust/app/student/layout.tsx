@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { ROLES } from "@/lib/constants"
+import { getTenantStatus, isBlockedStatus } from "@/lib/tenant-status"
 
 export default async function StudentLayout({
   children,
@@ -20,6 +21,11 @@ export default async function StudentLayout({
       redirect("/admin/dashboard")
     }
     redirect("/teacher/dashboard")
+  }
+
+  // Block a suspended/cancelled tenant's users from the dashboard.
+  if (session.user.tenantId && isBlockedStatus(await getTenantStatus(session.user.tenantId))) {
+    redirect("/suspended")
   }
 
   // Check if student must change password (first login)

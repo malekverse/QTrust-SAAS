@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import dbConnect from '@/lib/db'
 import Tenant, { type ITenant } from '@/models/Tenant'
 import { ROLES } from '@/lib/constants'
+import { getTenantStatus, isBlockedStatus } from '@/lib/tenant-status'
 
 // Thrown by the tenant/entitlement guards; callers map `.status` to an HTTP response.
 export class TenantAuthError extends Error {
@@ -30,6 +31,14 @@ export async function requireTenantSession(): Promise<TenantContext> {
   if (!session?.user) throw new TenantAuthError('يجب تسجيل الدخول', 401)
   const user = session.user
   if (!user.tenantId) throw new TenantAuthError('لا يوجد سياق مؤسسة', 403)
+
+  // Block access for suspended/cancelled tenants (cached ~60s). Fail-open on a
+  // null status (transient read / missing tenant) to avoid accidental lockouts.
+  const status = await getTenantStatus(user.tenantId)
+  if (isBlockedStatus(status)) {
+    throw new TenantAuthError('الحساب معلّق. يرجى التواصل مع إدارة المنصة', 403)
+  }
+
   return {
     userId: user.id,
     role: user.role,

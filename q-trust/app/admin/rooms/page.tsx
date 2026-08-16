@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -43,8 +44,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-async function fetchRooms() {
-  const res = await fetch("/api/rooms")
+async function fetchRooms(page: number) {
+  const res = await fetch(`/api/rooms?page=${page}`)
   if (!res.ok) throw new Error("فشل في جلب القاعات")
   return res.json()
 }
@@ -91,11 +92,14 @@ export default function RoomsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<any>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
 
-  const { data: rooms = [], isLoading } = useQuery({
-    queryKey: ["rooms"],
-    queryFn: fetchRooms,
+  const { data: roomsResponse, isLoading } = useQuery({
+    queryKey: ["rooms", page],
+    queryFn: () => fetchRooms(page),
   })
+  const rooms = roomsResponse?.data ?? []
+  const roomsPagination = roomsResponse?.pagination
 
   const {
     register,
@@ -398,6 +402,10 @@ export default function RoomsPage() {
             )
           })}
         </div>
+      )}
+
+      {roomsPagination && (
+        <Pagination page={roomsPagination.page} pages={roomsPagination.pages} total={roomsPagination.total} onPageChange={setPage} />
       )}
 
       {/* Edit Dialog */}

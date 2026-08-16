@@ -17,6 +17,7 @@ import {
   INVOICE_TYPES,
   INVOICE_STATUS,
 } from '@/lib/constants'
+import { parsePagination, buildPaginatedResponse } from '@/lib/pagination'
 
 // Force model registration for serverless
 void Tenant
@@ -44,13 +45,19 @@ const createTenantSchema = z.object({
   annualFeeAmountTND: z.coerce.number().min(0).default(0),
 })
 
-// GET /api/super-admin/tenants — list every tenant (cross-tenant; super-admin only)
-export async function GET() {
+// GET /api/super-admin/tenants?page=&limit= — list tenants (paginated, super-admin only)
+export async function GET(request: NextRequest) {
   try {
     await requireSuperAdmin()
     await dbConnect()
 
-    const tenants = await Tenant.find({}).sort({ createdAt: -1 }).lean()
+    const pg = parsePagination(request, { limit: 25 })
+
+    const [tenants, total] = await Promise.all([
+      Tenant.find({}).sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
+      Tenant.countDocuments({}),
+    ])
+
     const withStats = await Promise.all(
       tenants.map(async (t: any) => {
         const [studentCount, admin] = await Promise.all([
@@ -61,7 +68,7 @@ export async function GET() {
       })
     )
 
-    return NextResponse.json(withStats)
+    return NextResponse.json(buildPaginatedResponse(withStats, total, pg))
   } catch (e) {
     if (e instanceof TenantAuthError) {
       return NextResponse.json({ message: e.message }, { status: e.status })

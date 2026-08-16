@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -54,16 +55,16 @@ interface StudentLite {
   familyId?: string
 }
 
-async function fetchFamilies(): Promise<Family[]> {
-  const res = await fetch("/api/families")
+async function fetchFamilies(page: number): Promise<{ data: Family[]; pagination: { page: number; pages: number; total: number } }> {
+  const res = await fetch(`/api/families?page=${page}`)
   if (!res.ok) throw new Error("فشل تحميل العائلات")
   return res.json()
 }
 
 async function fetchStudents(): Promise<StudentLite[]> {
-  const res = await fetch("/api/students")
+  const res = await fetch("/api/students?limit=200")
   if (!res.ok) return []
-  return res.json()
+  return (await res.json()).data
 }
 
 const emptyForm = {
@@ -83,8 +84,11 @@ export default function FamiliesPage() {
   const [form, setForm] = useState(emptyForm)
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
   const [studentSearch, setStudentSearch] = useState("")
+  const [page, setPage] = useState(1)
 
-  const { data: families, isLoading } = useQuery({ queryKey: ["families"], queryFn: fetchFamilies })
+  const { data: familiesResponse, isLoading } = useQuery({ queryKey: ["families", page], queryFn: () => fetchFamilies(page) })
+  const families = familiesResponse?.data
+  const pagination = familiesResponse?.pagination
   const { data: students } = useQuery({ queryKey: ["students-lite"], queryFn: fetchStudents })
 
   const saveMutation = useMutation({
@@ -215,7 +219,7 @@ export default function FamiliesPage() {
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {families.map((family) => (
+          {families?.map((family) => (
             <Card key={family._id} className="transition-all hover:shadow-sm">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
@@ -289,6 +293,10 @@ export default function FamiliesPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {pagination && (
+        <Pagination page={pagination.page} pages={pagination.pages} total={pagination.total} onPageChange={setPage} />
       )}
 
       {/* Create / edit dialog */}

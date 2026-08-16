@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { Pagination } from "@/components/ui/pagination"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -100,6 +101,8 @@ function formatDate(dateStr: string) {
 export default function AdminDocuments() {
   const { toast } = useToast()
   const [documents, setDocuments] = useState<DocumentItem[]>([])
+  const [paginationInfo, setPaginationInfo] = useState<{ page: number; pages: number; total: number } | null>(null)
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
@@ -131,16 +134,18 @@ export default function AdminDocuments() {
 
   useEffect(() => {
     fetchDocuments()
-  }, [categoryFilter])
+  }, [categoryFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDocuments = async () => {
     try {
       const params = new URLSearchParams()
       if (categoryFilter !== "all") params.set("category", categoryFilter)
+      params.set("page", String(page))
       const res = await fetch(`/api/documents?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
-        setDocuments(data.documents || data)
+        setDocuments(data.data || [])
+        if (data.pagination) setPaginationInfo(data.pagination)
       }
     } catch (error) {
       console.error("Error:", error)
@@ -395,7 +400,7 @@ export default function AdminDocuments() {
             className="pr-10"
           />
         </div>
-        <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setLoading(true) }}>
+        <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); setLoading(true) }}>
           <SelectTrigger className="w-44">
             <SelectValue placeholder="جميع الفئات" />
           </SelectTrigger>
@@ -481,6 +486,10 @@ export default function AdminDocuments() {
           ))
         )}
       </div>
+
+      {paginationInfo && (
+        <Pagination page={paginationInfo.page} pages={paginationInfo.pages} total={paginationInfo.total} onPageChange={setPage} />
+      )}
 
       {/* Upload Dialog */}
       <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) resetUploadDialog() }}>

@@ -11,6 +11,7 @@ import { auth } from "@/lib/auth"
 import { createSessionTemplateSchema } from "@/lib/validations"
 import { ROLES, SESSION_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
 import { getActiveSubstituteTemplateIds } from "@/lib/substitutes"
+import { parsePagination, buildPaginatedResponse } from "@/lib/pagination"
 
 void SessionTemplate
 void SessionOccurrence
@@ -131,11 +132,11 @@ async function generateOccurrencesForTemplate(
   return created
 }
 
-// GET /api/sessions - List all session templates
-export async function GET() {
+// GET /api/sessions?page=&limit= - List session templates (paginated)
+export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    
+
     if (!session || (session.user.role !== ROLES.ADMIN && session.user.role !== ROLES.TEACHER)) {
       return NextResponse.json(
         { message: "غير مصرح لك بالوصول" },
@@ -150,6 +151,7 @@ export async function GET() {
 
     await dbConnect()
 
+    const pg = parsePagination(request, { limit: 50 })
     let query: Record<string, unknown> = { tenantId }
     let substituteIds: string[] = []
 
@@ -161,23 +163,27 @@ export async function GET() {
         : { tenantId, teacherId: session.user.id }
     }
 
-    const sessions = await SessionTemplate.find(query)
-      .populate("teacherId", "fullName")
-      .populate("roomId", "name capacity")
-      .sort({ dayOfWeek: 1, startTime: 1 })
-      .lean()
+    const [sessions, total] = await Promise.all([
+      SessionTemplate.find(query)
+        .populate("teacherId", "fullName")
+        .populate("roomId", "name capacity")
+        .sort({ dayOfWeek: 1, startTime: 1 })
+        .skip(pg.skip)
+        .limit(pg.limit)
+        .lean(),
+      SessionTemplate.countDocuments(query),
+    ])
 
     const substituteSet = new Set(substituteIds)
 
     // Add student count for each session
-    const sessionsWithCount = await Promise.all(
+    const data = await Promise.all(
       sessions.map(async (s) => {
         const studentCount = await StudentSession.countDocuments({
           tenantId,
           sessionTemplateId: s._id,
           isActive: true,
         })
-        // Flag sessions the caller only sees because they're substituting.
         const isSubstitute =
           session.user.role === ROLES.TEACHER &&
           substituteSet.has(String(s._id)) &&
@@ -186,7 +192,7 @@ export async function GET() {
       })
     )
 
-    return NextResponse.json(sessionsWithCount)
+    return NextResponse.json(buildPaginatedResponse(data, total, pg))
   } catch (error) {
     console.error("Error fetching sessions:", error)
     return NextResponse.json(

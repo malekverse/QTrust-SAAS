@@ -8,15 +8,16 @@ import { createStudentSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
 import { generateQrUuid } from "@/lib/utils"
 import { generateEnrollmentNumber } from "@/lib/enrollment"
+import { parsePagination, buildPaginatedResponse } from "@/lib/pagination"
 
 // Force model registration (needed for populate in serverless)
 void Student
 
-// GET /api/students - List all students
-export async function GET() {
+// GET /api/students?page=&limit=&search=&status= - List students (paginated)
+export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    
+
     if (!session || (session.user.role !== ROLES.ADMIN && session.user.role !== ROLES.TEACHER)) {
       return NextResponse.json(
         { message: "غير مصرح لك بالوصول" },
@@ -31,19 +32,36 @@ export async function GET() {
 
     await dbConnect()
 
-    const students = await Student.find({ tenantId })
-      .sort({ createdAt: -1 })
-      .lean()
+    const { searchParams } = new URL(request.url)
+    const pg = parsePagination(request, { limit: 25 })
+    const search = searchParams.get("search")?.trim()
+    const status = searchParams.get("status")
 
-    // Transform data to include displayName for backward compatibility
-    const transformedStudents = students.map(student => ({
+    const filter: Record<string, unknown> = { tenantId }
+    if (status === "active") filter.isActive = true
+    else if (status === "inactive") filter.isActive = false
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { fullName: { $regex: search, $options: "i" } },
+        { enrollmentNumber: { $regex: search, $options: "i" } },
+      ]
+    }
+
+    const [students, total] = await Promise.all([
+      Student.find(filter).sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
+      Student.countDocuments(filter),
+    ])
+
+    const data = students.map(student => ({
       ...student,
-      displayName: student.firstName && student.lastName 
+      displayName: student.firstName && student.lastName
         ? `${student.firstName} ${student.lastName}`
         : student.fullName || '',
     }))
 
-    return NextResponse.json(transformedStudents)
+    return NextResponse.json(buildPaginatedResponse(data, total, pg))
   } catch (error) {
     console.error("Error fetching students:", error)
     return NextResponse.json(

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -45,20 +46,20 @@ interface Teacher {
   fullName: string
 }
 
-async function fetchAssignments(): Promise<Assignment[]> {
-  const res = await fetch("/api/substitutes")
+async function fetchAssignments(page: number): Promise<{ data: Assignment[]; pagination: { page: number; pages: number; total: number } }> {
+  const res = await fetch(`/api/substitutes?page=${page}`)
   if (!res.ok) throw new Error("فشل تحميل التكليفات")
   return res.json()
 }
 async function fetchSessions(): Promise<SessionTemplate[]> {
-  const res = await fetch("/api/sessions")
+  const res = await fetch("/api/sessions?limit=200")
   if (!res.ok) return []
-  return res.json()
+  return (await res.json()).data
 }
 async function fetchTeachers(): Promise<Teacher[]> {
-  const res = await fetch("/api/teachers")
+  const res = await fetch("/api/teachers?limit=200")
   if (!res.ok) return []
-  return res.json()
+  return (await res.json()).data
 }
 
 const todayStr = () => new Date().toISOString().split("T")[0]
@@ -73,8 +74,11 @@ export default function SubstitutesPage() {
   const [validFrom, setValidFrom] = useState(todayStr())
   const [validTo, setValidTo] = useState(todayStr())
   const [notes, setNotes] = useState("")
+  const [page, setPage] = useState(1)
 
-  const { data: assignments, isLoading } = useQuery({ queryKey: ["substitutes"], queryFn: fetchAssignments })
+  const { data: subsResponse, isLoading } = useQuery({ queryKey: ["substitutes", page], queryFn: () => fetchAssignments(page) })
+  const assignments = subsResponse?.data
+  const pagination = subsResponse?.pagination
   const { data: sessions } = useQuery({ queryKey: ["sessions-for-sub"], queryFn: fetchSessions })
   const { data: teachers } = useQuery({ queryKey: ["teachers-for-sub"], queryFn: fetchTeachers })
 
@@ -202,6 +206,10 @@ export default function SubstitutesPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {pagination && (
+        <Pagination page={pagination.page} pages={pagination.pages} total={pagination.total} onPageChange={setPage} />
       )}
 
       {/* Create dialog */}

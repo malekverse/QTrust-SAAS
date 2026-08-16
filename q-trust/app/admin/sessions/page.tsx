@@ -96,21 +96,21 @@ interface Teacher {
 }
 
 async function fetchSessions(): Promise<SessionTemplate[]> {
-  const res = await fetch("/api/sessions")
+  const res = await fetch("/api/sessions?limit=200")
   if (!res.ok) throw new Error("Failed to fetch sessions")
-  return res.json()
+  return (await res.json()).data
 }
 
 async function fetchTeachers(): Promise<Teacher[]> {
-  const res = await fetch("/api/teachers")
+  const res = await fetch("/api/teachers?limit=200")
   if (!res.ok) throw new Error("Failed to fetch teachers")
-  return res.json()
+  return (await res.json()).data
 }
 
 async function fetchRooms(): Promise<RoomOption[]> {
-  const res = await fetch("/api/rooms")
+  const res = await fetch("/api/rooms?limit=200")
   if (!res.ok) throw new Error("Failed to fetch rooms")
-  return res.json()
+  return (await res.json()).data
 }
 
 async function createSession(data: SessionTemplateFormInput) {

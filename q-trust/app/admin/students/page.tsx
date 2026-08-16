@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -47,6 +47,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Pagination } from "@/components/ui/pagination"
 import { 
   Plus, 
   Search, 
@@ -162,8 +163,18 @@ interface Student {
   createdAt: string
 }
 
-async function fetchStudents(): Promise<Student[]> {
-  const res = await fetch("/api/students")
+interface StudentsResponse {
+  data: Student[]
+  pagination: { page: number; limit: number; total: number; pages: number }
+}
+
+async function fetchStudents(params: { page?: number; limit?: number; search?: string; status?: string } = {}): Promise<StudentsResponse> {
+  const sp = new URLSearchParams()
+  if (params.page) sp.set("page", String(params.page))
+  if (params.limit) sp.set("limit", String(params.limit))
+  if (params.search) sp.set("search", params.search)
+  if (params.status) sp.set("status", params.status)
+  const res = await fetch(`/api/students?${sp}`)
   if (!res.ok) throw new Error("Failed to fetch students")
   return res.json()
 }
@@ -200,9 +211,16 @@ export default function StudentsPage() {
   const queryClient = useQueryClient()
   const { success, error } = useToast()
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [page, setPage] = useState(1)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all")
+
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 300)
+    return () => clearTimeout(t)
+  }, [search])
   
   // Portal account states
   const [accountDialogOpen, setAccountDialogOpen] = useState(false)
@@ -223,12 +241,15 @@ export default function StudentsPage() {
   } | null>(null)
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false)
 
-  const { data: students, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["students"],
-    queryFn: fetchStudents,
+  const statusParam = activeTab === "all" ? undefined : activeTab
+  const { data: studentsRes, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["students", page, debouncedSearch, statusParam],
+    queryFn: () => fetchStudents({ page, search: debouncedSearch || undefined, status: statusParam }),
     retry: 3,
     retryDelay: 1000,
   })
+  const students = studentsRes?.data
+  const pagination = studentsRes?.pagination
 
   // Fetch next enrollment number when dialog opens
   const { data: nextEnrollmentNumber } = useQuery({
@@ -357,39 +378,8 @@ export default function StudentsPage() {
     }
   }
 
-  // Filter and stats
-  const { filteredStudents, stats } = useMemo(() => {
-    if (!students) return { filteredStudents: [], stats: { total: 0, active: 0, inactive: 0 } }
-
-    const active = students.filter(s => s.isActive).length
-    const inactive = students.length - active
-
-    let filtered = students
-
-    // Filter by tab
-    if (activeTab === "active") {
-      filtered = filtered.filter(s => s.isActive)
-    } else if (activeTab === "inactive") {
-      filtered = filtered.filter(s => !s.isActive)
-    }
-
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase()
-      filtered = filtered.filter(student => {
-        const fullName = student.displayName || student.fullName || `${student.firstName} ${student.lastName}`
-        return fullName.toLowerCase().includes(searchLower) ||
-          student.fatherName?.toLowerCase().includes(searchLower) ||
-          student.phone?.includes(search) ||
-          student.cin?.includes(search)
-      })
-    }
-
-    return {
-      filteredStudents: filtered,
-      stats: { total: students.length, active, inactive }
-    }
-  }, [students, search, activeTab])
+  const filteredStudents = students || []
+  const total = pagination?.total ?? 0
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
@@ -863,42 +853,42 @@ export default function StudentsPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card 
           className={`cursor-pointer transition-all ${activeTab === 'all' ? 'ring-2 ring-primary' : 'hover:border-primary/50'}`}
-          onClick={() => setActiveTab('all')}
+          onClick={() => { setActiveTab('all'); setPage(1) }}
         >
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/20">
               <Users className="h-5 w-5 text-blue-700 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-2xl font-bold">{activeTab === 'all' ? total : '—'}</p>
               <p className="text-xs text-muted-foreground">إجمالي الطلاب</p>
             </div>
           </CardContent>
         </Card>
-        <Card 
+        <Card
           className={`cursor-pointer transition-all ${activeTab === 'active' ? 'ring-2 ring-primary' : 'hover:border-primary/50'}`}
-          onClick={() => setActiveTab('active')}
+          onClick={() => { setActiveTab('active'); setPage(1) }}
         >
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-500/20">
               <UserCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.active}</p>
+              <p className="text-2xl font-bold">{activeTab === 'active' ? total : '—'}</p>
               <p className="text-xs text-muted-foreground">طالب نشط</p>
             </div>
           </CardContent>
         </Card>
-        <Card 
+        <Card
           className={`cursor-pointer transition-all ${activeTab === 'inactive' ? 'ring-2 ring-primary' : 'hover:border-primary/50'}`}
-          onClick={() => setActiveTab('inactive')}
+          onClick={() => { setActiveTab('inactive'); setPage(1) }}
         >
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-500/20">
               <UserX className="h-5 w-5 text-red-700 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.inactive}</p>
+              <p className="text-2xl font-bold">{activeTab === 'inactive' ? total : '—'}</p>
               <p className="text-xs text-muted-foreground">غير نشط</p>
             </div>
           </CardContent>
@@ -1103,11 +1093,8 @@ export default function StudentsPage() {
         </CardContent>
       </Card>
 
-      {/* Results Count */}
-      {!isLoading && filteredStudents.length > 0 && (
-        <p className="text-sm text-muted-foreground text-center">
-          عرض {filteredStudents.length} من {stats.total} طالب
-        </p>
+      {pagination && (
+        <Pagination page={pagination.page} pages={pagination.pages} total={pagination.total} onPageChange={setPage} />
       )}
 
       {/* Delete Confirmation */}

@@ -108,13 +108,13 @@ export default function TeacherEvaluations() {
       const [gradesRes, feedbackRes, studentsRes] = await Promise.all([
         fetch("/api/teachers/grades"),
         fetch("/api/teachers/feedback"),
-        fetch("/api/students"),
+        fetch("/api/students?limit=200"),
       ])
 
       if (gradesRes.ok) setGrades(await gradesRes.json())
       if (feedbackRes.ok) setFeedback(await feedbackRes.json())
       if (studentsRes.ok) {
-        const allStudents = await studentsRes.json()
+        const allStudents = (await studentsRes.json()).data
         setStudents(allStudents.filter((s: any) => s.isActive))
       }
     } catch (error) {

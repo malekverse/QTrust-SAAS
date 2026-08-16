@@ -6,6 +6,7 @@ import Student from '@/models/Student'
 import { requireTenantSession, TenantAuthError } from '@/lib/tenant'
 import { ROLES } from '@/lib/constants'
 import { computeFamilyBilling } from '@/lib/family-billing'
+import { parsePagination, buildPaginatedResponse } from '@/lib/pagination'
 
 void Student
 
@@ -22,7 +23,8 @@ const createSchema = z.object({
   siblingDiscountPercent: z.number().min(0).max(100).optional(),
 })
 
-export async function GET() {
+// GET /api/families?page=&limit= — list families (paginated)
+export async function GET(request: NextRequest) {
   try {
     const ctx = await requireTenantSession()
     if (ctx.role !== ROLES.ADMIN) {
@@ -31,9 +33,13 @@ export async function GET() {
 
     await dbConnect()
 
-    const families = await Family.find({ tenantId: ctx.tenantId })
-      .sort({ primaryGuardianName: 1 })
-      .lean()
+    const pg = parsePagination(request, { limit: 25 })
+    const filter = { tenantId: ctx.tenantId }
+
+    const [families, total] = await Promise.all([
+      Family.find(filter).sort({ primaryGuardianName: 1 }).skip(pg.skip).limit(pg.limit).lean(),
+      Family.countDocuments(filter),
+    ])
 
     // Attach members (single source of truth: Student.familyId).
     const members = await Student.find({
@@ -52,7 +58,7 @@ export async function GET() {
       byFamily.get(key)!.push({ _id: String(s._id), name })
     }
 
-    const result = families.map((f) => {
+    const data = families.map((f) => {
       const students = byFamily.get(String(f._id)) || []
       return {
         ...f,
@@ -65,7 +71,7 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(result)
+    return NextResponse.json(buildPaginatedResponse(data, total, pg))
   } catch (e) {
     if (e instanceof TenantAuthError) {
       return NextResponse.json({ message: e.message }, { status: e.status })

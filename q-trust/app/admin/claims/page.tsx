@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Pagination } from "@/components/ui/pagination"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -56,6 +57,8 @@ interface ClaimStats {
 export default function AdminClaims() {
   const { toast } = useToast()
   const [claims, setClaims] = useState<Claim[]>([])
+  const [paginationInfo, setPaginationInfo] = useState<{ page: number; pages: number; total: number } | null>(null)
+  const [page, setPage] = useState(1)
   const [stats, setStats] = useState<ClaimStats>({ total: 0, pending: 0, approved: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("all")
@@ -69,15 +72,16 @@ export default function AdminClaims() {
 
   useEffect(() => {
     fetchClaims()
-  }, [statusFilter])
+  }, [statusFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchClaims = async () => {
     try {
-      const res = await fetch(`/api/admin/claims?status=${statusFilter}`)
+      const res = await fetch(`/api/admin/claims?status=${statusFilter}&page=${page}`)
       if (res.ok) {
         const data = await res.json()
-        setClaims(data.claims)
+        setClaims(data.data)
         setStats(data.stats)
+        if (data.pagination) setPaginationInfo(data.pagination)
       }
     } catch (error) {
       console.error("Error fetching claims:", error)
@@ -220,7 +224,7 @@ export default function AdminClaims() {
       {/* Filter */}
       <div className="flex items-center gap-3">
         <Label>حالة الاعتراض:</Label>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setLoading(true); }}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); setLoading(true); }}>
           <SelectTrigger className="w-44">
             <SelectValue />
           </SelectTrigger>
@@ -293,6 +297,10 @@ export default function AdminClaims() {
           ))
         )}
       </div>
+
+      {paginationInfo && (
+        <Pagination page={paginationInfo.page} pages={paginationInfo.pages} total={paginationInfo.total} onPageChange={setPage} />
+      )}
 
       {/* Review Dialog */}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>

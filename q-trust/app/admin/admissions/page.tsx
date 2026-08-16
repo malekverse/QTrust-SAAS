@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { Pagination } from "@/components/ui/pagination"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -50,7 +51,8 @@ interface Application {
 }
 
 interface AdmissionsResponse {
-  applications: Application[]
+  data: Application[]
+  pagination: { page: number; limit: number; total: number; pages: number }
   stats: Record<string, number>
 }
 
@@ -63,8 +65,8 @@ const STATUS_STYLE: Record<string, string> = {
 
 type TabValue = "PENDING" | "WAITLISTED" | "APPROVED" | "REJECTED"
 
-async function fetchAdmissions(status: string): Promise<AdmissionsResponse> {
-  const res = await fetch(`/api/admissions?status=${status}`)
+async function fetchAdmissions(status: string, page: number): Promise<AdmissionsResponse> {
+  const res = await fetch(`/api/admissions?status=${status}&page=${page}`)
   if (!res.ok) throw new Error("Failed to fetch admissions")
   return res.json()
 }
@@ -73,12 +75,13 @@ export default function AdmissionsPage() {
   const queryClient = useQueryClient()
   const { success, error: toastError } = useToast()
   const [tab, setTab] = useState<TabValue>("PENDING")
+  const [page, setPage] = useState(1)
   const [reviewing, setReviewing] = useState<Application | null>(null)
   const [reviewNotes, setReviewNotes] = useState("")
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admissions", tab],
-    queryFn: () => fetchAdmissions(tab),
+    queryKey: ["admissions", tab, page],
+    queryFn: () => fetchAdmissions(tab, page),
   })
 
   const mutation = useMutation({
@@ -120,14 +123,15 @@ export default function AdmissionsPage() {
   const formatDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString("ar-TN", { day: "numeric", month: "long", year: "numeric" }) : "—"
 
-  const applications = data?.applications || []
+  const applications = data?.data || []
   const stats = data?.stats || {}
+  const pagination = data?.pagination
 
   return (
     <div className="space-y-6">
       <PageHeader title="طلبات التسجيل" description="مراجعة طلبات التسجيل الواردة من الاستمارة العامة" />
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as TabValue)}>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as TabValue); setPage(1) }}>
         <TabsList className="grid w-full grid-cols-4 max-w-xl">
           <TabsTrigger value="PENDING">
             قيد المراجعة{stats.PENDING ? ` (${stats.PENDING})` : ""}
@@ -209,6 +213,10 @@ export default function AdmissionsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {data?.pagination && (
+        <Pagination page={data.pagination.page} pages={data.pagination.pages} total={data.pagination.total} onPageChange={setPage} />
       )}
 
       {/* Review dialog */}

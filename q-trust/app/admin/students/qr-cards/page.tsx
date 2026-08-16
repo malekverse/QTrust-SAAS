@@ -20,9 +20,9 @@ interface Student {
 }
 
 async function fetchStudents(): Promise<Student[]> {
-  const res = await fetch("/api/students")
+  const res = await fetch("/api/students?limit=200")
   if (!res.ok) throw new Error("Failed to fetch students")
-  return res.json()
+  return (await res.json()).data
 }
 
 function QRCard({ student, qrDataUrl, orgName }: { student: Student; qrDataUrl: string; orgName: string }) {

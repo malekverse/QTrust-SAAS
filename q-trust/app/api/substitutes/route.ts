@@ -7,6 +7,7 @@ import SessionTemplate from '@/models/SessionTemplate'
 import User from '@/models/User'
 import { requireTenantSession, TenantAuthError } from '@/lib/tenant'
 import { ROLES } from '@/lib/constants'
+import { parsePagination, buildPaginatedResponse } from '@/lib/pagination'
 
 void SessionTemplate
 void User
@@ -19,7 +20,8 @@ const createSchema = z.object({
   notes: z.string().trim().max(300).optional().or(z.literal('')),
 })
 
-export async function GET() {
+// GET /api/substitutes?page=&limit= — list substitute assignments (paginated)
+export async function GET(request: NextRequest) {
   try {
     const ctx = await requireTenantSession()
     if (ctx.role !== ROLES.ADMIN) {
@@ -27,20 +29,29 @@ export async function GET() {
     }
 
     await dbConnect()
-    const rows = await SubstituteAssignment.find({ tenantId: ctx.tenantId })
-      .sort({ validFrom: -1 })
-      .populate('sessionTemplateId', 'name')
-      .populate('substituteUserId', 'fullName')
-      .lean()
+
+    const pg = parsePagination(request, { limit: 25 })
+    const filter = { tenantId: ctx.tenantId }
+
+    const [rows, total] = await Promise.all([
+      SubstituteAssignment.find(filter)
+        .sort({ validFrom: -1 })
+        .skip(pg.skip)
+        .limit(pg.limit)
+        .populate('sessionTemplateId', 'name')
+        .populate('substituteUserId', 'fullName')
+        .lean(),
+      SubstituteAssignment.countDocuments(filter),
+    ])
 
     const now = Date.now()
-    const assignments = rows.map((r) => ({
+    const data = rows.map((r) => ({
       ...r,
       active:
         new Date(r.validFrom).getTime() <= now && new Date(r.validTo).getTime() >= now,
     }))
 
-    return NextResponse.json(assignments)
+    return NextResponse.json(buildPaginatedResponse(data, total, pg))
   } catch (e) {
     if (e instanceof TenantAuthError) {
       return NextResponse.json({ message: e.message }, { status: e.status })

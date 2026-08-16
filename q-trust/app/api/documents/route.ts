@@ -3,15 +3,16 @@ import dbConnect from "@/lib/db"
 import LearningDocument from "@/models/LearningDocument"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { parsePagination, buildPaginatedResponse } from "@/lib/pagination"
 
 // Force model registration
 void LearningDocument
 
-// GET /api/documents - List all documents (admin/teacher)
+// GET /api/documents?page=&limit=&category= - List documents (paginated)
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    
+
     if (!session || (session.user.role !== ROLES.ADMIN && session.user.role !== ROLES.TEACHER)) {
       return NextResponse.json(
         { message: "غير مصرح لك بالوصول" },
@@ -26,20 +27,26 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
+    const pg = parsePagination(request, { limit: 25 })
 
     await dbConnect()
 
-    const query: Record<string, unknown> = { tenantId }
+    const filter: Record<string, unknown> = { tenantId }
     if (category && category !== "all") {
-      query.category = category
+      filter.category = category
     }
 
-    const documents = await LearningDocument.find(query)
-      .populate("uploadedBy", "fullName")
-      .sort({ createdAt: -1 })
-      .lean()
+    const [documents, total] = await Promise.all([
+      LearningDocument.find(filter)
+        .populate("uploadedBy", "fullName")
+        .sort({ createdAt: -1 })
+        .skip(pg.skip)
+        .limit(pg.limit)
+        .lean(),
+      LearningDocument.countDocuments(filter),
+    ])
 
-    return NextResponse.json({ documents })
+    return NextResponse.json(buildPaginatedResponse(documents, total, pg))
   } catch (error) {
     console.error("Error fetching documents:", error)
     return NextResponse.json(

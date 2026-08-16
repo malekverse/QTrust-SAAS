@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { Pagination } from "@/components/ui/pagination"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
 import { Button } from "@/components/ui/button"
@@ -80,8 +81,8 @@ interface Teacher {
   createdAt: string
 }
 
-async function fetchTeachers(): Promise<Teacher[]> {
-  const res = await fetch("/api/teachers")
+async function fetchTeachers(page: number): Promise<{ data: Teacher[]; pagination: { page: number; pages: number; total: number } }> {
+  const res = await fetch(`/api/teachers?page=${page}`)
   if (!res.ok) throw new Error("Failed to fetch teachers")
   return res.json()
 }
@@ -126,17 +127,20 @@ export default function TeachersPage() {
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all")
   const [showPassword, setShowPassword] = useState(false)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const { data: teachers, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["teachers"],
-    queryFn: fetchTeachers,
+  const { data: teachersResponse, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["teachers", page],
+    queryFn: () => fetchTeachers(page),
     retry: 3,
     retryDelay: 1000,
   })
+  const teachers = teachersResponse?.data
+  const teachersPagination = teachersResponse?.pagination
 
   const createMutation = useMutation({
     mutationFn: createTeacher,
@@ -598,6 +602,10 @@ export default function TeachersPage() {
         <p className="text-sm text-muted-foreground text-center">
           عرض {filteredTeachers.length} من {stats.total} معلم
         </p>
+      )}
+
+      {teachersPagination && (
+        <Pagination page={teachersPagination.page} pages={teachersPagination.pages} total={teachersPagination.total} onPageChange={setPage} />
       )}
 
       {/* Delete Confirmation */}

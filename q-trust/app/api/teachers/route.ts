@@ -5,15 +5,16 @@ import { logActivity } from "@/models/ActivityLog"
 import { hashPassword, auth } from "@/lib/auth"
 import { createUserSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
+import { parsePagination, buildPaginatedResponse } from "@/lib/pagination"
 
 // Force model registration (needed for populate in serverless)
 void User
 
-// GET /api/teachers - List all teachers
-export async function GET() {
+// GET /api/teachers?page=&limit= - List teachers (paginated)
+export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    
+
     if (!session || session.user.role !== ROLES.ADMIN) {
       return NextResponse.json(
         { message: "غير مصرح لك بالوصول" },
@@ -28,12 +29,15 @@ export async function GET() {
 
     await dbConnect()
 
-    const teachers = await User.find({ role: ROLES.TEACHER, tenantId })
-      .select("-passwordHash")
-      .sort({ createdAt: -1 })
-      .lean()
+    const pg = parsePagination(request, { limit: 50 })
+    const filter = { role: ROLES.TEACHER, tenantId }
 
-    return NextResponse.json(teachers)
+    const [teachers, total] = await Promise.all([
+      User.find(filter).select("-passwordHash").sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
+      User.countDocuments(filter),
+    ])
+
+    return NextResponse.json(buildPaginatedResponse(teachers, total, pg))
   } catch (error) {
     console.error("Error fetching teachers:", error)
     return NextResponse.json(

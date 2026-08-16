@@ -6,12 +6,14 @@ import StudentSession from "@/models/StudentSession"
 import { auth } from "@/lib/auth"
 import { createRoomSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
+import { parsePagination, buildPaginatedResponse } from "@/lib/pagination"
 
 void Room
 void SessionTemplate
 void StudentSession
 
-export async function GET() {
+// GET /api/rooms?page=&limit= — list rooms (paginated)
+export async function GET(request: NextRequest) {
   try {
     const session = await auth()
 
@@ -29,7 +31,13 @@ export async function GET() {
 
     await dbConnect()
 
-    const rooms = await Room.find({ tenantId }).sort({ name: 1 }).lean()
+    const pg = parsePagination(request, { limit: 50 })
+    const filter = { tenantId }
+
+    const [rooms, total] = await Promise.all([
+      Room.find(filter).sort({ name: 1 }).skip(pg.skip).limit(pg.limit).lean(),
+      Room.countDocuments(filter),
+    ])
 
     const roomsWithStats = await Promise.all(
       rooms.map(async (room) => {
@@ -38,16 +46,6 @@ export async function GET() {
           roomId: room._id,
           isActive: true,
         }).lean()
-
-        let totalEnrolled = 0
-        for (const s of sessions) {
-          const count = await StudentSession.countDocuments({
-            tenantId,
-            sessionTemplateId: s._id,
-            isActive: true,
-          })
-          totalEnrolled += count
-        }
 
         const maxOccupancy = sessions.length > 0
           ? Math.max(
@@ -72,7 +70,7 @@ export async function GET() {
       })
     )
 
-    return NextResponse.json(roomsWithStats)
+    return NextResponse.json(buildPaginatedResponse(roomsWithStats, total, pg))
   } catch (error) {
     console.error("Error fetching rooms:", error)
     return NextResponse.json(

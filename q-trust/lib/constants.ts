@@ -271,6 +271,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin/families', label: 'العائلات', icon: 'UsersRound' },
   { href: '/admin/claims', label: 'الاعتراضات', icon: 'MessageSquareWarning' },
   { href: '/admin/documents', label: 'المكتبة', icon: 'BookOpen' },
+  { href: '/admin/analytics', label: 'التحليلات', icon: 'BarChart3' },
   { href: '/admin/ai-assistant', label: 'المساعد الذكي', icon: 'Bot' },
   { href: '/admin/settings', label: 'الإعدادات', icon: 'Settings' }
 ] as const

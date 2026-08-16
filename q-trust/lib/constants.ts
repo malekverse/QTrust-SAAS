@@ -257,44 +257,55 @@ export const ROOM_FEATURE_LABELS: Record<string, string> = {
   QURAN_COPIES: 'نسخ مصاحف',
 } as const
 
-// Navigation items
-export const ADMIN_NAV_ITEMS = [
-  { href: '/admin/dashboard', label: 'لوحة التحكم', icon: 'LayoutDashboard' },
-  { href: '/admin/teachers', label: 'المعلمون', icon: 'Users' },
-  { href: '/admin/students', label: 'الطلاب', icon: 'GraduationCap' },
-  { href: '/admin/admissions', label: 'طلبات التسجيل', icon: 'ClipboardList' },
-  { href: '/admin/sessions', label: 'الحصص', icon: 'Calendar' },
-  { href: '/admin/substitutes', label: 'النواب', icon: 'UserCog' },
-  { href: '/admin/rooms', label: 'القاعات', icon: 'DoorOpen' },
-  { href: '/admin/schedule', label: 'الجدول الزمني', icon: 'CalendarClock' },
-  { href: '/admin/attendance', label: 'الحضور', icon: 'ClipboardCheck' },
-  { href: '/admin/subscriptions', label: 'الاشتراكات', icon: 'CreditCard' },
-  { href: '/admin/families', label: 'العائلات', icon: 'UsersRound' },
-  { href: '/admin/claims', label: 'الاعتراضات', icon: 'MessageSquareWarning' },
-  { href: '/admin/documents', label: 'المكتبة', icon: 'BookOpen' },
-  { href: '/admin/analytics', label: 'التحليلات', icon: 'BarChart3' },
-  { href: '/admin/messaging', label: 'الرسائل', icon: 'MessageCircle' },
-  { href: '/admin/ai-assistant', label: 'المساعد الذكي', icon: 'Bot' },
-  { href: '/admin/settings', label: 'الإعدادات', icon: 'Settings' }
-] as const
+// Navigation items — labelKey references a key under the "nav" namespace in messages/*.json
+interface NavKey {
+  href: string
+  labelKey: string
+  icon: string
+}
 
-export const TEACHER_NAV_ITEMS = [
-  { href: '/teacher/dashboard', label: 'لوحة التحكم', icon: 'LayoutDashboard' },
-  { href: '/teacher/sessions', label: 'حصصي', icon: 'Calendar' },
-  { href: '/teacher/evaluations', label: 'تقييم الطلاب', icon: 'Star' },
-  { href: '/teacher/analytics', label: 'الإحصائيات', icon: 'BarChart3' },
-  { href: '/teacher/settings', label: 'الإعدادات', icon: 'Settings' }
-] as const
+export const ADMIN_NAV_KEYS: NavKey[] = [
+  { href: '/admin/dashboard', labelKey: 'dashboard', icon: 'LayoutDashboard' },
+  { href: '/admin/teachers', labelKey: 'teachers', icon: 'Users' },
+  { href: '/admin/students', labelKey: 'students', icon: 'GraduationCap' },
+  { href: '/admin/admissions', labelKey: 'admissions', icon: 'ClipboardList' },
+  { href: '/admin/sessions', labelKey: 'sessions', icon: 'Calendar' },
+  { href: '/admin/substitutes', labelKey: 'substitutes', icon: 'UserCog' },
+  { href: '/admin/rooms', labelKey: 'rooms', icon: 'DoorOpen' },
+  { href: '/admin/schedule', labelKey: 'schedule', icon: 'CalendarClock' },
+  { href: '/admin/attendance', labelKey: 'attendance', icon: 'ClipboardCheck' },
+  { href: '/admin/subscriptions', labelKey: 'subscriptions', icon: 'CreditCard' },
+  { href: '/admin/families', labelKey: 'families', icon: 'UsersRound' },
+  { href: '/admin/claims', labelKey: 'claims', icon: 'MessageSquareWarning' },
+  { href: '/admin/documents', labelKey: 'library', icon: 'BookOpen' },
+  { href: '/admin/analytics', labelKey: 'analytics', icon: 'BarChart3' },
+  { href: '/admin/messaging', labelKey: 'messaging', icon: 'MessageCircle' },
+  { href: '/admin/ai-assistant', labelKey: 'aiAssistant', icon: 'Bot' },
+  { href: '/admin/settings', labelKey: 'settings', icon: 'Settings' }
+]
 
-export const STUDENT_NAV_ITEMS = [
-  { href: '/student/dashboard', label: 'الرئيسية', icon: 'LayoutDashboard' },
-  { href: '/student/sessions', label: 'حلقاتي', icon: 'Calendar' },
-  { href: '/student/schedule', label: 'جدولي', icon: 'CalendarClock' },
-  { href: '/student/attendance', label: 'سجل الحضور', icon: 'ClipboardCheck' },
-  { href: '/student/performance', label: 'النتائج والتقييم', icon: 'BarChart3' },
-  { href: '/student/documents', label: 'المكتبة', icon: 'BookOpen' },
-  { href: '/student/settings', label: 'الإعدادات', icon: 'Settings' }
-] as const
+export const TEACHER_NAV_KEYS: NavKey[] = [
+  { href: '/teacher/dashboard', labelKey: 'dashboard', icon: 'LayoutDashboard' },
+  { href: '/teacher/sessions', labelKey: 'mySessions', icon: 'Calendar' },
+  { href: '/teacher/evaluations', labelKey: 'evaluations', icon: 'Star' },
+  { href: '/teacher/analytics', labelKey: 'statistics', icon: 'BarChart3' },
+  { href: '/teacher/settings', labelKey: 'settings', icon: 'Settings' }
+]
+
+export const STUDENT_NAV_KEYS: NavKey[] = [
+  { href: '/student/dashboard', labelKey: 'home', icon: 'LayoutDashboard' },
+  { href: '/student/sessions', labelKey: 'myCircles', icon: 'Calendar' },
+  { href: '/student/schedule', labelKey: 'mySchedule', icon: 'CalendarClock' },
+  { href: '/student/attendance', labelKey: 'attendanceRecord', icon: 'ClipboardCheck' },
+  { href: '/student/performance', labelKey: 'performance', icon: 'BarChart3' },
+  { href: '/student/documents', labelKey: 'library', icon: 'BookOpen' },
+  { href: '/student/settings', labelKey: 'settings', icon: 'Settings' }
+]
+
+// Keep the old arrays for backward compatibility during migration
+export const ADMIN_NAV_ITEMS = ADMIN_NAV_KEYS.map(k => ({ href: k.href, label: k.labelKey, icon: k.icon })) as unknown as readonly { href: string; label: string; icon: string }[]
+export const TEACHER_NAV_ITEMS = TEACHER_NAV_KEYS.map(k => ({ href: k.href, label: k.labelKey, icon: k.icon })) as unknown as readonly { href: string; label: string; icon: string }[]
+export const STUDENT_NAV_ITEMS = STUDENT_NAV_KEYS.map(k => ({ href: k.href, label: k.labelKey, icon: k.icon })) as unknown as readonly { href: string; label: string; icon: string }[]
 
 // Attendance claim status
 export const CLAIM_STATUS = {

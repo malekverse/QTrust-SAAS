@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Settings, Moon, Sun, Menu } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { NotificationBell } from "@/components/layout/notification-bell"
+import { LanguageSwitcher } from "@/components/ui/language-switcher"
 
 interface NavbarProps {
   onMenuClick?: () => void
@@ -24,6 +26,7 @@ interface NavbarProps {
 export function Navbar({ onMenuClick }: NavbarProps) {
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
+  const t = useTranslations("navbar")
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -74,7 +77,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             onClick={handleMenuClick}
             onTouchEnd={handleMenuClick}
             className="lg:hidden h-11 w-11 min-h-[44px] min-w-[44px] touch-manipulation"
-            aria-label="فتح القائمة"
+            aria-label={t("openMenu")}
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -91,8 +94,11 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">تبديل السمة</span>
+            <span className="sr-only">{t("toggleTheme")}</span>
           </Button>
+
+          {/* Language Switcher */}
+          <LanguageSwitcher />
 
           {/* Notifications */}
           <NotificationBell />
@@ -124,13 +130,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 <DropdownMenuItem asChild>
                   <Link href={settingsHref} className="flex items-center cursor-pointer">
                     <User className="ml-2 h-4 w-4" />
-                    <span>الملف الشخصي</span>
+                    <span>{t("profile")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={settingsHref} className="flex items-center cursor-pointer">
                     <Settings className="ml-2 h-4 w-4" />
-                    <span>الإعدادات</span>
+                    <span>{t("settings")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -139,7 +145,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   className="text-destructive focus:text-destructive cursor-pointer"
                 >
                   <LogOut className="ml-2 h-4 w-4" />
-                  <span>تسجيل الخروج</span>
+                  <span>{t("logout")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -1,5 +1,9 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Amiri } from "next/font/google"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages } from "next-intl/server"
+import { isRtl } from "@/i18n/config"
+import type { Locale } from "@/i18n/config"
 import "./globals.css"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { SessionProvider } from "@/components/providers/session-provider"
@@ -52,33 +56,39 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale() as Locale
+  const messages = await getMessages()
+  const dir = isRtl(locale) ? "rtl" : "ltr"
+
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} antialiased min-h-screen`}
       >
-        <SessionProvider>
-          <QueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <ToastProvider>
-                {children}
-              </ToastProvider>
-            </ThemeProvider>
-          </QueryProvider>
-        </SessionProvider>
+        <NextIntlClientProvider messages={messages}>
+          <SessionProvider>
+            <QueryProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <ToastProvider>
+                  {children}
+                </ToastProvider>
+              </ThemeProvider>
+            </QueryProvider>
+          </SessionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

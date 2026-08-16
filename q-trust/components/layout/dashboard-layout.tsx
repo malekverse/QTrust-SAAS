@@ -2,9 +2,11 @@
 
 import { ReactNode, useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
+import { useLocale, useTranslations } from "next-intl"
+import { isRtl, type Locale } from "@/i18n/config"
 import { Sidebar } from "./sidebar"
 import { Navbar } from "./navbar"
-import { ADMIN_NAV_ITEMS, TEACHER_NAV_ITEMS, STUDENT_NAV_ITEMS } from "@/lib/constants"
+import { ADMIN_NAV_KEYS, TEACHER_NAV_KEYS, STUDENT_NAV_KEYS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 interface DashboardLayoutProps {
@@ -14,11 +16,16 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const pathname = usePathname()
-  const navItems = role === "admin" 
-    ? ADMIN_NAV_ITEMS 
-    : role === "student" 
-      ? STUDENT_NAV_ITEMS 
-      : TEACHER_NAV_ITEMS
+  const locale = useLocale() as Locale
+  const t = useTranslations("nav")
+  const rtl = isRtl(locale)
+
+  const navKeys = role === "admin"
+    ? ADMIN_NAV_KEYS
+    : role === "student"
+      ? STUDENT_NAV_KEYS
+      : TEACHER_NAV_KEYS
+  const navItems = navKeys.map(item => ({ href: item.href, label: t(item.labelKey), icon: item.icon }))
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -59,23 +66,22 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }, [mobileMenuOpen])
 
   return (
-    <div className="min-h-screen bg-background islamic-pattern-bg" dir="rtl">
-      <Sidebar 
-        navItems={navItems} 
-        role={role} 
+    <div className="min-h-screen bg-background islamic-pattern-bg">
+      <Sidebar
+        navItems={navItems}
+        role={role}
         collapsed={sidebarCollapsed}
         mobileOpen={mobileMenuOpen}
         onCollapsedChange={setSidebarCollapsed}
         onMobileClose={() => setMobileMenuOpen(false)}
+        rtl={rtl}
       />
-      <div 
+      <div
         className={cn(
           "transition-all duration-300",
-          // Desktop margins based on sidebar state
-          "lg:mr-64",
-          sidebarCollapsed && "lg:mr-[72px]",
-          // Mobile - no margin
-          "mr-0"
+          rtl ? "lg:mr-64" : "lg:ml-64",
+          sidebarCollapsed && (rtl ? "lg:mr-[72px]" : "lg:ml-[72px]"),
+          rtl ? "mr-0" : "ml-0"
         )}
       >
         <Navbar 

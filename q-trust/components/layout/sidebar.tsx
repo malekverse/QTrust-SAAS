@@ -56,7 +56,7 @@ const iconMap = {
 interface NavItem {
   href: string
   label: string
-  icon: keyof typeof iconMap
+  icon: string
 }
 
 interface SidebarProps {
@@ -66,15 +66,17 @@ interface SidebarProps {
   mobileOpen: boolean
   onCollapsedChange: (collapsed: boolean) => void
   onMobileClose: () => void
+  rtl?: boolean
 }
 
-export function Sidebar({ 
-  navItems, 
-  role, 
-  collapsed, 
+export function Sidebar({
+  navItems,
+  role,
+  collapsed,
   mobileOpen,
   onCollapsedChange,
-  onMobileClose 
+  onMobileClose,
+  rtl = true,
 }: SidebarProps) {
   const pathname = usePathname()
 
@@ -118,15 +120,18 @@ export function Sidebar({
         />
       )}
       
-      <aside 
+      <aside
         className={cn(
-          "fixed top-0 right-0 z-50 h-screen bg-sidebar border-l border-sidebar-border transition-transform duration-300 ease-in-out",
-          // Desktop
+          "fixed top-0 z-50 h-screen bg-sidebar transition-transform duration-300 ease-in-out",
+          rtl ? "right-0 border-l border-sidebar-border" : "left-0 border-r border-sidebar-border",
           "lg:translate-x-0",
           collapsed ? "lg:w-[72px]" : "lg:w-64",
-          // Mobile - hide by default (translate-x-full moves it off-screen to the right)
           "w-72",
-          mobileOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+          mobileOpen
+            ? "translate-x-0"
+            : rtl
+              ? "translate-x-full lg:translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Header with Logo */}
@@ -175,7 +180,7 @@ export function Sidebar({
         <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
           <nav className="p-3 space-y-1">
             {navItems.map((item) => {
-              const Icon = iconMap[item.icon]
+              const Icon = iconMap[item.icon as keyof typeof iconMap] ?? LayoutDashboard
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               
               // Desktop collapsed view with tooltips
@@ -196,7 +201,7 @@ export function Sidebar({
                         <Icon className="h-5 w-5" />
                       </Link>
                     </TooltipTrigger>
-                    <TooltipContent side="left">
+                    <TooltipContent side={rtl ? "left" : "right"}>
                       {item.label}
                     </TooltipContent>
                   </Tooltip>
@@ -236,11 +241,11 @@ export function Sidebar({
             )}
           >
             {collapsed ? (
-              <ChevronLeft className="h-4 w-4" />
+              rtl ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
             ) : (
               <>
-                <ChevronRight className="h-4 w-4 ml-2" />
-                <span>تصغير</span>
+                {rtl ? <ChevronRight className="h-4 w-4 ms-2" /> : <ChevronLeft className="h-4 w-4 me-2" />}
+                <span>{rtl ? "تصغير" : "Collapse"}</span>
               </>
             )}
           </Button>

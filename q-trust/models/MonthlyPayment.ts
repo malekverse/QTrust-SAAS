@@ -11,6 +11,7 @@ export interface IMonthlyPayment extends Document {
   markedByUserId?: mongoose.Types.ObjectId
   amount?: number
   notes?: string
+  receiptPhotoUrl?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -52,6 +53,10 @@ const MonthlyPaymentSchema = new Schema<IMonthlyPayment>(
     notes: {
       type: String,
       maxlength: [500, 'الملاحظات يجب أن لا تتجاوز 500 حرف'],
+      trim: true,
+    },
+    receiptPhotoUrl: {
+      type: String,
       trim: true,
     },
   },

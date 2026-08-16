@@ -9,6 +9,7 @@ const MAX_FILE_SIZES: Record<string, number> = {
   cin_front: 5 * 1024 * 1024,   // 5MB for CIN
   cin_back: 5 * 1024 * 1024,    // 5MB for CIN
   document: 25 * 1024 * 1024,   // 25MB for documents
+  receipt: 10 * 1024 * 1024,    // 10MB for payment receipts
 }
 
 // POST /api/upload - Upload a file to Cloudinary
@@ -59,7 +60,10 @@ export async function POST(request: NextRequest) {
 
     // Get upload options based on type, scoped to the caller's tenant folder
     const validType: UploadType =
-      uploadType === 'photo' || uploadType === 'cin_front' || uploadType === 'cin_back'
+      uploadType === 'photo' ||
+      uploadType === 'cin_front' ||
+      uploadType === 'cin_back' ||
+      uploadType === 'receipt'
         ? uploadType
         : 'document'
     const options = getUploadOptions(validType, tenantId)
@@ -82,18 +86,19 @@ export async function POST(request: NextRequest) {
       height: result.height,
       format: result.format,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Upload error:', error)
-    
+
     // Handle specific Cloudinary errors
-    if (error.message?.includes('File size too large')) {
+    const message = error instanceof Error ? error.message : ''
+    if (message.includes('File size too large')) {
       return NextResponse.json(
         { message: 'حجم الملف كبير جداً' },
         { status: 400 }
       )
     }
-    
-    if (error.message?.includes('Invalid image file')) {
+
+    if (message.includes('Invalid image file')) {
       return NextResponse.json(
         { message: 'نوع الملف غير مدعوم' },
         { status: 400 }

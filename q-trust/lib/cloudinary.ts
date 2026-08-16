@@ -49,6 +49,12 @@ const baseUploadOptions = {
       'mp3', 'mp4', 'ogg', 'wav', 'webm',
     ],
   },
+  receipt: {
+    subfolder: 'payments/receipts',
+    resource_type: 'auto' as const,
+    transformation: [{ quality: 'auto' }, { fetch_format: 'auto' }],
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+  },
 }
 
 export type UploadType = keyof typeof baseUploadOptions

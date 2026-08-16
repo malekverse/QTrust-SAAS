@@ -51,9 +51,11 @@ import {
   CircleDollarSign,
   Receipt,
   MessageCircle,
+  ImageIcon,
 } from "lucide-react"
 import { MONTH_LABELS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
+import { FileUpload } from "@/components/ui/file-upload"
 
 interface StudentPayment {
   _id: string
@@ -67,6 +69,7 @@ interface StudentPayment {
   paidAt?: string
   amount?: number
   notes?: string
+  receiptPhotoUrl?: string
   markedBy?: { fullName: string }
   paymentId?: string
 }
@@ -95,6 +98,7 @@ async function togglePayment(data: {
   isPaid: boolean
   amount?: number
   notes?: string
+  receiptPhotoUrl?: string
 }) {
   const res = await fetch("/api/payments", {
     method: "POST",
@@ -134,6 +138,7 @@ export default function SubscriptionsPage() {
   const [paymentStudent, setPaymentStudent] = useState<StudentPayment | null>(null)
   const [paymentAmount, setPaymentAmount] = useState("")
   const [paymentNotes, setPaymentNotes] = useState("")
+  const [paymentReceiptUrl, setPaymentReceiptUrl] = useState<string | undefined>(undefined)
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["payments", selectedMonth, selectedYear],
@@ -159,6 +164,7 @@ export default function SubscriptionsPage() {
       setPaymentStudent(null)
       setPaymentAmount("")
       setPaymentNotes("")
+      setPaymentReceiptUrl(undefined)
       success("تم التحديث", "تم تحديث حالة الدفع بنجاح")
     },
     onError: () => {
@@ -236,6 +242,7 @@ export default function SubscriptionsPage() {
       setPaymentStudent(student)
       setPaymentAmount("")
       setPaymentNotes("")
+      setPaymentReceiptUrl(undefined)
       setPaymentDialogOpen(true)
     } else {
       paymentMutation.mutate({
@@ -256,6 +263,7 @@ export default function SubscriptionsPage() {
       isPaid: true,
       amount: paymentAmount ? parseFloat(paymentAmount) : undefined,
       notes: paymentNotes || undefined,
+      receiptPhotoUrl: paymentReceiptUrl,
     })
   }
 
@@ -527,7 +535,7 @@ export default function SubscriptionsPage() {
                   <TableHead className="hidden md:table-cell">رقم الانخراط</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead className="hidden lg:table-cell">تاريخ الدفع</TableHead>
-                  <TableHead className="w-[160px]">إجراء</TableHead>
+                  <TableHead className="w-[200px]">إجراء</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -617,6 +625,16 @@ export default function SubscriptionsPage() {
                             </>
                           )}
                         </Button>
+                        {student.isPaid && student.receiptPhotoUrl && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="عرض صورة الوصل"
+                            onClick={() => window.open(student.receiptPhotoUrl, "_blank")}
+                          >
+                            <ImageIcon className="h-4 w-4" />
+                          </Button>
+                        )}
                         {student.isPaid && student.paymentId && (
                           <Button
                             variant="ghost"
@@ -703,6 +721,14 @@ export default function SubscriptionsPage() {
                 className="resize-none"
               />
             </div>
+            <FileUpload
+              label="صورة الوصل / التحويل (اختياري)"
+              uploadType="receipt"
+              accept="image/*,application/pdf"
+              maxSize={10}
+              value={paymentReceiptUrl}
+              onChange={setPaymentReceiptUrl}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Upload, X, FileImage, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 
-export type UploadType = 'photo' | 'cin_front' | 'cin_back' | 'document'
+export type UploadType = 'photo' | 'cin_front' | 'cin_back' | 'document' | 'receipt'
 
 interface FileUploadProps {
   value?: string

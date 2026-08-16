@@ -39,10 +39,10 @@ export async function GET(request: NextRequest) {
       .lean()
 
     const paymentMap = new Map(
-      payments.map((p: any) => [p.studentId.toString(), p])
+      payments.map((p) => [p.studentId.toString(), p])
     )
 
-    const studentsWithPayment = activeStudents.map((student: any) => {
+    const studentsWithPayment = activeStudents.map((student) => {
       const payment = paymentMap.get(student._id.toString())
       return {
         _id: student._id,
@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
         paidAt: payment?.paidAt,
         amount: payment?.amount,
         notes: payment?.notes,
+        receiptPhotoUrl: payment?.receiptPhotoUrl,
         markedBy: payment?.markedByUserId,
         paymentId: payment?._id,
       }
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { studentId, month, year, isPaid, amount, notes } = body
+    const { studentId, month, year, isPaid, amount, notes, receiptPhotoUrl } = body
 
     if (!studentId || !month || !year) {
       return NextResponse.json({ message: "بيانات ناقصة" }, { status: 400 })
@@ -119,6 +120,8 @@ export async function POST(request: NextRequest) {
         markedByUserId: new mongoose.Types.ObjectId(session.user.id),
         amount: amount || undefined,
         notes: notes || undefined,
+        // Only images/PDFs from our own upload endpoint (Cloudinary) are stored.
+        receiptPhotoUrl: isPaid ? receiptPhotoUrl || undefined : undefined,
       },
       { upsert: true, new: true, runValidators: true }
     )

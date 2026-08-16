@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { resolveTenantBySlug } from "@/lib/tenant"
 import { EnrollForm } from "./enroll-form"
@@ -39,8 +40,7 @@ export default async function EnrollPage({
         {/* Header */}
         <div className="mb-8 text-center">
           {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt="" className="mx-auto mb-4 h-16 w-16 rounded-xl object-contain" />
+            <Image src={logoUrl} alt="" width={64} height={64} className="mx-auto mb-4 rounded-xl object-contain" />
           ) : (
             <div
               className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl text-2xl font-bold text-white"

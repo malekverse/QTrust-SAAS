@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -226,7 +227,7 @@ export default function StudentDocuments() {
                   {/* File Type Icon */}
                   <div className={`rounded-xl p-3 ${categoryColors[doc.category] || categoryColors.OTHER}`}>
                     {doc.thumbnailUrl ? (
-                      <img src={doc.thumbnailUrl} alt="" className="h-8 w-8 object-cover rounded" />
+                      <Image src={doc.thumbnailUrl} alt="" width={32} height={32} className="object-cover rounded" />
                     ) : (
                       getFileIcon(doc.fileType)
                     )}

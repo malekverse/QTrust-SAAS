@@ -65,7 +65,7 @@ const AttendanceClaimSchema = new Schema<IAttendanceClaim>(
 
 AttendanceClaimSchema.index({ tenantId: 1, studentId: 1, date: -1 })
 AttendanceClaimSchema.index({ tenantId: 1, status: 1 })
-AttendanceClaimSchema.index({ studentId: 1, sessionOccurrenceId: 1 }, { unique: true })
+AttendanceClaimSchema.index({ tenantId: 1, studentId: 1, sessionOccurrenceId: 1 }, { unique: true })
 
 const AttendanceClaim: Model<IAttendanceClaim> = mongoose.models.AttendanceClaim || mongoose.model<IAttendanceClaim>('AttendanceClaim', AttendanceClaimSchema)
 

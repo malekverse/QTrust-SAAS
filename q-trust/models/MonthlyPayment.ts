@@ -65,7 +65,7 @@ const MonthlyPaymentSchema = new Schema<IMonthlyPayment>(
   }
 )
 
-MonthlyPaymentSchema.index({ studentId: 1, month: 1, year: 1 }, { unique: true })
+MonthlyPaymentSchema.index({ tenantId: 1, studentId: 1, month: 1, year: 1 }, { unique: true })
 MonthlyPaymentSchema.index({ tenantId: 1, month: 1, year: 1, isPaid: 1 })
 MonthlyPaymentSchema.index({ tenantId: 1, studentId: 1, isPaid: 1 })
 

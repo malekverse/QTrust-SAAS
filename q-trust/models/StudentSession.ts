@@ -33,9 +33,9 @@ const StudentSessionSchema = new Schema<IStudentSession>(
   }
 )
 
-// Compound unique index to prevent duplicate assignments
+// Compound unique index to prevent duplicate assignments (tenant-scoped)
 StudentSessionSchema.index(
-  { studentId: 1, sessionTemplateId: 1 }, 
+  { tenantId: 1, studentId: 1, sessionTemplateId: 1 },
   { unique: true }
 )
 

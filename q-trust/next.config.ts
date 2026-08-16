@@ -19,13 +19,24 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
-    // Baseline security headers applied to every route. A full Content-Security-Policy
-    // is intentionally deferred to Phase 8 (needs testing against Cloudinary images and
-    // the Groq SSE stream). `camera=(self)` is required by the web QR scanner (/scanner).
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' res.cloudinary.com placehold.co data: blob:",
+      "font-src 'self'",
+      "connect-src 'self'",
+      "frame-ancestors 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; ')
+
     return [
       {
         source: '/:path*',
         headers: [
+          { key: 'Content-Security-Policy', value: csp },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },

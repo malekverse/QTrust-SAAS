@@ -59,9 +59,9 @@ const AttendanceSchema = new Schema<IAttendance>(
   }
 )
 
-// Compound unique index to prevent duplicate attendance records
+// Compound unique index to prevent duplicate attendance records (tenant-scoped)
 AttendanceSchema.index(
-  { studentId: 1, sessionOccurrenceId: 1 }, 
+  { tenantId: 1, studentId: 1, sessionOccurrenceId: 1 },
   { unique: true }
 )
 

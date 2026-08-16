@@ -28,6 +28,7 @@ const BranchSchema = new Schema<IBranch>(
   { timestamps: true }
 )
 
+BranchSchema.index({ tenantId: 1, name: 1 }, { unique: true })
 BranchSchema.index({ tenantId: 1, isActive: 1 })
 
 const Branch: Model<IBranch> =

@@ -50,6 +50,7 @@ import {
   TrendingUp,
   CircleDollarSign,
   Receipt,
+  MessageCircle,
 } from "lucide-react"
 import { MONTH_LABELS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
@@ -164,6 +165,29 @@ export default function SubscriptionsPage() {
     onError: () => {
       toastError("خطأ", "حدث خطأ أثناء التحديث الجماعي")
     },
+  })
+
+  const remindMutation = useMutation({
+    mutationFn: async (studentId: string) => {
+      const res = await fetch("/api/payments/remind", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, month: selectedMonth, year: selectedYear }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.message || "فشل إرسال التذكير")
+      return data as { status: string; error?: string }
+    },
+    onSuccess: (data) => {
+      if (data.status === "SENT") {
+        success("تم الإرسال", "تم إرسال تذكير الدفع لوليّ الطالب")
+      } else if (data.status === "SKIPPED") {
+        toastError("غير مُفعّل", "مزوّد الرسائل غير مُفعّل — فعّله من صفحة الرسائل")
+      } else {
+        toastError("فشل الإرسال", data.error || "تعذّر إرسال الرسالة")
+      }
+    },
+    onError: (err: Error) => toastError("خطأ", err.message),
   })
 
   const { filteredStudents, stats } = useMemo(() => {
@@ -592,6 +616,23 @@ export default function SubscriptionsPage() {
                             }
                           >
                             <Receipt className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!student.isPaid && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="إرسال تذكير للوليّ"
+                            disabled={
+                              remindMutation.isPending && remindMutation.variables === student._id
+                            }
+                            onClick={() => remindMutation.mutate(student._id)}
+                          >
+                            {remindMutation.isPending && remindMutation.variables === student._id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <MessageCircle className="h-4 w-4" />
+                            )}
                           </Button>
                         )}
                       </div>

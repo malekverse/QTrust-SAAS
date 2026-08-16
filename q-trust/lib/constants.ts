@@ -273,6 +273,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin/claims', label: 'الاعتراضات', icon: 'MessageSquareWarning' },
   { href: '/admin/documents', label: 'المكتبة', icon: 'BookOpen' },
   { href: '/admin/analytics', label: 'التحليلات', icon: 'BarChart3' },
+  { href: '/admin/messaging', label: 'الرسائل', icon: 'MessageCircle' },
   { href: '/admin/ai-assistant', label: 'المساعد الذكي', icon: 'Bot' },
   { href: '/admin/settings', label: 'الإعدادات', icon: 'Settings' }
 ] as const
@@ -402,6 +403,48 @@ export const ADMISSION_STATUS_LABELS: Record<string, string> = {
   WAITLISTED: 'قائمة الانتظار',
   REJECTED: 'مرفوض',
 } as const
+
+// Outbound messaging (WhatsApp / SMS) — provider configured per tenant in Settings
+export const MESSAGING_PROVIDER = {
+  DISABLED: 'DISABLED',
+  WHATSAPP_CLOUD: 'WHATSAPP_CLOUD',
+  TWILIO_SMS: 'TWILIO_SMS',
+} as const
+export type MessagingProvider = typeof MESSAGING_PROVIDER[keyof typeof MESSAGING_PROVIDER]
+
+export const MESSAGING_PROVIDER_LABELS: Record<string, string> = {
+  DISABLED: 'معطّل',
+  WHATSAPP_CLOUD: 'واتساب (WhatsApp Cloud API)',
+  TWILIO_SMS: 'رسائل SMS (Twilio)',
+}
+
+export const MESSAGE_STATUS = {
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  SKIPPED: 'SKIPPED', // provider not configured — recorded but not sent
+} as const
+export type MessageStatus = typeof MESSAGE_STATUS[keyof typeof MESSAGE_STATUS]
+
+export const MESSAGE_STATUS_LABELS: Record<string, string> = {
+  SENT: 'أُرسلت',
+  FAILED: 'فشلت',
+  SKIPPED: 'لم تُرسل (غير مُفعّل)',
+}
+
+export const MESSAGE_TYPE = {
+  PAYMENT_REMINDER: 'PAYMENT_REMINDER',
+  ABSENCE_ALERT: 'ABSENCE_ALERT',
+  ADMISSION_RESULT: 'ADMISSION_RESULT',
+  GENERAL: 'GENERAL',
+} as const
+export type MessageType = typeof MESSAGE_TYPE[keyof typeof MESSAGE_TYPE]
+
+export const MESSAGE_TYPE_LABELS: Record<string, string> = {
+  PAYMENT_REMINDER: 'تذكير بالدفع',
+  ABSENCE_ALERT: 'تنبيه غياب',
+  ADMISSION_RESULT: 'نتيجة التسجيل',
+  GENERAL: 'عام',
+}
 
 // In-app notifications
 export const NOTIFICATION_TYPE = {

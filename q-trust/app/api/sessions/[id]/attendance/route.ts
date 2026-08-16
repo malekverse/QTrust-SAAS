@@ -10,6 +10,7 @@ import Room from "@/models/Room"
 import { auth } from "@/lib/auth"
 import { updateAttendanceSchema } from "@/lib/validations"
 import { ATTENDANCE_STATUS, ATTENDANCE_CREATOR, SESSION_STATUS, DEFAULT_QR_SETTINGS, ROLES } from "@/lib/constants"
+import { isActiveSubstituteFor } from "@/lib/substitutes"
 
 void SessionTemplate
 void SessionOccurrence
@@ -123,18 +124,29 @@ export async function GET(
     }).lean()
 
     // Build attendance list
+    type LeanAttendance = {
+      _id: mongoose.Types.ObjectId
+      studentId: mongoose.Types.ObjectId
+      status: string
+      checkInTime?: Date
+      notes?: string
+    }
+    type PopulatedStudentSession = {
+      studentId: { _id: mongoose.Types.ObjectId; fullName?: string; parentName?: string } | null
+    }
     const attendanceMap = new Map(
-      attendanceRecords.map((a: any) => [a.studentId.toString(), a])
+      (attendanceRecords as unknown as LeanAttendance[]).map((a) => [a.studentId.toString(), a])
     )
 
-    const students = studentSessions
-      .filter(ss => ss.studentId)
-      .map((ss: any) => {
-        const attendance = attendanceMap.get(ss.studentId._id.toString())
+    const students = (studentSessions as unknown as PopulatedStudentSession[])
+      .filter((ss) => ss.studentId)
+      .map((ss) => {
+        const student = ss.studentId!
+        const attendance = attendanceMap.get(student._id.toString())
         return {
-          _id: ss.studentId._id,
-          fullName: ss.studentId.fullName,
-          parentName: ss.studentId.parentName,
+          _id: student._id,
+          fullName: student.fullName,
+          parentName: student.parentName,
           status: attendance?.status || ATTENDANCE_STATUS.ABSENT,
           checkInTime: attendance?.checkInTime,
           notes: attendance?.notes,
@@ -206,7 +218,8 @@ export async function PATCH(
 
     await dbConnect()
 
-    // Teachers may only modify attendance for their own sessions
+    // Teachers may only modify attendance for their own sessions — or one they
+    // hold an active substitute assignment for.
     if (session.user.role === ROLES.TEACHER) {
       const template = await SessionTemplate.findOne({ _id: id, tenantId }).select("teacherId").lean()
       if (!template) {
@@ -215,7 +228,9 @@ export async function PATCH(
           { status: 404 }
         )
       }
-      if (template.teacherId.toString() !== session.user.id) {
+      const owns = template.teacherId.toString() === session.user.id
+      const isSub = owns ? false : await isActiveSubstituteFor(tenantId, session.user.id, id)
+      if (!owns && !isSub) {
         return NextResponse.json(
           { message: "غير مصرح لك بتعديل حضور هذه الحصة" },
           { status: 403 }

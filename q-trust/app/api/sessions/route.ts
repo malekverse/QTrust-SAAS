@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import mongoose from "mongoose"
 import dbConnect from "@/lib/db"
 import SessionTemplate from "@/models/SessionTemplate"
 import SessionOccurrence from "@/models/SessionOccurrence"
@@ -9,6 +10,7 @@ import { logActivity } from "@/models/ActivityLog"
 import { auth } from "@/lib/auth"
 import { createSessionTemplateSchema } from "@/lib/validations"
 import { ROLES, SESSION_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
+import { getActiveSubstituteTemplateIds } from "@/lib/substitutes"
 
 void SessionTemplate
 void SessionOccurrence
@@ -29,9 +31,21 @@ function hasTimeOverlap(
   return (s1 < e2 && e1 > s2)
 }
 
+interface OccurrenceTemplate {
+  _id: mongoose.Types.ObjectId
+  tenantId: mongoose.Types.ObjectId
+  teacherId: mongoose.Types.ObjectId
+  dayOfWeek: number
+  effectiveFromDate: string | Date
+  startTime: string
+  endTime: string
+  qrOpenOffsetBeforeMin?: number
+  qrCloseOffsetAfterMin?: number
+}
+
 // Helper function to generate session occurrences for a template
 async function generateOccurrencesForTemplate(
-  template: any,
+  template: OccurrenceTemplate,
   weeksAhead: number = 4
 ) {
   const created: string[] = []
@@ -46,7 +60,7 @@ async function generateOccurrencesForTemplate(
   const dates: { utcDate: Date; localDate: Date }[] = []
   
   // Start from today
-  let currentDate = new Date(todayYear, todayMonth, todayDay)
+  const currentDate = new Date(todayYear, todayMonth, todayDay)
   
   // Find the first occurrence (could be today or in the future)
   for (let i = 0; i < weeksAhead * 7; i++) {
@@ -137,10 +151,14 @@ export async function GET() {
     await dbConnect()
 
     let query: Record<string, unknown> = { tenantId }
+    let substituteIds: string[] = []
 
-    // Teachers can only see their own sessions
+    // Teachers see their own sessions plus any they're actively substituting for.
     if (session.user.role === ROLES.TEACHER) {
-      query = { tenantId, teacherId: session.user.id }
+      substituteIds = await getActiveSubstituteTemplateIds(tenantId, session.user.id)
+      query = substituteIds.length
+        ? { tenantId, $or: [{ teacherId: session.user.id }, { _id: { $in: substituteIds } }] }
+        : { tenantId, teacherId: session.user.id }
     }
 
     const sessions = await SessionTemplate.find(query)
@@ -148,6 +166,8 @@ export async function GET() {
       .populate("roomId", "name capacity")
       .sort({ dayOfWeek: 1, startTime: 1 })
       .lean()
+
+    const substituteSet = new Set(substituteIds)
 
     // Add student count for each session
     const sessionsWithCount = await Promise.all(
@@ -157,7 +177,12 @@ export async function GET() {
           sessionTemplateId: s._id,
           isActive: true,
         })
-        return { ...s, studentCount }
+        // Flag sessions the caller only sees because they're substituting.
+        const isSubstitute =
+          session.user.role === ROLES.TEACHER &&
+          substituteSet.has(String(s._id)) &&
+          String((s.teacherId as { _id?: unknown })?._id ?? s.teacherId) !== session.user.id
+        return { ...s, studentCount, isSubstitute }
       })
     )
 

@@ -264,6 +264,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: '/admin/students', label: 'الطلاب', icon: 'GraduationCap' },
   { href: '/admin/admissions', label: 'طلبات التسجيل', icon: 'ClipboardList' },
   { href: '/admin/sessions', label: 'الحصص', icon: 'Calendar' },
+  { href: '/admin/substitutes', label: 'النواب', icon: 'UserCog' },
   { href: '/admin/rooms', label: 'القاعات', icon: 'DoorOpen' },
   { href: '/admin/schedule', label: 'الجدول الزمني', icon: 'CalendarClock' },
   { href: '/admin/attendance', label: 'الحضور', icon: 'ClipboardCheck' },

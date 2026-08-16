@@ -4,6 +4,8 @@ import dbConnect from '@/lib/db'
 import AdmissionApplication from '@/models/AdmissionApplication'
 import { resolveTenantBySlug } from '@/lib/tenant'
 import { admissionLimiter, enforceRateLimit, getClientIp } from '@/lib/rate-limit'
+import { notifyTenantAdmins } from '@/models/Notification'
+import { NOTIFICATION_TYPE } from '@/lib/constants'
 
 const enrollSchema = z.object({
   firstName: z.string().trim().min(2, 'الاسم مطلوب').max(50),
@@ -64,6 +66,14 @@ export async function POST(
       parentPhone: empty(d.parentPhone),
       parentEmail: empty(d.parentEmail),
       medicalNotes: empty(d.medicalNotes),
+    })
+
+    // Notify tenant admins of the new application.
+    await notifyTenantAdmins(String(tenant._id), {
+      type: NOTIFICATION_TYPE.ADMISSION_RECEIVED,
+      title: 'طلب تسجيل جديد',
+      body: `${d.firstName} ${d.lastName} — قدّم طلب تسجيل`,
+      link: '/admin/admissions',
     })
 
     return NextResponse.json({ ok: true }, { status: 201 })

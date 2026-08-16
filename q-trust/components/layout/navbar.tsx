@@ -12,9 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, User, Settings, Bell, Moon, Sun, Menu } from "lucide-react"
+import { LogOut, User, Settings, Moon, Sun, Menu } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
+import { NotificationBell } from "@/components/layout/notification-bell"
 
 interface NavbarProps {
   onMenuClick?: () => void
@@ -26,6 +27,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // One-time mount guard to avoid an SSR/client hydration mismatch on the
+    // session-dependent user menu.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -91,11 +95,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           </Button>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 relative">
-            <Bell className="h-4 w-4" />
-            <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 h-2 w-2 bg-destructive rounded-full" />
-            <span className="sr-only">الإشعارات</span>
-          </Button>
+          <NotificationBell />
 
           {/* User Menu - Only render after mount to avoid hydration mismatch */}
           {mounted ? (

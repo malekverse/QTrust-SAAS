@@ -402,3 +402,12 @@ export const ADMISSION_STATUS_LABELS: Record<string, string> = {
   REJECTED: 'مرفوض',
 } as const
 
+// In-app notifications
+export const NOTIFICATION_TYPE = {
+  CLAIM_SUBMITTED: 'CLAIM_SUBMITTED',
+  ADMISSION_RECEIVED: 'ADMISSION_RECEIVED',
+  PAYMENT_OVERDUE: 'PAYMENT_OVERDUE',
+  GENERAL: 'GENERAL',
+} as const
+export type NotificationType = typeof NOTIFICATION_TYPE[keyof typeof NOTIFICATION_TYPE]
+

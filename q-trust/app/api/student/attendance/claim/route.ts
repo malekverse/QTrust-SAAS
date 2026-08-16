@@ -4,7 +4,8 @@ import User from "@/models/User"
 import AttendanceClaim from "@/models/AttendanceClaim"
 import SessionOccurrence from "@/models/SessionOccurrence"
 import { auth } from "@/lib/auth"
-import { ROLES, CLAIM_STATUS } from "@/lib/constants"
+import { ROLES, CLAIM_STATUS, NOTIFICATION_TYPE } from "@/lib/constants"
+import { notifyTenantAdmins } from "@/models/Notification"
 
 // Force model registration
 void User; void AttendanceClaim; void SessionOccurrence
@@ -79,6 +80,14 @@ export async function POST(request: NextRequest) {
       date: occurrence.date,
       reason,
       status: CLAIM_STATUS.PENDING
+    })
+
+    // Notify tenant admins there's a claim awaiting review.
+    await notifyTenantAdmins(tenantId, {
+      type: NOTIFICATION_TYPE.CLAIM_SUBMITTED,
+      title: 'اعتراض جديد على الحضور',
+      body: `${session.user.fullName || 'طالب'} قدّم اعتراضاً على الحضور`,
+      link: '/admin/claims',
     })
 
     return NextResponse.json({

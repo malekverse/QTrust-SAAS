@@ -10,8 +10,8 @@
 .mk {
   --mk-max: 1200px;
   --mk-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  /* Section vertical rhythm: ~64–96px mobile → 120–160px desktop */
-  --mk-section-y: clamp(4.5rem, 4rem + 6vw, 10rem);
+  /* Section vertical rhythm: ~56px mobile → 120px desktop */
+  --mk-section-y: clamp(3.5rem, 3rem + 4.5vw, 7.5rem);
   font-family: var(--font-mk-sans, var(--font-sans));
   background: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -96,10 +96,15 @@
 /* Extremely slow hero-screenshot drift (§8.2.2 #2) — CSS scroll-driven
    where supported; everyone else gets a perfectly still image. */
 @supports (animation-timeline: view()) {
+  /* Two animations: the time-based reveal (opacity, so the frame is never
+     stuck invisible) + the scroll-linked drift. Declared AFTER the shorthand
+     so the shorthand's reset of animation-timeline doesn't wipe them. */
   .mk-hero-drift {
-    animation: mk-drift linear both;
-    animation-timeline: view();
-    animation-range: entry 80% exit 20%;
+    animation:
+      mk-rise 700ms var(--mk-ease) calc(var(--mk-line, 0) * 110ms) both,
+      mk-drift linear both;
+    animation-timeline: auto, view();
+    animation-range: normal, entry 80% exit 20%;
   }
   @keyframes mk-drift {
     from { transform: translateY(0); }
@@ -256,21 +261,35 @@
   color: hsl(var(--foreground));
 }
 
-/* ---------- Pattern watermark (§8.2.1 #5: notice it only when looking) ---------- */
+/* ---------- Girih watermark (§8.2.1 #5: notice it only when looking) ----------
+   A seamless *khatam* star lattice: eight-point stars (the brand mark / the
+   Qur'an-division glyph) tessellated on a square grid, interlaced with the
+   four-point crosses between them — the classic Islamic geometric field,
+   drawn as thin monochrome strapwork so it reads modern, not ornate.
+   Rendered as a mask so the strokes inherit each section's currentColor
+   (green on light, white on the CTA band, light on the dark section), and
+   painted behind the section's content so it never muddies text or imagery. */
 .mk-pattern {
   position: relative;
+}
+.mk-pattern > * {
+  position: relative;
+  z-index: 1;
 }
 .mk-pattern::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
-  background-image:
-    radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px);
-  background-size: 28px 28px;
-  opacity: 0.045;
+  background: currentColor;
+  --mk-girih: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.4' stroke-linejoin='round' d='M44,0L28.64,11.86L31.11,31.11L11.86,28.64L0,44L-11.86,28.64L-31.11,31.11L-28.64,11.86L-44,0L-28.64,-11.86L-31.11,-31.11L-11.86,-28.64L0,-44L11.86,-28.64L31.11,-31.11L28.64,-11.86ZM144,0L128.64,11.86L131.11,31.11L111.86,28.64L100,44L88.14,28.64L68.89,31.11L71.36,11.86L56,0L71.36,-11.86L68.89,-31.11L88.14,-28.64L100,-44L111.86,-28.64L131.11,-31.11L128.64,-11.86ZM44,100L28.64,111.86L31.11,131.11L11.86,128.64L0,144L-11.86,128.64L-31.11,131.11L-28.64,111.86L-44,100L-28.64,88.14L-31.11,68.89L-11.86,71.36L0,56L11.86,71.36L31.11,68.89L28.64,88.14ZM144,100L128.64,111.86L131.11,131.11L111.86,128.64L100,144L88.14,128.64L68.89,131.11L71.36,111.86L56,100L71.36,88.14L68.89,68.89L88.14,71.36L100,56L111.86,71.36L131.11,68.89L128.64,88.14ZM69.09,69.09L50,62L30.91,69.09L38,50L30.91,30.91L50,38L69.09,30.91L62,50Z'/%3E%3C/svg%3E");
+  -webkit-mask: var(--mk-girih) 0 0 / 100px 100px repeat;
+          mask: var(--mk-girih) 0 0 / 100px 100px repeat;
+  opacity: 0.06;
 }
+/* On the dark AI section the lattice reads faint — give it a touch more. */
+.mk-dark-section.mk-pattern::before { opacity: 0.07; }
 
 /* ---------- Final CTA ---------- */
 .mk-cta-band {

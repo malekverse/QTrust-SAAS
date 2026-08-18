@@ -8,6 +8,7 @@ import { BrandLogo } from "@/components/brand-logo"
 import { Menu, X, Sun, Moon } from "lucide-react"
 import { UI_LABELS } from "./i18n"
 import type { MarketingLocale } from "./i18n"
+import { LocaleSwitcher } from "./locale-switcher"
 
 function prefixHref(href: string, locale: MarketingLocale) {
   if (locale === "fr") return `/fr${href}`
@@ -80,10 +81,8 @@ export function MarketingNav({ locale = "ar" }: { locale?: MarketingLocale }) {
           </nav>
 
           <div className="ms-auto hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-1 border-e border-foreground/10 pe-4">
-              <Link href={t.switchLangHref} className="mk-nav-link flex items-center justify-center rounded-md p-1.5 text-xs font-semibold">
-                {t.switchLang}
-              </Link>
+            <div className="flex items-center gap-3 border-e border-foreground/10 pe-4">
+              <LocaleSwitcher current={locale} />
               <ThemeToggle label={themeLabel} />
             </div>
             <Link href="/auth/login" className="mk-nav-link">
@@ -110,10 +109,8 @@ export function MarketingNav({ locale = "ar" }: { locale?: MarketingLocale }) {
             className="md:hidden pb-5 pt-1 flex flex-col gap-1 border-t border-foreground/8"
             aria-label={locale === "ar" ? "التنقل الرئيسي" : locale === "fr" ? "Navigation principale" : "Main navigation"}
           >
-            <div className="flex items-center gap-2 py-2.5">
-              <Link href={t.switchLangHref} className="mk-nav-link text-xs font-semibold rounded-md px-2.5 py-1.5">
-                {t.switchLang}
-              </Link>
+            <div className="flex items-center gap-3 py-2.5">
+              <LocaleSwitcher current={locale} />
               <ThemeToggle label={themeLabel} />
             </div>
             {LINKS.map((l) => (

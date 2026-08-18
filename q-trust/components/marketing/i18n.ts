@@ -24,8 +24,6 @@ export const UI_LABELS = {
     openMenu: "فتح القائمة",
     closeMenu: "إغلاق القائمة",
     homeLabel: "Q-Trust — الصفحة الرئيسية",
-    switchLang: "FR",
-    switchLangHref: "/fr",
   },
   fr: {
     features: "Fonctionnalités",
@@ -45,8 +43,6 @@ export const UI_LABELS = {
     openMenu: "Ouvrir le menu",
     closeMenu: "Fermer le menu",
     homeLabel: "Q-Trust — Accueil",
-    switchLang: "ع",
-    switchLangHref: "/",
   },
   en: {
     features: "Features",
@@ -66,7 +62,5 @@ export const UI_LABELS = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     homeLabel: "Q-Trust — Home",
-    switchLang: "ع",
-    switchLangHref: "/",
   },
 } as const

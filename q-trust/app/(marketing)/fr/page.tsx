@@ -49,7 +49,7 @@ export default function FrenchLandingPage() {
       {/* Hero */}
       <section className="mk-pattern text-primary">
         <div className="mk-container text-foreground">
-          <div className="flex min-h-[92svh] flex-col items-center justify-center pt-24 pb-10 text-center">
+          <div className="flex min-h-[84svh] flex-col items-center justify-center pt-20 pb-8 text-center">
             <h1 className="mk-display mk-h1 max-w-[22ch]">
               {HERO.headlineLines.map((line, i) => (
                 <span
@@ -72,7 +72,7 @@ export default function FrenchLandingPage() {
               {HERO.subhead}
             </p>
             <div
-              className="mk-hero-line mt-10 flex flex-wrap items-center justify-center gap-3.5"
+              className="mk-hero-line mt-10 !flex flex-wrap items-center justify-center gap-5"
               style={{ "--mk-line": 3 } as React.CSSProperties}
             >
               <Link href="/fr/demo" className="mk-btn mk-btn-primary">
@@ -85,7 +85,7 @@ export default function FrenchLandingPage() {
             </div>
 
             <div
-              className="mk-hero-line mk-hero-drift mt-16 w-full max-w-4xl"
+              className="mk-hero-line mk-hero-drift mt-10 w-full max-w-4xl"
               style={{ "--mk-line": 4 } as React.CSSProperties}
             >
               <BrowserFrame>
@@ -171,7 +171,7 @@ export default function FrenchLandingPage() {
       </section>
 
       {/* AI spotlight (dark section) */}
-      <section className="dark mk-dark-section mk-section">
+      <section className="dark mk-dark-section mk-section mk-pattern">
         <div className="mk-container">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal>

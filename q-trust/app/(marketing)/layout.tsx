@@ -34,7 +34,7 @@ export default function MarketingLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className={`mk ${plexArabic.variable}`} data-js="false" id="mk-root">
+    <div className={`mk ${plexArabic.variable}`} data-js="false" id="mk-root" suppressHydrationWarning>
       <script
         dangerouslySetInnerHTML={{
           __html: `document.getElementById('mk-root').setAttribute('data-js','true')`,

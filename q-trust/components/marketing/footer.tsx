@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/brand-logo"
 import { UI_LABELS } from "./i18n"
 import type { MarketingLocale } from "./i18n"
+import { LocaleSwitcher } from "./locale-switcher"
 
 function prefixHref(href: string, locale: MarketingLocale) {
   if (locale === "fr") return `/fr${href}`
@@ -81,9 +82,7 @@ export function MarketingFooter({ locale = "ar" }: { locale?: MarketingLocale })
 
         <div className="mk-hairline-gold mt-12 pt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-foreground/50">
           <p>&copy; {new Date().getFullYear()} Q-Trust. {t.copyright}</p>
-          <Link href={t.switchLangHref} className="mk-nav-link text-xs">
-            {t.switchLang}
-          </Link>
+          <LocaleSwitcher current={locale} />
           <p dir="ltr">{t.madeIn}</p>
         </div>
       </div>

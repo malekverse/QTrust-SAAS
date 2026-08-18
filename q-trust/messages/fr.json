@@ -186,7 +186,14 @@
     "behaviorTypes": {
       "POSITIVE": "Comportement positif",
       "CONCERN": "Préoccupation comportementale"
-    }
+    },
+    "unexpectedError": "Une erreur inattendue s'est produite",
+    "unexpectedErrorDesc": "Nous nous excusons, une erreur s'est produite lors du traitement de votre demande. Veuillez réessayer.",
+    "tryAgain": "Réessayer",
+    "backHome": "Retour à l'accueil",
+    "pageNotFound": "Page introuvable",
+    "pageNotFoundDesc": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée",
+    "signOut": "Déconnexion"
   },
   "pagination": {
     "page": "Page",
@@ -265,7 +272,8 @@
       "quickActions": "Actions rapides",
       "noActivity": "Aucune activité récente",
       "upcomingSessions": "Prochaines sessions",
-      "noUpcoming": "Pas de sessions prévues aujourd'hui"
+      "noUpcoming": "Pas de sessions prévues aujourd'hui",
+      "noData": "Aucune donnée disponible"
     },
     "students": {
       "title": "Gestion des élèves",
@@ -505,7 +513,12 @@
       "scanQR": "Scanner QR",
       "checkIn": "Enregistrer la présence",
       "checkedIn": "Présence enregistrée",
-      "alreadyCheckedIn": "Présence déjà enregistrée"
+      "alreadyCheckedIn": "Présence déjà enregistrée",
+      "csvSession": "Session",
+      "csvStudent": "Élève",
+      "csvStatus": "Statut",
+      "csvCheckInTime": "Heure de pointage",
+      "csvFilenamePrefix": "presence"
     },
     "admissions": {
       "title": "Demandes d'inscription",
@@ -627,7 +640,11 @@
         "SOUND_SYSTEM": "Système audio",
         "PRAYER_MATS": "Tapis de prière",
         "QURAN_COPIES": "Copies du Coran"
-      }
+      },
+      "fetchRoomsError": "Échec du chargement des salles",
+      "createRoomError": "Échec de la création de la salle",
+      "updateRoomError": "Échec de la mise à jour de la salle",
+      "deleteRoomError": "Échec de la suppression de la salle"
     },
     "substitutes": {
       "title": "Gestion des suppléants",
@@ -704,7 +721,10 @@
       "title": "Emploi du temps",
       "description": "Afficher l'emploi du temps hebdomadaire des sessions",
       "weeklySchedule": "Emploi du temps hebdomadaire",
-      "noSchedule": "Aucun emploi du temps"
+      "noSchedule": "Aucun emploi du temps",
+      "fetchScheduleError": "Échec du chargement de l'emploi du temps",
+      "conflictCheckError": "Échec de la vérification des conflits",
+      "autoAssignError": "Échec de l'assignation automatique"
     },
     "aiAssistant": {
       "title": "Assistant IA",
@@ -1318,5 +1338,120 @@
     "morningSubtitle": "Que Dieu bénisse votre matinée et votre travail",
     "afternoonSubtitle": "Que Dieu bénisse votre travail aujourd'hui",
     "eveningSubtitle": "Que Dieu fasse de votre soirée un bien et une bénédiction"
+  },
+  "receipt": {
+    "unknownStudent": "Eleve",
+    "backToSubscriptions": "Retour aux abonnements",
+    "title": "Recu de paiement",
+    "subtitle": "Recu de paiement de l'abonnement mensuel",
+    "studentLabel": "Eleve",
+    "enrollmentNumber": "Numero d'inscription",
+    "parentLabel": "Tuteur",
+    "paymentDate": "Date de paiement",
+    "amountPaid": "Montant paye",
+    "currency": "TND",
+    "notes": "Notes",
+    "markedBy": "Enregistre par :",
+    "stampAndSignature": "Cachet et signature",
+    "footer": "Que Dieu vous benisse — ce recu atteste du paiement de l'abonnement pour le mois indique",
+    "printButton": "Imprimer / Sauvegarder PDF"
+  },
+  "leaderboard": {
+    "locked": "Tableau d'honneur indisponible",
+    "lockedDesc": "Cette fonctionnalite est disponible dans le forfait premium.",
+    "loadError": "Echec du chargement du tableau d'honneur",
+    "title": "Tableau d'honneur",
+    "empty": "Aucun point pour le moment — commencez votre parcours d'excellence",
+    "point": "point",
+    "attendance": "presence",
+    "verse": "verset",
+    "footer": "Mise a jour automatique — Que Dieu vous recompense"
+  },
+  "enroll": {
+    "genericError": "Une erreur est survenue",
+    "successTitle": "Demande d'inscription envoyee",
+    "successMessage": "Merci. Votre demande sera examinee et nous vous contacterons prochainement, si Dieu le veut.",
+    "studentInfo": "Informations de l'eleve",
+    "firstName": "Prenom *",
+    "lastName": "Nom *",
+    "gender": "Genre *",
+    "selectGender": "Choisir...",
+    "male": "Masculin",
+    "female": "Feminin",
+    "dateOfBirth": "Date de naissance",
+    "cin": "Numero de carte d'identite (8 chiffres)",
+    "educationLevel": "Niveau d'education",
+    "address": "Adresse",
+    "parentInfo": "Informations du tuteur",
+    "parentName": "Nom du tuteur",
+    "parentPhone": "Telephone du tuteur (+216XXXXXXXX)",
+    "parentEmail": "E-mail du tuteur",
+    "medicalNotes": "Notes medicales ou d'urgence (facultatif)",
+    "submit": "Soumettre la demande d'inscription",
+    "consent": "En soumettant cette demande, vous acceptez que l'association examine les donnees fournies.",
+    "defaultName": "Inscription",
+    "metadataTitle": "Inscription — {name}",
+    "metadataDescription": "Soumettre une demande d'inscription a {name}",
+    "formSubtitle": "Formulaire de demande d'inscription"
+  },
+  "ai": {
+    "connectionError": "Impossible de se connecter à l'assistant",
+    "unexpectedResponse": "Réponse inattendue",
+    "noStream": "Aucun flux de lecture disponible",
+    "unknownError": "Une erreur inconnue s'est produite",
+    "thinking": "Ahmed réfléchit...",
+    "errorMessage": "Désolé, une erreur s'est produite : {error}",
+    "regenerating": "Ahmed reconsidère...",
+    "regenerateError": "Désolé, la régénération a échoué : {error}",
+    "executing": "Ahmed exécute...",
+    "actionRejected": "Action rejetée",
+    "executeError": "Désolé, une erreur s'est produite lors de l'exécution : {error}",
+    "deleteError": "Impossible de supprimer la conversation",
+    "actionCreate": "Créer",
+    "actionEdit": "Modifier",
+    "actionDelete": "Supprimer",
+    "actionGeneric": "Action",
+    "moreFields": "... et {count} autres champs",
+    "closeEdit": "Fermer l'édition",
+    "editValues": "Modifier les valeurs",
+    "reset": "Réinitialiser",
+    "statusExecuted": "Exécuté avec succès",
+    "statusRejected": "Rejeté",
+    "statusFailed": "Échec de l'exécution",
+    "valuesModified": "Certaines valeurs ont été modifiées — l'exécution utilisera les valeurs modifiées",
+    "approveWithChanges": "Approuver (avec modifications)",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "params": {
+      "name": "Nom",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "fullName": "Nom complet",
+      "teacherId": "ID Enseignant",
+      "studentId": "ID Élève",
+      "roomId": "ID Salle",
+      "sessionTemplateId": "ID Session",
+      "dayOfWeek": "Jour de la semaine (0-6)",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "effectiveFromDate": "Date de début",
+      "effectiveToDate": "Date de fin",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "date": "Date",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "gender": "Genre",
+      "cin": "Numéro d'identité",
+      "capacity": "Capacité",
+      "description": "Description",
+      "status": "Statut",
+      "isPaid": "Payé",
+      "month": "Mois",
+      "year": "Année",
+      "amount": "Montant",
+      "notes": "Notes",
+      "isActive": "Actif"
+    }
   }
 }

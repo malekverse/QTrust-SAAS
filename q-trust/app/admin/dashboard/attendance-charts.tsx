@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import {
   BarChart,
   Bar,
@@ -38,13 +39,15 @@ interface AttendanceChartsProps {
 }
 
 export function AttendanceCharts({ type, data }: AttendanceChartsProps) {
+  const t = useTranslations("admin.dashboard")
+
   if (type === "trend") {
     const trendData = data as TrendData[]
     
     if (trendData.length === 0) {
       return (
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-          لا توجد بيانات متاحة
+          {t("noData")}
         </div>
       )
     }
@@ -73,7 +76,7 @@ export function AttendanceCharts({ type, data }: AttendanceChartsProps) {
               borderRadius: "0.5rem",
               direction: "rtl",
             }}
-            formatter={(value) => [`${value}%`, "نسبة الحضور"]}
+            formatter={(value) => [`${value}%`, t("attendanceRate")]}
             labelFormatter={(label) => {
               const date = new Date(label)
               return date.toLocaleDateString("ar-TN", { 
@@ -102,7 +105,7 @@ export function AttendanceCharts({ type, data }: AttendanceChartsProps) {
     if (distributionData.length === 0) {
       return (
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-          لا توجد بيانات متاحة
+          {t("noData")}
         </div>
       )
     }

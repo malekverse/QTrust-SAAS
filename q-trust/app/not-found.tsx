@@ -1,11 +1,13 @@
 import "@/app/app-dashboard.css"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Home } from "lucide-react"
 import { BrandLogo } from "@/components/brand-logo"
 
-export default function NotFound() {
+export default async function NotFound() {
+  const tc = await getTranslations("common")
   return (
     <div className="min-h-screen bg-background islamic-pattern-bg flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -19,9 +21,9 @@ export default function NotFound() {
           <h1 className="text-7xl font-bold text-primary mb-2">404</h1>
           
           {/* Arabic Message */}
-          <h2 className="text-2xl font-bold mb-2">الصفحة غير موجودة</h2>
+          <h2 className="text-2xl font-bold mb-2">{tc("pageNotFound")}</h2>
           <p className="text-muted-foreground mb-6">
-            عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها
+            {tc("pageNotFoundDesc")}
           </p>
 
           {/* Divider */}
@@ -37,7 +39,7 @@ export default function NotFound() {
             <Button asChild>
               <Link href="/">
                 <Home className="ml-2 h-4 w-4" />
-                العودة للرئيسية
+                {tc("backHome")}
               </Link>
             </Button>
           </div>

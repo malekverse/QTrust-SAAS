@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -29,48 +30,24 @@ interface AIActionCardProps {
 
 function getActionMeta(toolName: string) {
   if (toolName.startsWith('create_') || toolName === 'enroll_student' || toolName === 'generate_occurrences') {
-    return { icon: Plus, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', label: 'إنشاء' }
+    return { icon: Plus, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', labelKey: 'actionCreate' as const }
   }
   if (toolName.startsWith('update_') || toolName === 'mark_payment' || toolName === 'bulk_mark_payments' || toolName === 'review_claim' || toolName === 'auto_assign_rooms' || toolName === 'reset_student_password') {
-    return { icon: Pencil, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200 dark:border-amber-800', label: 'تعديل' }
+    return { icon: Pencil, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200 dark:border-amber-800', labelKey: 'actionEdit' as const }
   }
   if (toolName.startsWith('delete_') || toolName === 'unenroll_student') {
-    return { icon: Trash2, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-200 dark:border-red-800', label: 'حذف' }
+    return { icon: Trash2, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-200 dark:border-red-800', labelKey: 'actionDelete' as const }
   }
-  return { icon: AlertTriangle, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800', label: 'إجراء' }
+  return { icon: AlertTriangle, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800', labelKey: 'actionGeneric' as const }
 }
 
-const PARAM_LABELS: Record<string, string> = {
-  name: 'الاسم',
-  firstName: 'الاسم الأول',
-  lastName: 'اللقب',
-  fullName: 'الاسم الكامل',
-  teacherId: 'معرف المعلم',
-  studentId: 'معرف الطالب',
-  roomId: 'معرف القاعة',
-  sessionTemplateId: 'معرف الحصة',
-  dayOfWeek: 'يوم الأسبوع (0-6)',
-  startTime: 'وقت البداية',
-  endTime: 'وقت النهاية',
-  effectiveFromDate: 'تاريخ البداية',
-  effectiveToDate: 'تاريخ النهاية',
-  startDate: 'تاريخ البداية',
-  endDate: 'تاريخ النهاية',
-  date: 'التاريخ',
-  email: 'البريد الإلكتروني',
-  phone: 'الهاتف',
-  gender: 'الجنس',
-  cin: 'رقم الهوية',
-  capacity: 'السعة',
-  description: 'الوصف',
-  status: 'الحالة',
-  isPaid: 'مدفوع',
-  month: 'الشهر',
-  year: 'السنة',
-  amount: 'المبلغ',
-  notes: 'ملاحظات',
-  isActive: 'نشط',
-}
+const PARAM_KEYS = [
+  'name', 'firstName', 'lastName', 'fullName', 'teacherId', 'studentId',
+  'roomId', 'sessionTemplateId', 'dayOfWeek', 'startTime', 'endTime',
+  'effectiveFromDate', 'effectiveToDate', 'startDate', 'endDate', 'date',
+  'email', 'phone', 'gender', 'cin', 'capacity', 'description', 'status',
+  'isPaid', 'month', 'year', 'amount', 'notes', 'isActive',
+] as const
 
 export function AIActionCard({
   actionId,
@@ -82,7 +59,15 @@ export function AIActionCard({
   isExecuting,
   status,
 }: AIActionCardProps) {
+  const t = useTranslations('ai')
   const meta = getActionMeta(toolName)
+
+  const getParamLabel = (key: string): string => {
+    if ((PARAM_KEYS as readonly string[]).includes(key)) {
+      return t(`params.${key}` as Parameters<typeof t>[0])
+    }
+    return key
+  }
   const Icon = meta.icon
   const isResolved = status && status !== 'pending'
 
@@ -128,7 +113,7 @@ export function AIActionCard({
             <Icon className={cn('w-4 h-4', meta.color)} />
           </div>
           <div className="flex-1 min-w-0">
-            <span className={cn('text-xs font-medium', meta.color)}>{meta.label}</span>
+            <span className={cn('text-xs font-medium', meta.color)}>{t(meta.labelKey)}</span>
             <p className="text-sm font-medium text-foreground truncate">{description}</p>
           </div>
         </div>
@@ -139,7 +124,7 @@ export function AIActionCard({
             {(isEditing ? entries : entries.slice(0, 4)).map(([key, val]) => (
               <div key={key} className="flex items-center gap-2">
                 <span className="text-muted-foreground whitespace-nowrap min-w-[80px] text-right">
-                  {PARAM_LABELS[key] || key}:
+                  {getParamLabel(key)}:
                 </span>
                 {isEditing ? (
                   <input
@@ -163,7 +148,7 @@ export function AIActionCard({
             ))}
             {!isEditing && entries.length > 4 && (
               <div className="text-muted-foreground text-center">
-                ... و {entries.length - 4} حقول أخرى
+                {t('moreFields', { count: entries.length - 4 })}
               </div>
             )}
 
@@ -177,9 +162,9 @@ export function AIActionCard({
                 onClick={() => setIsEditing(!isEditing)}
               >
                 {isEditing ? (
-                  <><ChevronUp className="w-3 h-3" /> إغلاق التعديل</>
+                  <><ChevronUp className="w-3 h-3" /> {t('closeEdit')}</>
                 ) : (
-                  <><Pencil className="w-3 h-3" /> تعديل القيم</>
+                  <><Pencil className="w-3 h-3" /> {t('editValues')}</>
                 )}
               </Button>
               {isEditing && hasChanges && (
@@ -190,7 +175,7 @@ export function AIActionCard({
                   className="h-6 text-[11px] gap-1 text-amber-600"
                   onClick={handleReset}
                 >
-                  إعادة تعيين
+                  {t('reset')}
                 </Button>
               )}
             </div>
@@ -202,7 +187,7 @@ export function AIActionCard({
           <div className="bg-background/60 rounded-lg p-2 mb-2 text-xs space-y-0.5">
             {entries.slice(0, 6).map(([key, val]) => (
               <div key={key} className="flex justify-between gap-2">
-                <span className="text-muted-foreground">{PARAM_LABELS[key] || key}:</span>
+                <span className="text-muted-foreground">{getParamLabel(key)}:</span>
                 <span className="text-foreground font-medium truncate max-w-[60%] text-left" dir="auto">
                   {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '')}
                 </span>
@@ -218,16 +203,16 @@ export function AIActionCard({
             status === 'rejected' ? 'text-red-600' :
             status === 'failed' ? 'text-red-600' : 'text-muted-foreground'
           )}>
-            {status === 'executed' && <><CheckCircle2 className="w-4 h-4" /> تم التنفيذ بنجاح</>}
-            {status === 'rejected' && <><XCircle className="w-4 h-4" /> تم الرفض</>}
-            {status === 'failed' && <><AlertTriangle className="w-4 h-4" /> فشل التنفيذ</>}
+            {status === 'executed' && <><CheckCircle2 className="w-4 h-4" /> {t('statusExecuted')}</>}
+            {status === 'rejected' && <><XCircle className="w-4 h-4" /> {t('statusRejected')}</>}
+            {status === 'failed' && <><AlertTriangle className="w-4 h-4" /> {t('statusFailed')}</>}
           </div>
         ) : (
           <div className="space-y-2">
             {hasChanges && (
               <div className="flex items-center gap-1.5 text-[11px] text-amber-600 bg-amber-50/50 dark:bg-amber-950/20 rounded px-2 py-1">
                 <Pencil className="w-3 h-3" />
-                تم تعديل بعض القيم — سيتم التنفيذ بالقيم المعدّلة
+                {t('valuesModified')}
               </div>
             )}
             <div className="flex gap-2">
@@ -243,7 +228,7 @@ export function AIActionCard({
                 ) : (
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 )}
-                {hasChanges ? 'موافقة (مع التعديلات)' : 'موافقة'}
+                {hasChanges ? t('approveWithChanges') : t('approve')}
               </Button>
               <Button
                 size="sm"
@@ -253,7 +238,7 @@ export function AIActionCard({
                 disabled={isExecuting}
               >
                 <XCircle className="w-3.5 h-3.5" />
-                رفض
+                {t('reject')}
               </Button>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { Trophy, Medal, Award, Star, CalendarCheck, BookOpen, Loader2 } from "lucide-react"
 import { BADGE, BADGE_LABELS } from "@/lib/leaderboard-badges"
+import { useTranslations } from "next-intl"
 
 interface Entry {
   studentId: string
@@ -22,6 +23,7 @@ interface BoardData {
 const REFRESH_MS = 30_000
 
 export function LeaderboardBoard({ slug }: { slug: string }) {
+  const t = useTranslations("leaderboard")
   const [data, setData] = useState<BoardData | null>(null)
   const [status, setStatus] = useState<"loading" | "ok" | "error" | "locked">("loading")
 
@@ -64,8 +66,8 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#0b1220] px-6 text-center text-white">
         <Trophy className="h-14 w-14 opacity-40" />
-        <p className="text-xl font-bold">لوحة الشرف غير متاحة</p>
-        <p className="max-w-md text-white/60">هذه الميزة متوفّرة ضمن الباقة المتقدّمة.</p>
+        <p className="text-xl font-bold">{t("locked")}</p>
+        <p className="max-w-md text-white/60">{t("lockedDesc")}</p>
       </div>
     )
   }
@@ -74,7 +76,7 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#0b1220] px-6 text-center text-white">
         <Trophy className="h-14 w-14 opacity-40" />
-        <p className="text-xl font-bold">تعذّر تحميل لوحة الشرف</p>
+        <p className="text-xl font-bold">{t("loadError")}</p>
       </div>
     )
   }
@@ -99,7 +101,7 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
         <div className="mb-8 text-center">
           <div className="mb-2 flex items-center justify-center gap-3">
             <Trophy className="h-9 w-9" style={{ color: gold }} />
-            <h1 className="text-4xl font-bold">لوحة الشرف</h1>
+            <h1 className="text-4xl font-bold">{t("title")}</h1>
           </div>
           <p className="text-lg text-white/60">{data?.tenant.name}</p>
         </div>
@@ -107,7 +109,7 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
         {entries.length === 0 ? (
           <div className="mt-24 text-center text-white/50">
             <Star className="mx-auto mb-3 h-12 w-12 opacity-40" />
-            <p className="text-xl">لا توجد نقاط بعد — ابدؤوا رحلة التميّز</p>
+            <p className="text-xl">{t("empty")}</p>
           </div>
         ) : (
           <>
@@ -138,7 +140,7 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
                     <p className="mt-1 text-2xl font-black" style={{ color: gold }} dir="ltr">
                       {entry.points}
                     </p>
-                    <p className="text-xs text-white/50">نقطة</p>
+                    <p className="text-xs text-white/50">{t("point")}</p>
                     <BadgeRow badges={entry.badges} />
                   </div>
                 )
@@ -159,12 +161,12 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
                       <div className="mt-0.5 flex items-center gap-4 text-xs text-white/50">
                         <span className="flex items-center gap-1">
                           <CalendarCheck className="h-3 w-3" />
-                          {entry.presentCount} حضور
+                          {entry.presentCount} {t("attendance")}
                         </span>
                         {entry.hifzVerses > 0 && (
                           <span className="flex items-center gap-1">
                             <BookOpen className="h-3 w-3" />
-                            {entry.hifzVerses} آية
+                            {entry.hifzVerses} {t("verse")}
                           </span>
                         )}
                       </div>
@@ -181,7 +183,7 @@ export function LeaderboardBoard({ slug }: { slug: string }) {
         )}
 
         <p className="mt-8 text-center text-xs text-white/30">
-          يتم التحديث تلقائياً • جزاكم الله خيراً
+          {t("footer")}
         </p>
       </div>
     </div>

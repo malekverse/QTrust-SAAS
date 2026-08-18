@@ -2,6 +2,7 @@
 
 import "@/app/app-dashboard.css"
 import { useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { AlertTriangle, RefreshCw, Home, BookOpen } from "lucide-react"
@@ -14,6 +15,8 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const tc = useTranslations("common")
+
   useEffect(() => {
     // Log the error to an error reporting service
     console.error(error)
@@ -29,9 +32,9 @@ export default function Error({
           </div>
 
           {/* Error Message */}
-          <h1 className="text-2xl font-bold mb-2">حدث خطأ غير متوقع</h1>
+          <h1 className="text-2xl font-bold mb-2">{tc("unexpectedError")}</h1>
           <p className="text-muted-foreground mb-6">
-            نعتذر، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.
+            {tc("unexpectedErrorDesc")}
           </p>
 
           {/* Error Details (only in development) */}
@@ -53,12 +56,12 @@ export default function Error({
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button onClick={reset}>
               <RefreshCw className="ml-2 h-4 w-4" />
-              حاول مرة أخرى
+              {tc("tryAgain")}
             </Button>
             <Button variant="outline" asChild>
               <Link href="/">
                 <Home className="ml-2 h-4 w-4" />
-                العودة للرئيسية
+                {tc("backHome")}
               </Link>
             </Button>
           </div>

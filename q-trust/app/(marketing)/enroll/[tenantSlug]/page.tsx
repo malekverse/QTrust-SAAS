@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { resolveTenantBySlug } from "@/lib/tenant"
+import { getTranslations } from "next-intl/server"
 import { EnrollForm } from "./enroll-form"
 
 export const dynamic = "force-dynamic"
@@ -12,11 +13,12 @@ export async function generateMetadata({
   params: Promise<{ tenantSlug: string }>
 }): Promise<Metadata> {
   const { tenantSlug } = await params
+  const t = await getTranslations("enroll")
   const tenant = await resolveTenantBySlug(tenantSlug)
-  const name = tenant?.branding?.displayName || tenant?.name || "التسجيل"
+  const name = tenant?.branding?.displayName || tenant?.name || t("defaultName")
   return {
-    title: `التسجيل — ${name}`,
-    description: `قدّم طلب تسجيل في ${name}`,
+    title: t("metadataTitle", { name }),
+    description: t("metadataDescription", { name }),
     robots: { index: false }, // per-tenant enrollment pages aren't for search indexing
   }
 }
@@ -30,6 +32,7 @@ export default async function EnrollPage({
   const tenant = await resolveTenantBySlug(tenantSlug)
   if (!tenant) notFound()
 
+  const t = await getTranslations("enroll")
   const name = tenant.branding?.displayName || tenant.name
   const accent = tenant.branding?.primaryColor || "#136F4E"
   const logoUrl = tenant.branding?.logoUrl
@@ -50,7 +53,7 @@ export default async function EnrollPage({
             </div>
           )}
           <h1 className="text-2xl font-bold text-neutral-900">{name}</h1>
-          <p className="mt-1 text-sm text-neutral-600">استمارة طلب التسجيل</p>
+          <p className="mt-1 text-sm text-neutral-600">{t("formSubtitle")}</p>
         </div>
 
         <EnrollForm tenantSlug={tenantSlug} accent={accent} />

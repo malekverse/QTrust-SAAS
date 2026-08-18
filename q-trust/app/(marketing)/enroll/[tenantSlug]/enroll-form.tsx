@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { CheckCircle2, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface Props {
   tenantSlug: string
@@ -12,6 +13,7 @@ const inputClass =
   "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200"
 
 export function EnrollForm({ tenantSlug, accent }: Props) {
+  const t = useTranslations("enroll")
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,12 +34,12 @@ export function EnrollForm({ tenantSlug, accent }: Props) {
         body: JSON.stringify(payload),
       })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ message: "حدث خطأ" }))
-        throw new Error(data.message || "حدث خطأ")
+        const data = await res.json().catch(() => ({ message: t("genericError") }))
+        throw new Error(data.message || t("genericError"))
       }
       setDone(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "حدث خطأ")
+      setError(err instanceof Error ? err.message : t("genericError"))
     } finally {
       setSubmitting(false)
     }
@@ -52,9 +54,9 @@ export function EnrollForm({ tenantSlug, accent }: Props) {
         >
           <CheckCircle2 className="h-9 w-9" />
         </div>
-        <h2 className="text-xl font-bold text-neutral-900">تم إرسال طلب التسجيل</h2>
+        <h2 className="text-xl font-bold text-neutral-900">{t("successTitle")}</h2>
         <p className="mt-2 text-sm text-neutral-600">
-          شكراً لكم. سيتم مراجعة الطلب والتواصل معكم قريباً بإذن الله.
+          {t("successMessage")}
         </p>
       </div>
     )
@@ -76,30 +78,30 @@ export function EnrollForm({ tenantSlug, accent }: Props) {
       />
 
       <fieldset className="space-y-4" disabled={submitting}>
-        <legend className="mb-2 text-sm font-bold text-neutral-800">معلومات الطالب</legend>
+        <legend className="mb-2 text-sm font-bold text-neutral-800">{t("studentInfo")}</legend>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">الاسم *</label>
+            <label className="mb-1 block text-xs font-medium text-neutral-600">{t("firstName")}</label>
             <input name="firstName" required minLength={2} maxLength={50} className={inputClass} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">اللقب *</label>
+            <label className="mb-1 block text-xs font-medium text-neutral-600">{t("lastName")}</label>
             <input name="lastName" required minLength={2} maxLength={50} className={inputClass} />
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">الجنس *</label>
+            <label className="mb-1 block text-xs font-medium text-neutral-600">{t("gender")}</label>
             <select name="gender" required defaultValue="" className={inputClass}>
-              <option value="" disabled>اختر...</option>
-              <option value="MALE">ذكر</option>
-              <option value="FEMALE">أنثى</option>
+              <option value="" disabled>{t("selectGender")}</option>
+              <option value="MALE">{t("male")}</option>
+              <option value="FEMALE">{t("female")}</option>
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">تاريخ الولادة</label>
+            <label className="mb-1 block text-xs font-medium text-neutral-600">{t("dateOfBirth")}</label>
             <input type="date" name="dateOfBirth" dir="ltr" className={inputClass} />
           </div>
         </div>
@@ -107,33 +109,33 @@ export function EnrollForm({ tenantSlug, accent }: Props) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs font-medium text-neutral-600">
-              رقم بطاقة التعريف (8 أرقام)
+              {t("cin")}
             </label>
             <input name="cin" inputMode="numeric" pattern="\d{8}" dir="ltr" className={inputClass} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">المستوى التعليمي</label>
+            <label className="mb-1 block text-xs font-medium text-neutral-600">{t("educationLevel")}</label>
             <input name="educationLevel" maxLength={100} className={inputClass} />
           </div>
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-600">العنوان</label>
+          <label className="mb-1 block text-xs font-medium text-neutral-600">{t("address")}</label>
           <input name="address" maxLength={200} className={inputClass} />
         </div>
       </fieldset>
 
       <fieldset className="space-y-4 border-t border-neutral-100 pt-5" disabled={submitting}>
-        <legend className="mb-2 text-sm font-bold text-neutral-800">معلومات الولي</legend>
+        <legend className="mb-2 text-sm font-bold text-neutral-800">{t("parentInfo")}</legend>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">اسم الولي</label>
+            <label className="mb-1 block text-xs font-medium text-neutral-600">{t("parentName")}</label>
             <input name="parentName" maxLength={100} className={inputClass} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-neutral-600">
-              هاتف الولي (+216XXXXXXXX)
+              {t("parentPhone")}
             </label>
             <input name="parentPhone" dir="ltr" placeholder="+216" className={inputClass} />
           </div>
@@ -141,14 +143,14 @@ export function EnrollForm({ tenantSlug, accent }: Props) {
 
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-600">
-            البريد الإلكتروني للولي
+            {t("parentEmail")}
           </label>
           <input type="email" name="parentEmail" dir="ltr" className={inputClass} />
         </div>
 
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-600">
-            ملاحظات صحية أو طارئة (اختياري)
+            {t("medicalNotes")}
           </label>
           <textarea name="medicalNotes" maxLength={500} rows={3} className={inputClass} />
         </div>
@@ -165,11 +167,11 @@ export function EnrollForm({ tenantSlug, accent }: Props) {
         style={{ backgroundColor: accent }}
       >
         {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-        إرسال طلب التسجيل
+        {t("submit")}
       </button>
 
       <p className="text-center text-[11px] text-neutral-400">
-        بإرسال هذا الطلب فإنكم توافقون على مراجعة الجمعية للبيانات المقدمة.
+        {t("consent")}
       </p>
     </form>
   )

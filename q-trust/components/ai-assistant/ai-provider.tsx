@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useRef, ReactNode, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
 
 interface PendingAction {
   id: string
@@ -100,6 +101,7 @@ function isAbortError(err: unknown): boolean {
 }
 
 export function AIProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations('ai')
   const [isOpen, setIsOpen] = useState(false)
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
 
@@ -204,17 +206,17 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}))
-          throw new Error(err.message || 'فشل الاتصال بالمساعد')
+          throw new Error(err.message || t('connectionError'))
         }
 
         if (!res.headers.get('Content-Type')?.includes('text/event-stream')) {
           const data = await res.json()
           if (data.conversationId && onConvId) onConvId(data.conversationId)
-          throw new Error(data.message || 'استجابة غير متوقعة')
+          throw new Error(data.message || t('unexpectedResponse'))
         }
 
         const reader = res.body?.getReader()
-        if (!reader) throw new Error('لا يوجد تدفق للقراءة')
+        if (!reader) throw new Error(t('noStream'))
 
         const decoder = new TextDecoder()
         let buffer = ''
@@ -297,7 +299,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
               }
 
               case 'error': {
-                const errMessage = (event.message as string) || 'حدث خطأ غير معروف'
+                const errMessage = (event.message as string) || t('unknownError')
                 const convToInvalidate = resolvedConvId || (body.conversationId as string | null)
                 queryClient.invalidateQueries({ queryKey: ['ai-conversations'] })
                 if (convToInvalidate) {
@@ -315,7 +317,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
         if (abortRef.current === controller) abortRef.current = null
       }
     },
-    [queryClient]
+    [queryClient, t]
   )
 
   const sendMessage = useCallback(
@@ -324,7 +326,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
       if (!trimmed || isSending) return
 
       setIsSending(true)
-      setStatusText('يفكر أحمد...')
+      setStatusText(t('thinking'))
       setToolActivity(null)
 
       const convIdAtSend = currentConversationId
@@ -351,13 +353,13 @@ export function AIProvider({ children }: { children: ReactNode }) {
         )
       } catch (err) {
         if (!isAbortError(err)) {
-          const errMsg = err instanceof Error ? err.message : 'حدث خطأ غير معروف'
+          const errMsg = err instanceof Error ? err.message : t('unknownError')
           setPendingMessages([
             optimisticUserMessage,
             {
               id: newId(),
               role: 'assistant',
-              content: `عذراً، حدث خطأ: ${errMsg}`,
+              content: t('errorMessage', { error: errMsg }),
               timestamp: new Date().toISOString(),
               isOptimistic: true,
             },
@@ -369,7 +371,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
         setToolActivity(null)
       }
     },
-    [currentConversationId, isSending, consumeStream]
+    [currentConversationId, isSending, consumeStream, t]
   )
 
   const stopGeneration = useCallback(() => {
@@ -390,7 +392,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
   const regenerate = useCallback(async () => {
     if (!currentConversationId || isSending) return
     setIsSending(true)
-    setStatusText('يعيد أحمد التفكير...')
+    setStatusText(t('regenerating'))
     setToolActivity(null)
 
     const streamingMsgId = newId()
@@ -403,12 +405,12 @@ export function AIProvider({ children }: { children: ReactNode }) {
       )
     } catch (err) {
       if (!isAbortError(err)) {
-        const errMsg = err instanceof Error ? err.message : 'حدث خطأ غير معروف'
+        const errMsg = err instanceof Error ? err.message : t('unknownError')
         setPendingMessages([
           {
             id: newId(),
             role: 'assistant',
-            content: `عذراً، تعذّر إعادة التوليد: ${errMsg}`,
+            content: t('regenerateError', { error: errMsg }),
             timestamp: new Date().toISOString(),
             isOptimistic: true,
           },
@@ -419,7 +421,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
       setStatusText('')
       setToolActivity(null)
     }
-  }, [currentConversationId, isSending, consumeStream])
+  }, [currentConversationId, isSending, consumeStream, t])
 
   const executeAction = useCallback(
     async (actionId: string, approved: boolean, modifiedParams?: Record<string, unknown>) => {
@@ -427,7 +429,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
       setIsExecuting(true)
       setIsSending(true)
-      setStatusText(approved ? 'يُنفّذ أحمد...' : 'تم رفض الإجراء')
+      setStatusText(approved ? t('executing') : t('actionRejected'))
       setToolActivity(null)
       setResolvedActionIds((prev) => new Set(prev).add(actionId))
       setTransientPendingActions((prev) => prev.filter((a) => a.id !== actionId))
@@ -447,12 +449,12 @@ export function AIProvider({ children }: { children: ReactNode }) {
         )
       } catch (err) {
         if (!isAbortError(err)) {
-          const errMsg = err instanceof Error ? err.message : 'حدث خطأ غير معروف'
+          const errMsg = err instanceof Error ? err.message : t('unknownError')
           setPendingMessages([
             {
               id: newId(),
               role: 'assistant',
-              content: `عذراً، حدث خطأ أثناء التنفيذ: ${errMsg}`,
+              content: t('executeError', { error: errMsg }),
               timestamp: new Date().toISOString(),
               isOptimistic: true,
             },
@@ -465,7 +467,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
         setToolActivity(null)
       }
     },
-    [currentConversationId, isExecuting, isSending, consumeStream]
+    [currentConversationId, isExecuting, isSending, consumeStream, t]
   )
 
   const deleteMutation = useMutation<{ success: boolean }, Error, string>({
@@ -477,7 +479,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        throw new Error(err.message || 'فشل حذف المحادثة')
+        throw new Error(err.message || t('deleteError'))
       }
       return res.json()
     },

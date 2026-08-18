@@ -43,13 +43,13 @@ async function fetchSchedule(roomId?: string, teacherId?: string) {
   if (roomId) params.set("roomId", roomId)
   if (teacherId) params.set("teacherId", teacherId)
   const res = await fetch(`/api/schedule?${params}`)
-  if (!res.ok) throw new Error("فشل في جلب الجدول")
+  if (!res.ok) throw new Error("Failed to fetch schedule")
   return res.json()
 }
 
 async function fetchConflicts() {
   const res = await fetch("/api/schedule/conflicts")
-  if (!res.ok) throw new Error("فشل في فحص التعارضات")
+  if (!res.ok) throw new Error("Failed to check conflicts")
   return res.json()
 }
 
@@ -59,7 +59,7 @@ async function autoAssignRooms(confirm: boolean) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ confirm }),
   })
-  if (!res.ok) throw new Error("فشل في التعيين التلقائي")
+  if (!res.ok) throw new Error("Failed to auto-assign rooms")
   return res.json()
 }
 
@@ -173,7 +173,7 @@ export default function SchedulePage() {
         setAutoAssignPreview(result)
       }
     },
-    onError: (err: Error) => showError(t("error"), err.message),
+    onError: () => showError(tc("error"), t("autoAssignError")),
   })
 
   const sessions = data?.sessions || []

@@ -74,7 +74,7 @@ async function getReceipt(paymentId: string, tenantId: string): Promise<ReceiptD
   const studentName =
     student?.fullName ||
     [student?.firstName, student?.lastName].filter(Boolean).join(" ") ||
-    "طالب"
+    ""
 
   // Human-readable receipt number: REC-YYYYMM-<last 6 of payment id>
   const idTail = String(payment._id).slice(-6).toUpperCase()
@@ -129,6 +129,7 @@ export default async function PaymentReceiptPage({
   if (!receipt) notFound()
 
   const tc = await getTranslations("common")
+  const t = await getTranslations("receipt")
   const monthLabel = tc(`months.${receipt.month}`)
   const accent = receipt.primaryColor
 
@@ -137,7 +138,7 @@ export default async function PaymentReceiptPage({
       {/* Toolbar (hidden when printing) */}
       <div className="no-print mb-6 flex items-center justify-between">
         <a href="/admin/subscriptions" className="text-sm text-neutral-500 hover:text-neutral-800">
-          → العودة للاشتراكات
+          {t("backToSubscriptions")}
         </a>
         <PrintButton />
       </div>
@@ -163,7 +164,7 @@ export default async function PaymentReceiptPage({
             </div>
           </div>
           <div className="text-left text-white">
-            <p className="text-xs uppercase tracking-wide text-white/70">وصل خلاص</p>
+            <p className="text-xs uppercase tracking-wide text-white/70">{t("title")}</p>
             <p className="text-sm font-semibold" dir="ltr">{receipt.receiptNumber}</p>
           </div>
         </div>
@@ -171,7 +172,7 @@ export default async function PaymentReceiptPage({
         {/* Body */}
         <div className="p-6 space-y-6">
           <div className="text-center">
-            <p className="text-sm text-neutral-500">وصل خلاص الاشتراك الشهري</p>
+            <p className="text-sm text-neutral-500">{t("subtitle")}</p>
             <p className="mt-1 text-2xl font-bold" style={{ color: accent }}>
               {monthLabel} {receipt.year}
             </p>
@@ -180,23 +181,23 @@ export default async function PaymentReceiptPage({
           {/* Details grid */}
           <dl className="grid grid-cols-1 gap-x-8 gap-y-3 rounded-lg bg-neutral-50 p-5 text-sm sm:grid-cols-2 print:bg-neutral-50">
             <div className="flex justify-between border-b border-dashed border-neutral-200 pb-2">
-              <dt className="text-neutral-500">الطالب</dt>
-              <dd className="font-medium text-neutral-900">{receipt.studentName}</dd>
+              <dt className="text-neutral-500">{t("studentLabel")}</dt>
+              <dd className="font-medium text-neutral-900">{receipt.studentName || t("unknownStudent")}</dd>
             </div>
             {receipt.enrollmentNumber && (
               <div className="flex justify-between border-b border-dashed border-neutral-200 pb-2">
-                <dt className="text-neutral-500">رقم الانخراط</dt>
+                <dt className="text-neutral-500">{t("enrollmentNumber")}</dt>
                 <dd className="font-medium text-neutral-900" dir="ltr">{receipt.enrollmentNumber}</dd>
               </div>
             )}
             {receipt.parentName && (
               <div className="flex justify-between border-b border-dashed border-neutral-200 pb-2">
-                <dt className="text-neutral-500">الولي</dt>
+                <dt className="text-neutral-500">{t("parentLabel")}</dt>
                 <dd className="font-medium text-neutral-900">{receipt.parentName}</dd>
               </div>
             )}
             <div className="flex justify-between border-b border-dashed border-neutral-200 pb-2">
-              <dt className="text-neutral-500">تاريخ الخلاص</dt>
+              <dt className="text-neutral-500">{t("paymentDate")}</dt>
               <dd className="font-medium text-neutral-900">{formatDate(receipt.paidAt)}</dd>
             </div>
           </dl>
@@ -206,15 +207,15 @@ export default async function PaymentReceiptPage({
             className="flex items-center justify-between rounded-lg px-5 py-4"
             style={{ backgroundColor: `${accent}12` }}
           >
-            <span className="text-sm font-medium text-neutral-600">المبلغ المدفوع</span>
+            <span className="text-sm font-medium text-neutral-600">{t("amountPaid")}</span>
             <span className="text-2xl font-bold" style={{ color: accent }} dir="ltr">
-              {typeof receipt.amount === "number" ? `${receipt.amount.toFixed(2)} د.ت` : "—"}
+              {typeof receipt.amount === "number" ? `${receipt.amount.toFixed(2)} ${t("currency")}` : "—"}
             </span>
           </div>
 
           {receipt.notes && (
             <div className="text-sm">
-              <p className="text-neutral-500">ملاحظات</p>
+              <p className="text-neutral-500">{t("notes")}</p>
               <p className="mt-1 text-neutral-800">{receipt.notes}</p>
             </div>
           )}
@@ -222,17 +223,17 @@ export default async function PaymentReceiptPage({
           {/* Footer */}
           <div className="flex items-end justify-between border-t border-neutral-200 pt-5 text-xs text-neutral-500">
             <div>
-              {receipt.markedBy && <p>سُجّل بواسطة: {receipt.markedBy}</p>}
+              {receipt.markedBy && <p>{t("markedBy")} {receipt.markedBy}</p>}
               {receipt.contactPhone && <p dir="ltr">{receipt.contactPhone}</p>}
             </div>
             <div className="text-center">
               <div className="mb-1 h-12 w-32 border-b border-neutral-300" />
-              <p>الختم والإمضاء</p>
+              <p>{t("stampAndSignature")}</p>
             </div>
           </div>
 
           <p className="text-center text-[11px] text-neutral-400">
-            بارك الله فيكم — هذا الوصل دليل على خلاص الاشتراك للشهر المذكور
+            {t("footer")}
           </p>
         </div>
       </div>

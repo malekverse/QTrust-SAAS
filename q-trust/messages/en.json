@@ -186,7 +186,14 @@
     "behaviorTypes": {
       "POSITIVE": "Positive Behavior",
       "CONCERN": "Behavioral Concern"
-    }
+    },
+    "unexpectedError": "An unexpected error occurred",
+    "unexpectedErrorDesc": "We apologize, an error occurred while processing your request. Please try again.",
+    "tryAgain": "Try Again",
+    "backHome": "Back to Home",
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDesc": "Sorry, the page you are looking for does not exist or has been moved",
+    "signOut": "Sign Out"
   },
   "pagination": {
     "page": "Page",
@@ -265,7 +272,8 @@
       "quickActions": "Quick Actions",
       "noActivity": "No recent activity",
       "upcomingSessions": "Upcoming Sessions",
-      "noUpcoming": "No sessions scheduled today"
+      "noUpcoming": "No sessions scheduled today",
+      "noData": "No data available"
     },
     "students": {
       "title": "Student Management",
@@ -505,7 +513,12 @@
       "scanQR": "Scan QR",
       "checkIn": "Check In",
       "checkedIn": "Checked In",
-      "alreadyCheckedIn": "Already checked in"
+      "alreadyCheckedIn": "Already checked in",
+      "csvSession": "Session",
+      "csvStudent": "Student",
+      "csvStatus": "Status",
+      "csvCheckInTime": "Check-in Time",
+      "csvFilenamePrefix": "attendance"
     },
     "admissions": {
       "title": "Admission Applications",
@@ -627,7 +640,11 @@
         "SOUND_SYSTEM": "Sound System",
         "PRAYER_MATS": "Prayer Mats",
         "QURAN_COPIES": "Quran Copies"
-      }
+      },
+      "fetchRoomsError": "Failed to load rooms",
+      "createRoomError": "Failed to create room",
+      "updateRoomError": "Failed to update room",
+      "deleteRoomError": "Failed to delete room"
     },
     "substitutes": {
       "title": "Substitute Management",
@@ -704,7 +721,10 @@
       "title": "Schedule",
       "description": "View the weekly session schedule",
       "weeklySchedule": "Weekly Schedule",
-      "noSchedule": "No schedule"
+      "noSchedule": "No schedule",
+      "fetchScheduleError": "Failed to load schedule",
+      "conflictCheckError": "Failed to check conflicts",
+      "autoAssignError": "Failed to auto-assign"
     },
     "aiAssistant": {
       "title": "AI Assistant",
@@ -1318,5 +1338,120 @@
     "morningSubtitle": "May God bless your morning and your work",
     "afternoonSubtitle": "May God bless your work today",
     "eveningSubtitle": "May God make your evening good and blessed"
+  },
+  "receipt": {
+    "unknownStudent": "Student",
+    "backToSubscriptions": "Back to subscriptions",
+    "title": "Payment Receipt",
+    "subtitle": "Monthly subscription payment receipt",
+    "studentLabel": "Student",
+    "enrollmentNumber": "Enrollment number",
+    "parentLabel": "Guardian",
+    "paymentDate": "Payment date",
+    "amountPaid": "Amount paid",
+    "currency": "TND",
+    "notes": "Notes",
+    "markedBy": "Recorded by:",
+    "stampAndSignature": "Stamp & Signature",
+    "footer": "May God bless you — this receipt is proof of subscription payment for the mentioned month",
+    "printButton": "Print / Save PDF"
+  },
+  "leaderboard": {
+    "locked": "Leaderboard unavailable",
+    "lockedDesc": "This feature is available in the premium plan.",
+    "loadError": "Failed to load leaderboard",
+    "title": "Leaderboard",
+    "empty": "No points yet — start your journey to excellence",
+    "point": "point",
+    "attendance": "attendance",
+    "verse": "verse",
+    "footer": "Auto-refreshing — May God reward you"
+  },
+  "enroll": {
+    "genericError": "An error occurred",
+    "successTitle": "Enrollment request submitted",
+    "successMessage": "Thank you. Your application will be reviewed and we will contact you shortly, God willing.",
+    "studentInfo": "Student Information",
+    "firstName": "First Name *",
+    "lastName": "Last Name *",
+    "gender": "Gender *",
+    "selectGender": "Select...",
+    "male": "Male",
+    "female": "Female",
+    "dateOfBirth": "Date of Birth",
+    "cin": "ID Card Number (8 digits)",
+    "educationLevel": "Education Level",
+    "address": "Address",
+    "parentInfo": "Guardian Information",
+    "parentName": "Guardian Name",
+    "parentPhone": "Guardian Phone (+216XXXXXXXX)",
+    "parentEmail": "Guardian Email",
+    "medicalNotes": "Medical or emergency notes (optional)",
+    "submit": "Submit Enrollment Request",
+    "consent": "By submitting this request, you agree to the association reviewing the provided data.",
+    "defaultName": "Enrollment",
+    "metadataTitle": "Enrollment — {name}",
+    "metadataDescription": "Submit an enrollment application to {name}",
+    "formSubtitle": "Enrollment Application Form"
+  },
+  "ai": {
+    "connectionError": "Failed to connect to assistant",
+    "unexpectedResponse": "Unexpected response",
+    "noStream": "No readable stream",
+    "unknownError": "An unknown error occurred",
+    "thinking": "Ahmed is thinking...",
+    "errorMessage": "Sorry, an error occurred: {error}",
+    "regenerating": "Ahmed is rethinking...",
+    "regenerateError": "Sorry, regeneration failed: {error}",
+    "executing": "Ahmed is executing...",
+    "actionRejected": "Action rejected",
+    "executeError": "Sorry, an error occurred during execution: {error}",
+    "deleteError": "Failed to delete conversation",
+    "actionCreate": "Create",
+    "actionEdit": "Edit",
+    "actionDelete": "Delete",
+    "actionGeneric": "Action",
+    "moreFields": "... and {count} more fields",
+    "closeEdit": "Close editing",
+    "editValues": "Edit values",
+    "reset": "Reset",
+    "statusExecuted": "Executed successfully",
+    "statusRejected": "Rejected",
+    "statusFailed": "Execution failed",
+    "valuesModified": "Some values were modified — execution will use the modified values",
+    "approveWithChanges": "Approve (with changes)",
+    "approve": "Approve",
+    "reject": "Reject",
+    "params": {
+      "name": "Name",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "fullName": "Full Name",
+      "teacherId": "Teacher ID",
+      "studentId": "Student ID",
+      "roomId": "Room ID",
+      "sessionTemplateId": "Session ID",
+      "dayOfWeek": "Day of Week (0-6)",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "effectiveFromDate": "Effective From",
+      "effectiveToDate": "Effective To",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "date": "Date",
+      "email": "Email",
+      "phone": "Phone",
+      "gender": "Gender",
+      "cin": "ID Number",
+      "capacity": "Capacity",
+      "description": "Description",
+      "status": "Status",
+      "isPaid": "Paid",
+      "month": "Month",
+      "year": "Year",
+      "amount": "Amount",
+      "notes": "Notes",
+      "isActive": "Active"
+    }
   }
 }

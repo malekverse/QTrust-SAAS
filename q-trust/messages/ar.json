@@ -186,7 +186,14 @@
     "behaviorTypes": {
       "POSITIVE": "سلوك إيجابي",
       "CONCERN": "ملاحظة سلوكية"
-    }
+    },
+    "unexpectedError": "حدث خطأ غير متوقع",
+    "unexpectedErrorDesc": "نعتذر، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "backHome": "العودة للرئيسية",
+    "pageNotFound": "الصفحة غير موجودة",
+    "pageNotFoundDesc": "عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها",
+    "signOut": "تسجيل الخروج"
   },
   "pagination": {
     "page": "صفحة",
@@ -265,7 +272,8 @@
       "quickActions": "إجراءات سريعة",
       "noActivity": "لا يوجد نشاط حديث",
       "upcomingSessions": "الحصص القادمة",
-      "noUpcoming": "لا توجد حصص قادمة اليوم"
+      "noUpcoming": "لا توجد حصص قادمة اليوم",
+      "noData": "لا توجد بيانات متاحة"
     },
     "students": {
       "title": "إدارة الطلاب",
@@ -505,7 +513,12 @@
       "scanQR": "مسح QR",
       "checkIn": "تسجيل الحضور",
       "checkedIn": "تم تسجيل الحضور",
-      "alreadyCheckedIn": "تم تسجيل الحضور مسبقاً"
+      "alreadyCheckedIn": "تم تسجيل الحضور مسبقاً",
+      "csvSession": "الحصة",
+      "csvStudent": "الطالب",
+      "csvStatus": "الحالة",
+      "csvCheckInTime": "وقت الحضور",
+      "csvFilenamePrefix": "حضور"
     },
     "admissions": {
       "title": "طلبات التسجيل",
@@ -627,7 +640,11 @@
         "SOUND_SYSTEM": "نظام صوت",
         "PRAYER_MATS": "حصائر صلاة",
         "QURAN_COPIES": "نسخ مصاحف"
-      }
+      },
+      "fetchRoomsError": "فشل في جلب القاعات",
+      "createRoomError": "فشل في إنشاء القاعة",
+      "updateRoomError": "فشل في تحديث القاعة",
+      "deleteRoomError": "فشل في حذف القاعة"
     },
     "substitutes": {
       "title": "إدارة النواب",
@@ -704,7 +721,10 @@
       "title": "الجدول الزمني",
       "description": "عرض الجدول الأسبوعي للحصص",
       "weeklySchedule": "الجدول الأسبوعي",
-      "noSchedule": "لا يوجد جدول"
+      "noSchedule": "لا يوجد جدول",
+      "fetchScheduleError": "فشل في جلب الجدول",
+      "conflictCheckError": "فشل في فحص التعارضات",
+      "autoAssignError": "فشل في التعيين التلقائي"
     },
     "aiAssistant": {
       "title": "المساعد الذكي",
@@ -1318,5 +1338,120 @@
     "morningSubtitle": "نسأل الله أن يبارك في صباحكم وعملكم",
     "afternoonSubtitle": "نسأل الله أن يبارك في عملكم اليوم",
     "eveningSubtitle": "جعل الله مساءكم خيراً وبركة"
+  },
+  "receipt": {
+    "unknownStudent": "طالب",
+    "backToSubscriptions": "→ العودة للاشتراكات",
+    "title": "وصل خلاص",
+    "subtitle": "وصل خلاص الاشتراك الشهري",
+    "studentLabel": "الطالب",
+    "enrollmentNumber": "رقم الانخراط",
+    "parentLabel": "الولي",
+    "paymentDate": "تاريخ الخلاص",
+    "amountPaid": "المبلغ المدفوع",
+    "currency": "د.ت",
+    "notes": "ملاحظات",
+    "markedBy": "سُجّل بواسطة:",
+    "stampAndSignature": "الختم والإمضاء",
+    "footer": "بارك الله فيكم — هذا الوصل دليل على خلاص الاشتراك للشهر المذكور",
+    "printButton": "طباعة / حفظ PDF"
+  },
+  "leaderboard": {
+    "locked": "لوحة الشرف غير متاحة",
+    "lockedDesc": "هذه الميزة متوفّرة ضمن الباقة المتقدّمة.",
+    "loadError": "تعذّر تحميل لوحة الشرف",
+    "title": "لوحة الشرف",
+    "empty": "لا توجد نقاط بعد — ابدؤوا رحلة التميّز",
+    "point": "نقطة",
+    "attendance": "حضور",
+    "verse": "آية",
+    "footer": "يتم التحديث تلقائياً • جزاكم الله خيراً"
+  },
+  "enroll": {
+    "genericError": "حدث خطأ",
+    "successTitle": "تم إرسال طلب التسجيل",
+    "successMessage": "شكراً لكم. سيتم مراجعة الطلب والتواصل معكم قريباً بإذن الله.",
+    "studentInfo": "معلومات الطالب",
+    "firstName": "الاسم *",
+    "lastName": "اللقب *",
+    "gender": "الجنس *",
+    "selectGender": "اختر...",
+    "male": "ذكر",
+    "female": "أنثى",
+    "dateOfBirth": "تاريخ الولادة",
+    "cin": "رقم بطاقة التعريف (8 أرقام)",
+    "educationLevel": "المستوى التعليمي",
+    "address": "العنوان",
+    "parentInfo": "معلومات الولي",
+    "parentName": "اسم الولي",
+    "parentPhone": "هاتف الولي (+216XXXXXXXX)",
+    "parentEmail": "البريد الإلكتروني للولي",
+    "medicalNotes": "ملاحظات صحية أو طارئة (اختياري)",
+    "submit": "إرسال طلب التسجيل",
+    "consent": "بإرسال هذا الطلب فإنكم توافقون على مراجعة الجمعية للبيانات المقدمة.",
+    "defaultName": "التسجيل",
+    "metadataTitle": "التسجيل — {name}",
+    "metadataDescription": "قدّم طلب تسجيل في {name}",
+    "formSubtitle": "استمارة طلب التسجيل"
+  },
+  "ai": {
+    "connectionError": "فشل الاتصال بالمساعد",
+    "unexpectedResponse": "استجابة غير متوقعة",
+    "noStream": "لا يوجد تدفق للقراءة",
+    "unknownError": "حدث خطأ غير معروف",
+    "thinking": "يفكر أحمد...",
+    "errorMessage": "عذراً، حدث خطأ: {error}",
+    "regenerating": "يعيد أحمد التفكير...",
+    "regenerateError": "عذراً، تعذّر إعادة التوليد: {error}",
+    "executing": "يُنفّذ أحمد...",
+    "actionRejected": "تم رفض الإجراء",
+    "executeError": "عذراً، حدث خطأ أثناء التنفيذ: {error}",
+    "deleteError": "فشل حذف المحادثة",
+    "actionCreate": "إنشاء",
+    "actionEdit": "تعديل",
+    "actionDelete": "حذف",
+    "actionGeneric": "إجراء",
+    "moreFields": "... و {count} حقول أخرى",
+    "closeEdit": "إغلاق التعديل",
+    "editValues": "تعديل القيم",
+    "reset": "إعادة تعيين",
+    "statusExecuted": "تم التنفيذ بنجاح",
+    "statusRejected": "تم الرفض",
+    "statusFailed": "فشل التنفيذ",
+    "valuesModified": "تم تعديل بعض القيم — سيتم التنفيذ بالقيم المعدّلة",
+    "approveWithChanges": "موافقة (مع التعديلات)",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "params": {
+      "name": "الاسم",
+      "firstName": "الاسم الأول",
+      "lastName": "اللقب",
+      "fullName": "الاسم الكامل",
+      "teacherId": "معرف المعلم",
+      "studentId": "معرف الطالب",
+      "roomId": "معرف القاعة",
+      "sessionTemplateId": "معرف الحصة",
+      "dayOfWeek": "يوم الأسبوع (0-6)",
+      "startTime": "وقت البداية",
+      "endTime": "وقت النهاية",
+      "effectiveFromDate": "تاريخ البداية",
+      "effectiveToDate": "تاريخ النهاية",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ النهاية",
+      "date": "التاريخ",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "gender": "الجنس",
+      "cin": "رقم الهوية",
+      "capacity": "السعة",
+      "description": "الوصف",
+      "status": "الحالة",
+      "isPaid": "مدفوع",
+      "month": "الشهر",
+      "year": "السنة",
+      "amount": "المبلغ",
+      "notes": "ملاحظات",
+      "isActive": "نشط"
+    }
   }
 }

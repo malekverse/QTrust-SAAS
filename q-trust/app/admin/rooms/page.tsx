@@ -47,7 +47,7 @@ import Link from "next/link"
 
 async function fetchRooms(page: number) {
   const res = await fetch(`/api/rooms?page=${page}`)
-  if (!res.ok) throw new Error("فشل في جلب القاعات")
+  if (!res.ok) throw new Error("Failed to fetch rooms")
   return res.json()
 }
 
@@ -59,7 +59,7 @@ async function createRoom(data: RoomFormInput) {
   })
   if (!res.ok) {
     const err = await res.json()
-    throw new Error(err.message || "فشل في إنشاء القاعة")
+    throw new Error(err.message || "Failed to create room")
   }
   return res.json()
 }
@@ -72,7 +72,7 @@ async function updateRoom(id: string, data: Partial<RoomFormInput>) {
   })
   if (!res.ok) {
     const err = await res.json()
-    throw new Error(err.message || "فشل في تحديث القاعة")
+    throw new Error(err.message || "Failed to update room")
   }
   return res.json()
 }
@@ -81,7 +81,7 @@ async function deleteRoom(id: string) {
   const res = await fetch(`/api/rooms/${id}`, { method: "DELETE" })
   if (!res.ok) {
     const err = await res.json()
-    throw new Error(err.message || "فشل في حذف القاعة")
+    throw new Error(err.message || "Failed to delete room")
   }
   return res.json()
 }
@@ -136,7 +136,7 @@ export default function RoomsPage() {
       reset()
       success(t("created"), t("roomCreated", { name: data.name }))
     },
-    onError: (err: Error) => showError(t("error"), err.message),
+    onError: () => showError(tc("error"), t("createRoomError")),
   })
 
   const updateMutation = useMutation({
@@ -147,7 +147,7 @@ export default function RoomsPage() {
       setEditingRoom(null)
       success(t("updated"), t("roomUpdated"))
     },
-    onError: (err: Error) => showError(t("error"), err.message),
+    onError: () => showError(tc("error"), t("updateRoomError")),
   })
 
   const deleteMutation = useMutation({
@@ -157,9 +157,9 @@ export default function RoomsPage() {
       setDeleteId(null)
       success(t("deleted"), t("roomDeleted"))
     },
-    onError: (err: Error) => {
+    onError: () => {
       setDeleteId(null)
-      showError(t("error"), err.message)
+      showError(tc("error"), t("deleteRoomError"))
     },
   })
 

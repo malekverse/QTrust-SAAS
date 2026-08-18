@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useEffect } from "react"
+import { use, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm, Controller } from "react-hook-form"
@@ -111,12 +111,12 @@ type EditStudentInput = {
   isActive?: boolean
 }
 
-// Schema for edit form validation
-const editStudentSchema = z.object({
+// Schema for edit form validation (factory: accepts t() for i18n)
+const createEditStudentSchema = (t: (key: string) => string) => z.object({
   enrollmentNumber: z.string().optional(),
   cin: z.string().optional().or(z.literal('')),
-  firstName: z.string().min(2, 'الاسم يجب أن يكون على الأقل حرفين'),
-  lastName: z.string().min(2, 'اللقب يجب أن يكون على الأقل حرفين'),
+  firstName: z.string().min(2, t("firstNameMinLength")),
+  lastName: z.string().min(2, t("lastNameMinLength")),
   fatherName: z.string().optional(),
   gender: z.enum([GENDER.MALE, GENDER.FEMALE]),
   profession: z.string().optional(),
@@ -148,6 +148,7 @@ export default function EditStudentPage({
   const { success, error } = useToast()
   const t = useTranslations("admin.students")
   const tc = useTranslations("common")
+  const editStudentSchema = useMemo(() => createEditStudentSchema(t), [t])
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["student", id],

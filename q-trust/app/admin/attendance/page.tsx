@@ -371,7 +371,7 @@ export default function AttendancePage() {
   const handleExportCSV = () => {
     if (!data?.sessions) return
     
-    const headers = ["الحصة", "الطالب", "الحالة", "وقت الحضور"]
+    const headers = [t("csvSession"), t("csvStudent"), t("csvStatus"), t("csvCheckInTime")]
     const rows: string[][] = []
     
     data.sessions.forEach(session => {
@@ -392,7 +392,7 @@ export default function AttendancePage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `حضور-${selectedDate}.csv`
+    a.download = `${t("csvFilenamePrefix")}-${selectedDate}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }

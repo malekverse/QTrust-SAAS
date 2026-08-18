@@ -10,7 +10,9 @@ import { UI_LABELS } from "./i18n"
 import type { MarketingLocale } from "./i18n"
 
 function prefixHref(href: string, locale: MarketingLocale) {
-  return locale === "fr" ? `/fr${href}` : href
+  if (locale === "fr") return `/fr${href}`
+  if (locale === "en") return `/en${href}`
+  return href
 }
 
 function ThemeToggle({ label }: { label: string }) {
@@ -37,7 +39,7 @@ function ThemeToggle({ label }: { label: string }) {
 export function MarketingNav({ locale = "ar" }: { locale?: MarketingLocale }) {
   const t = UI_LABELS[locale]
   const ctaArrow = locale === "ar" ? "←" : "→"
-  const themeLabel = locale === "ar" ? "تبديل المظهر" : "Changer le thème"
+  const themeLabel = locale === "ar" ? "تبديل المظهر" : locale === "fr" ? "Changer le thème" : "Toggle theme"
 
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -69,7 +71,7 @@ export function MarketingNav({ locale = "ar" }: { locale?: MarketingLocale }) {
             <span className="mk-display text-lg font-bold" dir="ltr">Q-Trust</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6" aria-label={locale === "ar" ? "التنقل الرئيسي" : "Navigation principale"}>
+          <nav className="hidden md:flex items-center gap-6" aria-label={locale === "ar" ? "التنقل الرئيسي" : locale === "fr" ? "Navigation principale" : "Main navigation"}>
             {LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="mk-nav-link">
                 {l.label}
@@ -106,7 +108,7 @@ export function MarketingNav({ locale = "ar" }: { locale?: MarketingLocale }) {
         {open && (
           <nav
             className="md:hidden pb-5 pt-1 flex flex-col gap-1 border-t border-foreground/8"
-            aria-label={locale === "ar" ? "التنقل الرئيسي" : "Navigation principale"}
+            aria-label={locale === "ar" ? "التنقل الرئيسي" : locale === "fr" ? "Navigation principale" : "Main navigation"}
           >
             <div className="flex items-center gap-2 py-2.5">
               <Link href={t.switchLangHref} className="mk-nav-link text-xs font-semibold rounded-md px-2.5 py-1.5">

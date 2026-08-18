@@ -4,7 +4,9 @@ import { UI_LABELS } from "./i18n"
 import type { MarketingLocale } from "./i18n"
 
 function prefixHref(href: string, locale: MarketingLocale) {
-  return locale === "fr" ? `/fr${href}` : href
+  if (locale === "fr") return `/fr${href}`
+  if (locale === "en") return `/en${href}`
+  return href
 }
 
 export function MarketingFooter({ locale = "ar" }: { locale?: MarketingLocale }) {

@@ -1,4 +1,4 @@
-export type MarketingLocale = "ar" | "fr"
+export type MarketingLocale = "ar" | "fr" | "en"
 
 export function getLocaleDir(locale: MarketingLocale): "rtl" | "ltr" {
   return locale === "ar" ? "rtl" : "ltr"
@@ -45,6 +45,27 @@ export const UI_LABELS = {
     openMenu: "Ouvrir le menu",
     closeMenu: "Fermer le menu",
     homeLabel: "Q-Trust — Accueil",
+    switchLang: "ع",
+    switchLangHref: "/",
+  },
+  en: {
+    features: "Features",
+    pricing: "Pricing",
+    contact: "Contact us",
+    login: "Log in",
+    bookDemo: "Book a demo",
+    product: "Product",
+    company: "Company",
+    trustAndPrivacy: "Trust & Privacy",
+    about: "About",
+    privacy: "Privacy Policy",
+    terms: "Terms of Service",
+    tagline: "Management platform for Quranic schools and associations — attendance, payments, and tracking in one place.",
+    copyright: "All rights reserved.",
+    madeIn: "Made in Tunisia 🇹🇳",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    homeLabel: "Q-Trust — Home",
     switchLang: "ع",
     switchLangHref: "/",
   },

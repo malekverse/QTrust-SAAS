@@ -51,6 +51,8 @@ import { formatDistanceToNow } from "date-fns"
 import { ar } from "date-fns/locale"
 import { getTranslations } from "next-intl/server"
 
+export const dynamic = 'force-dynamic'
+
 async function DashboardStats() {
   try {
     const tenantId = (await auth())?.user?.tenantId

@@ -80,7 +80,6 @@ NEXTAUTH_SECRET=your-super-secret-key-32-chars-minimum
 
 # Scanner Token (للحماية)
 SCANNER_DEVICE_TOKEN=your-scanner-secret-token
-NEXT_PUBLIC_SCANNER_TOKEN=your-scanner-secret-token
 
 # Cloudinary (لرفع الملفات)
 # احصل على هذه القيم من: https://cloudinary.com/console

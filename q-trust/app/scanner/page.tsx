@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle, XCircle, Loader2, Camera, RefreshCw, Sparkles, AlertTriangle } from "lucide-react"
 import { BrandLogo } from "@/components/brand-logo"
 import { Button } from "@/components/ui/button"
+import { scannerCheckIn } from "./actions"
 
 // Pre-computed confetti data to avoid Math.random during render
 const CONFETTI_PARTICLES = Array.from({ length: 50 }, (_, i) => ({
@@ -63,21 +64,9 @@ export default function ScannerPage() {
     lastScanRef.current = qrUuid
 
     try {
-      const res = await fetch("/api/attendance/check-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-scanner-token": process.env.NEXT_PUBLIC_SCANNER_TOKEN || "dev-scanner-token"
-        },
-        body: JSON.stringify({
-          qrUuid,
-          scannedAt: new Date().toISOString(),
-        }),
-      })
+      const { ok, data } = await scannerCheckIn(qrUuid, new Date().toISOString())
 
-      const data = await res.json()
-
-      if (res.ok) {
+      if (ok) {
         setScanResult({
           success: true,
           studentName: data.studentName,

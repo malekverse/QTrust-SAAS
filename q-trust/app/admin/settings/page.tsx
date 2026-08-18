@@ -60,15 +60,15 @@ interface ScannerDeviceInfo {
 // (heartbeat interval is 5 minutes)
 const DEVICE_ONLINE_WINDOW_MS = 6 * 60 * 1000
 
-function timeAgoAr(iso: string): string {
+function timeAgo(iso: string, t: (key: string, values?: Record<string, string | number | Date>) => string): string {
   const diffMs = Date.now() - new Date(iso).getTime()
   const min = Math.floor(diffMs / 60000)
-  if (min < 1) return 'الآن'
-  if (min < 60) return `قبل ${min} دقيقة`
+  if (min < 1) return t('timeAgoNow')
+  if (min < 60) return t('timeAgoMinutes', { count: min })
   const hours = Math.floor(min / 60)
-  if (hours < 24) return `قبل ${hours} ساعة`
+  if (hours < 24) return t('timeAgoHours', { count: hours })
   const days = Math.floor(hours / 24)
-  return `قبل ${days} يوم`
+  return t('timeAgoDays', { count: days })
 }
 
 // Enrollment settings type
@@ -92,12 +92,12 @@ const DEFAULT_ENROLLMENT_SETTINGS: EnrollmentSettings = {
 
 // Format presets
 const FORMAT_PRESETS = [
-  { value: '{YEAR}-{SEQ}', label: 'سنة-رقم', example: '2026-001' },
-  { value: '{PREFIX}/{YEAR}/{SEQ}', label: 'بادئة/سنة/رقم', example: 'QT/2026/001' },
-  { value: '{PREFIX}-{YEAR}-{SEQ}', label: 'بادئة-سنة-رقم', example: 'QT-2026-001' },
-  { value: '{YEAR_SHORT}{SEQ}', label: 'سنة قصيرة+رقم', example: '26001' },
-  { value: '{PREFIX}{SEQ}', label: 'بادئة+رقم (مستمر)', example: 'QT00001' },
-  { value: '{SEQ}', label: 'رقم فقط', example: '00001' },
+  { value: '{YEAR}-{SEQ}', labelKey: 'formatYearSeq', example: '2026-001' },
+  { value: '{PREFIX}/{YEAR}/{SEQ}', labelKey: 'formatPrefixYearSeq', example: 'QT/2026/001' },
+  { value: '{PREFIX}-{YEAR}-{SEQ}', labelKey: 'formatPrefixDashYearSeq', example: 'QT-2026-001' },
+  { value: '{YEAR_SHORT}{SEQ}', labelKey: 'formatShortYearSeq', example: '26001' },
+  { value: '{PREFIX}{SEQ}', labelKey: 'formatPrefixSeqContinuous', example: 'QT00001' },
+  { value: '{SEQ}', labelKey: 'formatSeqOnly', example: '00001' },
 ]
 
 // Helper to generate preview
@@ -127,14 +127,14 @@ async function fetchEnrollmentSettings(): Promise<EnrollmentSettings> {
 }
 
 // Save enrollment settings
-async function saveEnrollmentSettings(settings: EnrollmentSettings) {
+async function saveEnrollmentSettings({ settings, description }: { settings: EnrollmentSettings; description: string }) {
   const res = await fetch('/api/settings', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       key: 'enrollment',
       value: settings,
-      description: 'إعدادات رقم الانخراط'
+      description: description
     })
   })
   if (!res.ok) {
@@ -169,7 +169,7 @@ export default function AdminSettingsPage() {
     queryKey: ['settings', 'scanner-token'],
     queryFn: async (): Promise<{ token: string | null }> => {
       const res = await fetch('/api/admin/scanner-token')
-      if (!res.ok) throw new Error('فشل في جلب رمز الماسح')
+      if (!res.ok) throw new Error(t('fetchScannerTokenFailed'))
       return res.json()
     }
   })
@@ -178,7 +178,7 @@ export default function AdminSettingsPage() {
     queryKey: ['settings', 'scanner-devices'],
     queryFn: async (): Promise<{ devices: ScannerDeviceInfo[] }> => {
       const res = await fetch('/api/admin/scanner-devices')
-      if (!res.ok) throw new Error('فشل في جلب الأجهزة')
+      if (!res.ok) throw new Error(t('fetchDevicesFailed'))
       return res.json()
     },
     refetchInterval: 60_000
@@ -198,10 +198,10 @@ export default function AdminSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings', 'enrollment'] })
       queryClient.invalidateQueries({ queryKey: ['nextEnrollmentNumber'] })
-      success('تم الحفظ', 'تم حفظ إعدادات رقم الانخراط بنجاح')
+      success(t('toastSaved'), t('enrollmentSavedMsg'))
     },
     onError: (err: Error) => {
-      error('خطأ', err.message || 'فشل حفظ الإعدادات')
+      error(t('toastError'), err.message || t('saveSettingsFailed'))
     }
   })
   
@@ -236,24 +236,24 @@ export default function AdminSettingsPage() {
       const result = await res.json()
 
       if (!res.ok) {
-        error("خطأ", result.message || "فشل تغيير كلمة المرور")
+        error(t("toastError"), result.message || t("changePasswordFailed"))
         return
       }
 
-      success("تم بنجاح", "تم تغيير كلمة المرور بنجاح")
+      success(t("toastSuccess"), t("passwordChangedMsg"))
       reset()
       setIsChangingPassword(false)
       setShowCurrentPassword(false)
       setShowNewPassword(false)
       setShowConfirmPassword(false)
     } catch (err) {
-      error("خطأ", "حدث خطأ أثناء تغيير كلمة المرور")
+      error(t("toastError"), t("passwordChangeError"))
     }
   }
 
   const handleSaveQrSettings = () => {
     // In production, this would save to the database
-    success("تم الحفظ", "تم حفظ إعدادات QR")
+    success(t("toastSaved"), t("qrSettingsSavedMsg"))
   }
 
   // Occurrence generation state
@@ -265,7 +265,7 @@ export default function AdminSettingsPage() {
 
   const handleGenerateOccurrences = async () => {
     if (!occurrenceRange.startDate || !occurrenceRange.endDate) {
-      warning("تنبيه", "يرجى تحديد تاريخ البداية والنهاية")
+      warning(t("toastWarning"), t("selectDateRange"))
       return
     }
 
@@ -280,14 +280,14 @@ export default function AdminSettingsPage() {
       const result = await res.json()
 
       if (!res.ok) {
-        error("خطأ", result.message || "فشل إنشاء الحصص")
+        error(t("toastError"), result.message || t("generateOccurrencesFailed"))
         return
       }
 
-      success("تم بنجاح", result.message)
+      success(t("toastSuccess"), result.message)
       setOccurrenceRange({ startDate: "", endDate: "" })
     } catch (err) {
-      error("خطأ", "حدث خطأ أثناء إنشاء الحصص")
+      error(t("toastError"), t("generateOccurrencesError"))
     } finally {
       setIsGenerating(false)
     }
@@ -323,16 +323,16 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                معلومات الحساب
+                {t("accountInfo")}
               </CardTitle>
               <CardDescription>
-                معلوماتك الأساسية كمسؤول
+                {t("accountInfoDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>الاسم الكامل</Label>
+                  <Label>{t("fullName")}</Label>
                   <Input
                     value={session?.user?.fullName || ""}
                     disabled
@@ -340,7 +340,7 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>البريد الإلكتروني</Label>
+                  <Label>{t("emailLabel")}</Label>
                   <Input
                     value={session?.user?.email || ""}
                     disabled
@@ -361,10 +361,10 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Lock className="h-5 w-5" />
-                كلمة المرور
+                {t("password")}
               </CardTitle>
               <CardDescription>
-                قم بتغيير كلمة المرور الخاصة بك
+                {t("passwordDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -375,7 +375,7 @@ export default function AdminSettingsPage() {
               ) : (
                 <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
+                    <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
                     <div className="relative">
                       <Input
                         id="currentPassword"
@@ -402,7 +402,7 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                    <Label htmlFor="newPassword">{t("newPassword")}</Label>
                     <div className="relative">
                       <Input
                         id="newPassword"
@@ -429,7 +429,7 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                    <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
@@ -491,10 +491,10 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Hash className="h-5 w-5" />
-                إعدادات رقم الانخراط
+                {t("enrollmentSettings")}
               </CardTitle>
               <CardDescription>
-                تخصيص صيغة أرقام الانخراط للطلاب الجدد
+                {t("enrollmentSettingsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -508,13 +508,13 @@ export default function AdminSettingsPage() {
                   <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">معاينة الصيغة</p>
+                        <p className="text-sm text-muted-foreground">{t("formatPreview")}</p>
                         <p className="text-2xl font-mono font-bold text-primary mt-1" dir="ltr">
                           {generatePreview(localEnrollmentSettings, localEnrollmentSettings.currentSequence + 1 || 1)}
                         </p>
                       </div>
                       <div className="text-left" dir="ltr">
-                        <p className="text-xs text-muted-foreground">الرقم التالي</p>
+                        <p className="text-xs text-muted-foreground">{t("nextNumber")}</p>
                         <p className="text-lg font-mono">
                           #{(localEnrollmentSettings.currentSequence + 1 || 1).toString().padStart(localEnrollmentSettings.sequencePadding, '0')}
                         </p>
@@ -525,19 +525,19 @@ export default function AdminSettingsPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     {/* Format Selection */}
                     <div className="space-y-2">
-                      <Label>صيغة رقم الانخراط</Label>
+                      <Label>{t("enrollmentFormat")}</Label>
                       <Select
                         value={localEnrollmentSettings.format}
                         onValueChange={(value) => setLocalEnrollmentSettings(s => ({ ...s, format: value }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر الصيغة" />
+                          <SelectValue placeholder={t("selectFormat")} />
                         </SelectTrigger>
                         <SelectContent>
                           {FORMAT_PRESETS.map(preset => (
                             <SelectItem key={preset.value} value={preset.value}>
                               <div className="flex items-center justify-between gap-4">
-                                <span>{preset.label}</span>
+                                <span>{t(preset.labelKey)}</span>
                                 <span className="text-xs text-muted-foreground font-mono" dir="ltr">
                                   {preset.example}
                                 </span>
@@ -547,26 +547,26 @@ export default function AdminSettingsPage() {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        المتغيرات: {'{YEAR}'} السنة، {'{YEAR_SHORT}'} السنة المختصرة، {'{SEQ}'} الرقم، {'{PREFIX}'} البادئة
+                        {t("formatVariablesHint")}
                       </p>
                     </div>
 
                     {/* Prefix */}
                     <div className="space-y-2">
-                      <Label>البادئة (اختياري)</Label>
+                      <Label>{t("prefixLabel")}</Label>
                       <Input
                         value={localEnrollmentSettings.prefix}
                         onChange={(e) => setLocalEnrollmentSettings(s => ({ 
                           ...s, 
                           prefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5)
                         }))}
-                        placeholder="مثال: QT"
+                        placeholder={t("prefixPlaceholder")}
                         maxLength={5}
                         dir="ltr"
                         className="font-mono"
                       />
                       <p className="text-xs text-muted-foreground">
-                        أحرف إنجليزية كبيرة أو أرقام (5 كحد أقصى)
+                        {t("prefixHint")}
                       </p>
                     </div>
                   </div>
@@ -574,7 +574,7 @@ export default function AdminSettingsPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     {/* Sequence Padding */}
                     <div className="space-y-2">
-                      <Label>عدد خانات الرقم التسلسلي</Label>
+                      <Label>{t("sequencePadding")}</Label>
                       <Select
                         value={localEnrollmentSettings.sequencePadding.toString()}
                         onValueChange={(value) => setLocalEnrollmentSettings(s => ({ 
@@ -586,26 +586,26 @@ export default function AdminSettingsPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="2">2 خانات (01-99)</SelectItem>
-                          <SelectItem value="3">3 خانات (001-999)</SelectItem>
-                          <SelectItem value="4">4 خانات (0001-9999)</SelectItem>
-                          <SelectItem value="5">5 خانات (00001-99999)</SelectItem>
+                          <SelectItem value="2">{t("digits2")}</SelectItem>
+                          <SelectItem value="3">{t("digits3")}</SelectItem>
+                          <SelectItem value="4">{t("digits4")}</SelectItem>
+                          <SelectItem value="5">{t("digits5")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     {/* Reset Yearly */}
                     <div className="space-y-2">
-                      <Label>إعادة ضبط الرقم سنوياً</Label>
+                      <Label>{t("resetYearly")}</Label>
                       <div className="flex items-center justify-between p-3 rounded-lg border">
                         <div>
                           <p className="text-sm font-medium">
-                            {localEnrollmentSettings.resetSequenceYearly ? 'نعم' : 'لا'}
+                            {localEnrollmentSettings.resetSequenceYearly ? tc('yes') : tc('no')}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {localEnrollmentSettings.resetSequenceYearly 
-                              ? 'يبدأ من 1 مع كل سنة جديدة' 
-                              : 'الأرقام مستمرة بدون إعادة ضبط'}
+                            {localEnrollmentSettings.resetSequenceYearly
+                              ? t('resetYearlyDesc')
+                              : t('continuousDesc')}
                           </p>
                         </div>
                         <Switch
@@ -621,7 +621,7 @@ export default function AdminSettingsPage() {
 
                   {/* Custom Format Input */}
                   <div className="space-y-2">
-                    <Label>صيغة مخصصة (متقدم)</Label>
+                    <Label>{t("customFormat")}</Label>
                     <Input
                       value={localEnrollmentSettings.format}
                       onChange={(e) => setLocalEnrollmentSettings(s => ({ ...s, format: e.target.value }))}
@@ -630,13 +630,13 @@ export default function AdminSettingsPage() {
                       className="font-mono"
                     />
                     <p className="text-xs text-muted-foreground">
-                      يمكنك كتابة صيغة مخصصة باستخدام المتغيرات أعلاه
+                      {t("customFormatHint")}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Button
-                      onClick={() => enrollmentMutation.mutate(localEnrollmentSettings)}
+                      onClick={() => enrollmentMutation.mutate({ settings: localEnrollmentSettings, description: t("enrollmentSettingsLabel") })}
                       disabled={enrollmentMutation.isPending}
                     >
                       {enrollmentMutation.isPending ? (
@@ -665,10 +665,10 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5" />
-                معلومات الجمعية
+                {t("orgInfo")}
               </CardTitle>
               <CardDescription>
-                بيانات مؤسستك كما تظهر في المنصة والبطاقات المطبوعة
+                {t("orgInfoDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -691,16 +691,16 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <QrCode className="h-5 w-5" />
-                إعدادات الماسح الضوئي
+                {t("qrSettings")}
               </CardTitle>
               <CardDescription>
-                تحكم في نافذة تسجيل الحضور
+                {t("qrSettingsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>فتح التسجيل قبل (دقيقة)</Label>
+                  <Label>{t("openBefore")}</Label>
                   <Input
                     type="number"
                     value={qrSettings.openOffsetBeforeMin}
@@ -712,11 +712,11 @@ export default function AdminSettingsPage() {
                     max={60}
                   />
                   <p className="text-xs text-muted-foreground">
-                    يبدأ التسجيل قبل بداية الحصة
+                    {t("openBeforeHint")}
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>إغلاق التسجيل بعد (دقيقة)</Label>
+                  <Label>{t("closeAfter")}</Label>
                   <Input
                     type="number"
                     value={qrSettings.closeOffsetAfterMin}
@@ -728,11 +728,11 @@ export default function AdminSettingsPage() {
                     max={120}
                   />
                   <p className="text-xs text-muted-foreground">
-                    ينتهي التسجيل بعد نهاية الحصة
+                    {t("closeAfterHint")}
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>حد التأخر (دقيقة)</Label>
+                  <Label>{t("lateThreshold")}</Label>
                   <Input
                     type="number"
                     value={qrSettings.lateThresholdMin}
@@ -744,7 +744,7 @@ export default function AdminSettingsPage() {
                     max={30}
                   />
                   <p className="text-xs text-muted-foreground">
-                    يُعتبر متأخراً بعد بداية الحصة
+                    {t("lateThresholdHint")}
                   </p>
                 </div>
               </div>
@@ -760,10 +760,10 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                رمز الماسح الضوئي
+                {t("scannerToken")}
               </CardTitle>
               <CardDescription>
-                رمز الأمان للوح الحضور
+                {t("scannerTokenDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -783,7 +783,7 @@ export default function AdminSettingsPage() {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                استخدم هذا الرمز على صفحة الماسح الضوئي:
+                {t("scannerTokenHint")}
                 <code className="px-1 bg-muted rounded mx-1">/scanner?token=TOKEN</code>
               </p>
             </CardContent>
@@ -794,21 +794,21 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Tablet className="h-5 w-5" />
-                أجهزة المسح
+                {t("scannerDevices")}
               </CardTitle>
               <CardDescription>
-                حالة أجهزة تسجيل الحضور — يظهر الجهاز بعد أول عملية مسح ناجحة
+                {t("scannerDevicesDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingDevices ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  جارٍ التحميل...
+                  {tc("loading")}
                 </div>
               ) : !scannerDevicesData?.devices?.length ? (
                 <p className="text-sm text-muted-foreground">
-                  لا توجد أجهزة مسجلة بعد
+                  {t("noDevices")}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -826,7 +826,7 @@ export default function AdminSettingsPage() {
                             className={`h-2.5 w-2.5 shrink-0 rounded-full ${
                               online ? 'bg-green-500' : 'bg-gray-300'
                             }`}
-                            title={online ? 'متصل' : 'غير متصل'}
+                            title={online ? t('deviceOnline') : t('deviceOffline')}
                           />
                           <div className="min-w-0">
                             <p className="font-mono text-sm truncate" dir="ltr">
@@ -836,7 +836,7 @@ export default function AdminSettingsPage() {
                               {device.platform || '—'}
                               {device.appVersion ? ` · v${device.appVersion}` : ''}
                               {' · '}
-                              {online ? 'متصل' : `آخر ظهور ${timeAgoAr(device.lastSeenAt)}`}
+                              {online ? t('deviceOnline') : t('lastSeen', { time: timeAgo(device.lastSeenAt, t) })}
                             </p>
                           </div>
                         </div>
@@ -849,7 +849,7 @@ export default function AdminSettingsPage() {
                           )}
                           {!!device.pendingScans && device.pendingScans > 0 && (
                             <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
-                              {device.pendingScans} بانتظار المزامنة
+                              {t("pendingSync", { count: device.pendingScans })}
                             </span>
                           )}
                         </div>
@@ -866,16 +866,16 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                إنشاء الحصص
+                {t("generateOccurrences")}
               </CardTitle>
               <CardDescription>
-                إنشاء الحصص المجدولة لفترة زمنية محددة
+                {t("generateOccurrencesDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>من تاريخ</Label>
+                  <Label>{t("fromDate")}</Label>
                   <Input
                     type="date"
                     value={occurrenceRange.startDate}
@@ -883,7 +883,7 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>إلى تاريخ</Label>
+                  <Label>{t("toDate")}</Label>
                   <Input
                     type="date"
                     value={occurrenceRange.endDate}
@@ -892,7 +892,7 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                سيتم إنشاء حصص لجميع قوالب الحصص النشطة في الفترة المحددة
+                {t("generateOccurrencesHint")}
               </p>
               <Button 
                 onClick={handleGenerateOccurrences}
@@ -903,7 +903,7 @@ export default function AdminSettingsPage() {
                 ) : (
                   <Calendar className="ml-2 h-4 w-4" />
                 )}
-                إنشاء الحصص
+                {t("generateOccurrences")}
               </Button>
             </CardContent>
           </Card>
@@ -916,18 +916,18 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                المظهر
+                {t("appearance")}
               </CardTitle>
               <CardDescription>
-                تخصيص مظهر التطبيق
+                {t("appearanceDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>الوضع الداكن</Label>
+                  <Label>{t("darkMode")}</Label>
                   <p className="text-sm text-muted-foreground">
-                    تفعيل المظهر الداكن للتطبيق
+                    {t("darkModeDesc")}
                   </p>
                 </div>
                 <Switch
@@ -940,23 +940,23 @@ export default function AdminSettingsPage() {
 
               {/* Color Preview */}
               <div className="space-y-3">
-                <Label>الألوان الحالية</Label>
+                <Label>{t("currentColors")}</Label>
                 <div className="flex gap-3">
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-12 h-12 rounded-lg bg-primary" />
-                    <span className="text-xs">أساسي</span>
+                    <span className="text-xs">{t("colorPrimary")}</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-12 h-12 rounded-lg bg-accent" />
-                    <span className="text-xs">ذهبي</span>
+                    <span className="text-xs">{t("colorAccent")}</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-12 h-12 rounded-lg bg-secondary" />
-                    <span className="text-xs">ثانوي</span>
+                    <span className="text-xs">{t("colorSecondary")}</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-12 h-12 rounded-lg bg-background border" />
-                    <span className="text-xs">خلفية</span>
+                    <span className="text-xs">{t("colorBackground")}</span>
                   </div>
                 </div>
               </div>
@@ -967,9 +967,9 @@ export default function AdminSettingsPage() {
           <Card className="bg-gradient-to-l from-primary/5 to-transparent border-primary/20">
             <CardContent className="p-6 text-center">
               <p className="text-lg font-arabic text-primary mb-2">
-                ﴿ إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ ﴾
+                {t("quranVerse")}
               </p>
-              <p className="text-sm text-muted-foreground">سورة الإسراء - الآية 9</p>
+              <p className="text-sm text-muted-foreground">{t("quranReference")}</p>
             </CardContent>
           </Card>
         </TabsContent>

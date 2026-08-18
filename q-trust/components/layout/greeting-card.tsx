@@ -2,11 +2,23 @@
 
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
-import { getGreeting } from "@/lib/utils"
+import { useTranslations } from "next-intl"
+
+function useGreeting() {
+  const t = useTranslations("greeting")
+  const hour = new Date().getHours()
+  const greeting = t("salaam")
+  const subtitle = hour < 12
+    ? t("morningSubtitle")
+    : hour < 17
+      ? t("afternoonSubtitle")
+      : t("eveningSubtitle")
+  return { greeting, subtitle }
+}
 
 export function GreetingCard() {
   const { data: session } = useSession()
-  const { greeting, subtitle } = getGreeting()
+  const { greeting, subtitle } = useGreeting()
 
   return (
     <Card className="bg-gradient-to-l from-primary/5 to-secondary/5 border-primary/20 overflow-hidden relative">

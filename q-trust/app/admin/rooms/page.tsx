@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { roomFormSchema, type RoomFormInput } from "@/lib/validations"
-import { ROOM_FEATURES, ROOM_FEATURE_LABELS } from "@/lib/constants"
+import { ROOM_FEATURES } from "@/lib/constants"
 import { PageHeader } from "@/components/layout/page-header"
 import { StatCard } from "@/components/layout/stat-card"
 import { Card, CardContent } from "@/components/ui/card"
@@ -134,9 +134,9 @@ export default function RoomsPage() {
       queryClient.invalidateQueries({ queryKey: ["rooms"] })
       setIsCreateOpen(false)
       reset()
-      success("تم الإنشاء", `تم إنشاء القاعة "${data.name}"`)
+      success(t("created"), t("roomCreated", { name: data.name }))
     },
-    onError: (err: Error) => showError("خطأ", err.message),
+    onError: (err: Error) => showError(t("error"), err.message),
   })
 
   const updateMutation = useMutation({
@@ -145,9 +145,9 @@ export default function RoomsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] })
       setEditingRoom(null)
-      success("تم التحديث", "تم تحديث القاعة بنجاح")
+      success(t("updated"), t("roomUpdated"))
     },
-    onError: (err: Error) => showError("خطأ", err.message),
+    onError: (err: Error) => showError(t("error"), err.message),
   })
 
   const deleteMutation = useMutation({
@@ -155,11 +155,11 @@ export default function RoomsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] })
       setDeleteId(null)
-      success("تم الحذف", "تم حذف القاعة بنجاح")
+      success(t("deleted"), t("roomDeleted"))
     },
     onError: (err: Error) => {
       setDeleteId(null)
-      showError("خطأ", err.message)
+      showError(t("error"), err.message)
     },
   })
 
@@ -203,7 +203,7 @@ export default function RoomsPage() {
                     )
                   }}
                 />
-                {ROOM_FEATURE_LABELS[ROOM_FEATURES[key]]}
+                {t('featureLabels.' + ROOM_FEATURES[key])}
               </label>
             ))}
           </div>
@@ -223,7 +223,7 @@ export default function RoomsPage() {
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label className="text-sm font-medium">{t("roomName")} *</label>
-          <Input {...reg("name")} placeholder="مثال: القاعة 1" />
+          <Input {...reg("name")} placeholder={t("roomNamePlaceholder")} />
           {errs.name && <p className="text-sm text-destructive mt-1">{errs.name.message}</p>}
         </div>
         <div>
@@ -232,15 +232,15 @@ export default function RoomsPage() {
           {errs.capacity && <p className="text-sm text-destructive mt-1">{errs.capacity.message}</p>}
         </div>
         <div>
-          <label className="text-sm font-medium">الموقع</label>
-          <Input {...reg("location")} placeholder="الطابق الأول - المبنى الرئيسي" />
+          <label className="text-sm font-medium">{t("location")}</label>
+          <Input {...reg("location")} placeholder={t("locationPlaceholder")} />
         </div>
         <div>
           <label className="text-sm font-medium">{tc("description")}</label>
-          <Input {...reg("description")} placeholder="وصف مختصر عن القاعة" />
+          <Input {...reg("description")} placeholder={t("descriptionPlaceholder")} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">التجهيزات</label>
+          <label className="text-sm font-medium mb-2 block">{t("features")}</label>
           <FeaturesCheckboxGroup control={ctrl} name="features" />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
@@ -281,7 +281,7 @@ export default function RoomsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>إضافة قاعة جديدة</DialogTitle>
+              <DialogTitle>{t("addRoom")}</DialogTitle>
             </DialogHeader>
             <RoomFormFields
               onSubmit={handleSubmit((data) => createMutation.mutate(data))}
@@ -296,8 +296,8 @@ export default function RoomsPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="إجمالي القاعات" value={activeRooms.length} icon={DoorOpen} index={0} />
-        <StatCard title="القاعات المستخدمة" value={usedRooms.length} icon={BarChart3} index={1} />
+        <StatCard title={t("totalRooms")} value={activeRooms.length} icon={DoorOpen} index={0} />
+        <StatCard title={t("usedRooms")} value={usedRooms.length} icon={BarChart3} index={1} />
         <StatCard title={t("capacity")} value={totalCapacity} icon={Users} index={2} />
         <StatCard
           title={t("utilizationRate")}
@@ -311,7 +311,7 @@ export default function RoomsPage() {
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="بحث عن قاعة..."
+          placeholder={t("searchRoom")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pr-10"
@@ -324,7 +324,7 @@ export default function RoomsPage() {
           <CardContent className="p-12 text-center">
             <DoorOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-1">{t("noRooms")}</h3>
-            <p className="text-muted-foreground">ابدأ بإضافة قاعات لإدارة المساحات</p>
+            <p className="text-muted-foreground">{t("startAddingRooms")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -385,7 +385,7 @@ export default function RoomsPage() {
 
                   {/* Session count */}
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">الحصص النشطة</span>
+                    <span className="text-muted-foreground">{t("activeSessions")}</span>
                     <Badge variant="secondary">{room.sessionCount}</Badge>
                   </div>
 
@@ -394,13 +394,13 @@ export default function RoomsPage() {
                     <div className="flex flex-wrap gap-1">
                       {room.features.map((f: string) => (
                         <Badge key={f} variant="outline" className="text-xs">
-                          {ROOM_FEATURE_LABELS[f] || f}
+                          {t('featureLabels.' + f)}
                         </Badge>
                       ))}
                     </div>
                   )}
 
-                  {!room.isActive && <Badge variant="destructive">معطّلة</Badge>}
+                  {!room.isActive && <Badge variant="destructive">{t("disabledStatus")}</Badge>}
                 </CardContent>
               </Card>
             )
@@ -438,7 +438,7 @@ export default function RoomsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم تعطيل هذه القاعة. لا يمكن حذف القاعات المرتبطة بحصص نشطة.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

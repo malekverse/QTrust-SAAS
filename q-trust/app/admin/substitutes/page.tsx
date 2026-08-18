@@ -49,7 +49,7 @@ interface Teacher {
 
 async function fetchAssignments(page: number): Promise<{ data: Assignment[]; pagination: { page: number; pages: number; total: number } }> {
   const res = await fetch(`/api/substitutes?page=${page}`)
-  if (!res.ok) throw new Error("فشل تحميل التكليفات")
+  if (!res.ok) throw new Error("fetchError")
   return res.json()
 }
 async function fetchSessions(): Promise<SessionTemplate[]> {
@@ -94,7 +94,7 @@ export default function SubstitutesPage() {
         body: JSON.stringify({ sessionTemplateId, substituteUserId, validFrom, validTo, notes }),
       })
       if (!res.ok) {
-        const d = await res.json().catch(() => ({ message: "فشل الحفظ" }))
+        const d = await res.json().catch(() => ({ message: "saveFailed" }))
         throw new Error(d.message)
       }
       return res.json()
@@ -103,22 +103,22 @@ export default function SubstitutesPage() {
       queryClient.invalidateQueries({ queryKey: ["substitutes"] })
       setDialogOpen(false)
       resetForm()
-      success("تم التكليف", "تم تعيين المعلم النائب")
+      success(tc("success"), t("substituteAssigned"))
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(tc("error"), err.message),
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/substitutes/${id}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("فشل الحذف")
+      if (!res.ok) throw new Error("deleteFailed")
       return true
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["substitutes"] })
-      success("تم الحذف", "تم إلغاء التكليف")
+      success(tc("deleted"), t("assignmentCancelled"))
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(tc("error"), err.message),
   })
 
   const resetForm = () => {
@@ -165,7 +165,7 @@ export default function SubstitutesPage() {
             <UserCog className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
             <p className="font-medium text-muted-foreground">{t("noSubstitutes")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              كلّف معلماً بتغطية حصة عند غياب المعلم الأصلي
+              {t("emptyStateHint")}
             </p>
             <Button className="mt-4" onClick={openCreate}>
               <Plus className="ml-2 h-4 w-4" />
@@ -181,13 +181,13 @@ export default function SubstitutesPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-semibold">{a.substituteUserId?.fullName || "معلم"}</span>
-                    <span className="text-sm text-muted-foreground">ينوب في</span>
-                    <span className="font-medium">{a.sessionTemplateId?.name || "حصة"}</span>
+                    <span className="font-semibold">{a.substituteUserId?.fullName || t("teacherFallback")}</span>
+                    <span className="text-sm text-muted-foreground">{t("substitutingIn")}</span>
+                    <span className="font-medium">{a.sessionTemplateId?.name || t("sessionFallback")}</span>
                     {a.active ? (
-                      <Badge className="bg-emerald-600 text-white">نشط الآن</Badge>
+                      <Badge className="bg-emerald-600 text-white">{t("activeNow")}</Badge>
                     ) : (
-                      <Badge variant="outline">غير نشط</Badge>
+                      <Badge variant="outline">{tc("inactive")}</Badge>
                     )}
                   </div>
                   <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
@@ -201,7 +201,7 @@ export default function SubstitutesPage() {
                   size="icon"
                   className="text-red-600 hover:text-red-700"
                   onClick={() => {
-                    if (confirm("إلغاء هذا التكليف؟")) deleteMutation.mutate(a._id)
+                    if (confirm(t("cancelAssignmentConfirm"))) deleteMutation.mutate(a._id)
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -220,11 +220,11 @@ export default function SubstitutesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>تكليف معلم نائب</DialogTitle>
+            <DialogTitle>{t("assignDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-1">
             <div className="space-y-1.5">
-              <Label>الحصة</Label>
+              <Label>{t("sessionLabel")}</Label>
               <Select
                 value={sessionTemplateId}
                 onValueChange={(v) => {
@@ -250,7 +250,7 @@ export default function SubstitutesPage() {
               <Label>{t("substituteTeacher")}</Label>
               <Select value={substituteUserId} onValueChange={setSubstituteUserId} disabled={!sessionTemplateId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={sessionTemplateId ? t("selectTeacher") : "اختر الحصة أولاً"} />
+                  <SelectValue placeholder={sessionTemplateId ? t("selectTeacher") : t("selectSessionFirst")} />
                 </SelectTrigger>
                 <SelectContent>
                   {eligibleSubs.map((t) => (
@@ -275,7 +275,7 @@ export default function SubstitutesPage() {
 
             <div className="space-y-1.5">
               <Label>{tc("notes")} ({tc("optional")})</Label>
-              <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="سبب النيابة..." />
+              <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("notesPlaceholder")} />
             </div>
           </div>
           <DialogFooter>
@@ -284,7 +284,7 @@ export default function SubstitutesPage() {
             </Button>
             <Button onClick={() => createMutation.mutate()} disabled={!canSave || createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              تكليف
+              {t("assign")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -114,7 +114,79 @@
     "serverError": "حدث خطأ أثناء جلب البيانات",
     "uploadSuccess": "تم رفع الملف بنجاح",
     "deleteConfirm": "هل أنت متأكد من الحذف؟",
-    "deleteWarning": "لا يمكن التراجع عن هذا الإجراء"
+    "deleteWarning": "لا يمكن التراجع عن هذا الإجراء",
+    "attendanceRate": "نسبة الحضور",
+    "openCalendar": "فتح التقويم",
+    "justifiedAbsence": "غياب مبرر",
+    "greetingSalam": "السلام عليكم ورحمة الله وبركاته",
+    "greetingMorning": "نسأل الله أن يبارك في صباحكم وعملكم",
+    "greetingAfternoon": "نسأل الله أن يبارك في عملكم اليوم",
+    "greetingEvening": "جعل الله مساءكم خيراً وبركة",
+    "greetingStudentDua": "نسأل الله أن يبارك في حفظك وعلمك",
+    "goodMorning": "صباح الخير",
+    "goodAfternoon": "مساء الخير",
+    "goodEvening": "مساء النور",
+    "months": {
+      "1": "جانفي",
+      "2": "فيفري",
+      "3": "مارس",
+      "4": "أفريل",
+      "5": "ماي",
+      "6": "جوان",
+      "7": "جويلية",
+      "8": "أوت",
+      "9": "سبتمبر",
+      "10": "أكتوبر",
+      "11": "نوفمبر",
+      "12": "ديسمبر"
+    },
+    "days": {
+      "0": "الأحد",
+      "1": "الإثنين",
+      "2": "الثلاثاء",
+      "3": "الأربعاء",
+      "4": "الخميس",
+      "5": "الجمعة",
+      "6": "السبت"
+    },
+    "activityAreas": {
+      "QURAN_MEMORIZATION": "حفظ القرآن",
+      "TAJWEED_QIRAAT": "التجويد والقراءات",
+      "QURAN_SCIENCES": "علوم القرآن",
+      "COMPETITIONS": "المسابقات",
+      "YEAR_ROUND_ACTIVITY": "النشاط على مدار السنة"
+    },
+    "educationLevels": {
+      "ابتدائي": "ابتدائي",
+      "إعدادي": "إعدادي",
+      "ثانوي": "ثانوي",
+      "جامعي": "جامعي",
+      "ماجستير": "ماجستير",
+      "دكتوراه": "دكتوراه",
+      "أخرى": "أخرى"
+    },
+    "hifzTypes": {
+      "SABAQ": "سبق (حفظ جديد)",
+      "SABQI": "سبقي (مراجعة قريبة)",
+      "MANZIL": "منزل (مراجعة بعيدة)"
+    },
+    "hifzQuality": {
+      "EXCELLENT": "ممتاز",
+      "GOOD": "جيد",
+      "NEEDS_REVIEW": "يحتاج مراجعة",
+      "WEAK": "ضعيف"
+    },
+    "gradeTypes": {
+      "EXAM": "اختبار",
+      "MONTHLY_EVALUATION": "تقييم شهري",
+      "ORAL_TEST": "اختبار شفهي",
+      "MEMORIZATION": "حفظ",
+      "TAJWEED": "تجويد"
+    },
+    "behaviorTypes": {
+      "POSITIVE": "سلوك إيجابي",
+      "CONCERN": "ملاحظة سلوكية"
+    }
   },
   "pagination": {
     "page": "صفحة",
@@ -137,7 +209,14 @@
       "noAccount": "ليس لديك حساب؟",
       "contactAdmin": "تواصل مع إدارة جمعيتك",
       "errorInvalid": "بيانات الدخول غير صحيحة",
-      "errorGeneric": "حدث خطأ أثناء تسجيل الدخول"
+      "errorGeneric": "حدث خطأ أثناء تسجيل الدخول",
+      "errorAccessDenied": "تم رفض الوصول. الحساب قد يكون معطلاً",
+      "errorVerification": "رابط التحقق غير صالح أو منتهي الصلاحية",
+      "tagline": "منصة إدارة جمعيات ومدارس تحفيظ القرآن",
+      "welcomeTenant": "مرحباً بك في {tenantName}",
+      "emailOrPhone": "البريد الإلكتروني أو رقم الهاتف",
+      "emailPlaceholder": "example@email.com أو +216XXXXXXXX",
+      "copyright": "© {year} جميع الحقوق محفوظة"
     },
     "onboarding": {
       "title": "مرحباً بك في Q-Trust",
@@ -148,12 +227,21 @@
       "changing": "جاري التغيير...",
       "passwordMismatch": "كلمتا المرور غير متطابقتين",
       "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
-      "success": "تم تغيير كلمة المرور بنجاح"
+      "success": "تم تغيير كلمة المرور بنجاح",
+      "greeting": "أهلاً {name}",
+      "newPasswordPlaceholder": "أدخل كلمة مرور جديدة",
+      "passwordHint": "6 أحرف على الأقل",
+      "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
+      "securityTip": "اختر كلمة مرور قوية وآمنة. لا تشاركها مع أي شخص."
     },
     "error": {
       "title": "خطأ في تسجيل الدخول",
       "tryAgain": "حاول مرة أخرى",
-      "backToLogin": "العودة إلى تسجيل الدخول"
+      "backToLogin": "العودة إلى تسجيل الدخول",
+      "configError": "خطأ في إعدادات الخادم",
+      "accessDenied": "تم رفض الوصول",
+      "verificationError": "خطأ في التحقق",
+      "defaultError": "حدث خطأ أثناء تسجيل الدخول"
     }
   },
   "suspended": {
@@ -441,7 +529,11 @@
       "parentInfo": "بيانات الولي",
       "idCard": "بطاقة التعريف",
       "birthDate": "تاريخ الميلاد",
-      "declaration": "التصريح"
+      "declaration": "التصريح",
+      "statusPending": "قيد المراجعة",
+      "statusApproved": "مقبول",
+      "statusWaitlisted": "قائمة الانتظار",
+      "statusRejected": "مرفوض"
     },
     "claims": {
       "title": "إدارة الاعتراضات",
@@ -485,7 +577,12 @@
         "SIRA": "السيرة النبوية",
         "AQIDA": "العقيدة",
         "GENERAL": "عام",
-        "OTHER": "أخرى"
+        "OTHER": "أخرى",
+        "QURAN_STUDY": "دراسات قرآنية",
+        "TAJWEED": "تجويد",
+        "MEMORIZATION_GUIDE": "دليل الحفظ",
+        "EXAM_MATERIAL": "مواد الامتحان",
+        "COMPETITION": "مسابقات"
       }
     },
     "families": {
@@ -521,7 +618,16 @@
       "weeklySchedule": "الجدول الأسبوعي",
       "noSessionsForRoom": "لا توجد حصص مرتبطة بهذه القاعة",
       "linkedSessions": "الحصص المرتبطة",
-      "studentSuffix": "طالب"
+      "studentSuffix": "طالب",
+      "featureLabels": {
+        "WHITEBOARD": "سبورة",
+        "PROJECTOR": "مسلاط",
+        "AC": "تكييف",
+        "COMPUTER": "حاسوب",
+        "SOUND_SYSTEM": "نظام صوت",
+        "PRAYER_MATS": "حصائر صلاة",
+        "QURAN_COPIES": "نسخ مصاحف"
+      }
     },
     "substitutes": {
       "title": "إدارة النواب",
@@ -692,7 +798,9 @@
       "totalStudents": "إجمالي الطلاب",
       "weeklyAttendance": "حضور الأسبوع",
       "noSessionsToday": "لا توجد حصص اليوم",
-      "upcomingSessions": "الحصص القادمة"
+      "upcomingSessions": "الحصص القادمة",
+      "weeklySession": "حصة أسبوعية",
+      "overviewDescription": "نظرة عامة على حصصك وطلابك"
     },
     "sessions": {
       "title": "حصصي",
@@ -702,7 +810,51 @@
       "startSession": "بدء الحصة",
       "viewDetails": "عرض التفاصيل",
       "takeAttendance": "تسجيل الحضور",
-      "substitute": "نائب"
+      "substitute": "نائب",
+      "contactAdminForSessions": "تواصل مع الإدارة لإضافة حصص جديدة",
+      "totalSessionCount": "{count} حصة",
+      "recitationTab": "التسميع",
+      "behaviorTab": "السلوك",
+      "optionalNotesPlaceholder": "ملاحظات اختيارية...",
+      "recordRecitation": "تسجيل التسميع",
+      "noSessionForDate": "لا توجد حصة في هذا التاريخ",
+      "behavioralNotes": "الملاحظات السلوكية",
+      "behaviorEntry": {
+        "saveFailed": "فشل الحفظ",
+        "saved": "تم الحفظ",
+        "savedSuccess": "تم تسجيل الملاحظة السلوكية بنجاح",
+        "missingData": "بيانات ناقصة",
+        "descriptionRequired": "يرجى كتابة وصف الملاحظة",
+        "searchStudent": "بحث عن طالب...",
+        "note": "ملاحظة",
+        "noStudents": "لا يوجد طلاب",
+        "dialogTitle": "ملاحظة سلوكية — {name}",
+        "typeLabel": "النوع",
+        "descriptionLabel": "الوصف",
+        "descriptionPlaceholder": "مثال: ساعد زميله في المراجعة",
+        "saveNote": "حفظ الملاحظة"
+      }
+    },
+    "hifz": {
+      "saveFailed": "فشل الحفظ",
+      "saved": "تم الحفظ",
+      "recitationRecorded": "تم تسجيل التسميع بنجاح",
+      "incompleteData": "بيانات ناقصة",
+      "fillSurahAndVerses": "يرجى ملء السورة ورقم الآيات",
+      "searchStudent": "بحث عن طالب...",
+      "recitation": "تسميع",
+      "noStudents": "لا يوجد طلاب",
+      "recordRecitationFor": "تسجيل تسميع — {name}",
+      "typeLabel": "النوع",
+      "surahLabel": "السورة",
+      "surahPlaceholder": "مثال: البقرة",
+      "fromVerse": "من الآية",
+      "toVerse": "إلى الآية",
+      "qualityLabel": "التقييم",
+      "mistakeCount": "عدد الأخطاء (اختياري)",
+      "notesOptional": "ملاحظات (اختياري)",
+      "additionalNotesPlaceholder": "ملاحظات إضافية...",
+      "saveRecitation": "حفظ التسميع"
     },
     "evaluations": {
       "title": "تقييم الطلاب",
@@ -722,13 +874,28 @@
       "needsWork": "يحتاج تحسين",
       "saveEvaluation": "حفظ التقييم",
       "evaluationSaved": "تم حفظ التقييم بنجاح",
-      "noEvaluations": "لا توجد تقييمات"
+      "noEvaluations": "لا توجد تقييمات",
+      "evaluationTitle": "عنوان التقييم",
+      "evaluationTitlePlaceholder": "مثال: اختبار سورة البقرة",
+      "score": "الدرجة",
+      "maxScore": "الدرجة القصوى",
+      "juz": "الجزء",
+      "feedbackType": "نوع الملاحظة",
+      "positive": "إيجابية",
+      "improvement": "تحسينية",
+      "contentLabel": "المحتوى",
+      "feedbackPlaceholder": "مثال: أداء ممتاز في تلاوة سورة البقرة اليوم...",
+      "notesPlaceholder": "ملاحظات إضافية...",
+      "surahPlaceholder": "البقرة"
     },
     "analytics": {
       "title": "الإحصائيات",
       "description": "إحصائيات حصصك وطلابك",
       "attendanceRate": "نسبة الحضور",
-      "avgGrade": "متوسط التقييم"
+      "avgGrade": "متوسط التقييم",
+      "sessionsHeld": "حصة منعقدة",
+      "lateInstances": "حالات تأخر",
+      "sessionUnit": "حصة"
     },
     "settings": {
       "title": "الإعدادات",
@@ -737,7 +904,14 @@
       "currentPassword": "كلمة المرور الحالية",
       "newPassword": "كلمة المرور الجديدة",
       "confirmPassword": "تأكيد كلمة المرور",
-      "passwordChanged": "تم تغيير كلمة المرور بنجاح"
+      "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+      "accountInfo": "معلومات الحساب",
+      "accountInfoDescription": "معلوماتك الأساسية",
+      "contactAdminToChange": "لتغيير معلوماتك الشخصية، تواصل مع الإدارة",
+      "appearance": "المظهر",
+      "customizeAppearance": "تخصيص مظهر التطبيق",
+      "darkMode": "الوضع الداكن",
+      "enableDarkMode": "تفعيل المظهر الداكن للتطبيق"
     }
   },
   "student": {
@@ -748,7 +922,24 @@
       "attendanceRate": "نسبة الحضور",
       "nextSession": "الحصة القادمة",
       "recentGrades": "آخر التقييمات",
-      "myQRCode": "رمز QR الخاص بي"
+      "myQRCode": "رمز QR الخاص بي",
+      "loadError": "حدث خطأ أثناء تحميل البيانات",
+      "connectionError": "حدث خطأ في الاتصال بالخادم",
+      "retry": "إعادة المحاولة",
+      "salaam": "السلام عليكم، {name}",
+      "greetingSubtext": "نسأل الله أن يبارك في حفظك وعلمك",
+      "morningGreeting": "صباح الخير",
+      "afternoonGreeting": "مساء النور",
+      "eveningGreeting": "مساء الخير",
+      "consecutiveDays": "يوم حضور متواصل",
+      "today": "اليوم",
+      "memorizationProgress": "تقدم الحفظ",
+      "completedJuz": "جزء مكتمل",
+      "performanceAverage": "معدل الأداء",
+      "enrolledCircles": "الحلقات المسجلة",
+      "attendanceOf": "{present} حضور من {total} حصة",
+      "attendanceTrend": "اتجاه الحضور — آخر 3 أشهر",
+      "noGrades": "لا توجد تقييمات بعد"
     },
     "sessions": {
       "title": "حلقاتي",
@@ -756,12 +947,26 @@
       "noSessions": "لم يتم تسجيلك في أي حلقة بعد",
       "teacher": "المعلم",
       "schedule": "الموعد",
-      "room": "القاعة"
+      "room": "القاعة",
+      "loadError": "حدث خطأ أثناء تحميل البيانات",
+      "connectionError": "حدث خطأ في الاتصال بالخادم",
+      "retry": "إعادة المحاولة",
+      "statusScheduled": "قادمة",
+      "statusInProgress": "جارية",
+      "statusFinished": "انتهت",
+      "statusCancelled": "ملغاة",
+      "weeklySchedule": "الجدول الأسبوعي",
+      "circlesList": "قائمة الحلقات",
+      "today": "اليوم",
+      "upcomingSessions": "الحصص القادمة"
     },
     "schedule": {
       "title": "جدولي",
       "description": "الجدول الأسبوعي لحلقاتي",
-      "noSchedule": "لا يوجد جدول"
+      "noSchedule": "لا يوجد جدول",
+      "fetchError": "فشل في جلب الجدول",
+      "circleCount": "{count} حلقة",
+      "today": "اليوم"
     },
     "attendance": {
       "title": "سجل الحضور",
@@ -771,20 +976,53 @@
       "totalAbsent": "إجمالي الغياب",
       "submitClaim": "تقديم اعتراض",
       "claimReason": "سبب الاعتراض",
-      "claimSubmitted": "تم تقديم الاعتراض بنجاح"
+      "claimSubmitted": "تم تقديم الاعتراض بنجاح",
+      "loadError": "حدث خطأ أثناء تحميل البيانات",
+      "connectionError": "حدث خطأ في الاتصال بالخادم",
+      "retry": "إعادة المحاولة",
+      "claimError": "حدث خطأ أثناء تقديم الاعتراض",
+      "filterByStatus": "تصفية حسب الحالة",
+      "checkInTime": "تسجيل: {time}",
+      "claimPlaceholder": "مثال: نسيت بطاقتي ولكنني كنت حاضراً في الحصة...",
+      "submitting": "جاري الإرسال..."
     },
     "performance": {
       "title": "النتائج والتقييم",
       "description": "متابعة أدائك في الحفظ والمراجعة",
       "noResults": "لا توجد نتائج بعد",
       "hifzProgress": "تقدم الحفظ",
-      "overallGrade": "التقييم العام"
+      "overallGrade": "التقييم العام",
+      "loadError": "حدث خطأ أثناء تحميل البيانات",
+      "connectionError": "حدث خطأ في الاتصال بالخادم",
+      "retry": "إعادة المحاولة",
+      "completedJuz": "جزء مكتمل",
+      "evaluationCount": "تقييم",
+      "earnedBadges": "شارة مكتسبة",
+      "juzCount": "{completed} / {total} جزء",
+      "quranProgress": "{percent}% من القرآن الكريم",
+      "gradesTab": "التقييمات",
+      "hifzTab": "التسميع",
+      "behaviorTab": "السلوك",
+      "feedbackTab": "ملاحظات المعلم",
+      "badgesTab": "الشارات",
+      "surah": "سورة {name}",
+      "juz": "الجزء {number}",
+      "noHifzRecords": "لا توجد سجلات تسميع بعد",
+      "verses": "الآيات {from} — {to}",
+      "mistakes": "{count} خطأ",
+      "noBehaviorRecords": "لا توجد ملاحظات سلوكية بعد",
+      "noFeedback": "لا توجد ملاحظات بعد",
+      "achieved": "مكتسبة",
+      "startBadgeJourney": "ابدأ رحلتك لاكتساب الشارات"
     },
     "documents": {
       "title": "المكتبة",
       "description": "الوثائق والمواد التعليمية المتاحة",
       "noDocuments": "لا توجد وثائق متاحة",
-      "download": "تحميل"
+      "download": "تحميل",
+      "loadError": "حدث خطأ أثناء تحميل البيانات",
+      "connectionError": "حدث خطأ في الاتصال بالخادم",
+      "retry": "إعادة المحاولة"
     },
     "settings": {
       "title": "الإعدادات",
@@ -798,11 +1036,50 @@
       "qrCode": "رمز QR",
       "qrDescription": "يمكنك استخدام هذا الرمز لتسجيل الحضور عبر الماسح الضوئي",
       "showQR": "أظهر هذا الرمز على شاشة هاتفك أمام الماسح الضوئي لتسجيل حضورك",
-      "downloadQR": "تحميل الرمز"
+      "downloadQR": "تحميل الرمز",
+      "loadError": "حدث خطأ أثناء تحميل البيانات",
+      "profileUpdated": "تم تحديث بياناتك بنجاح",
+      "saveError": "حدث خطأ أثناء الحفظ",
+      "passwordMismatch": "كلمات المرور غير متطابقة",
+      "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "passwordChangeError": "حدث خطأ أثناء تغيير كلمة المرور",
+      "appearance": "المظهر",
+      "enrollmentNumber": "رقم الانخراط",
+      "notSpecified": "غير محدد",
+      "fullName": "الاسم الكامل",
+      "educationLevel": "المستوى التعليمي",
+      "dateOfBirth": "تاريخ الميلاد",
+      "editInfo": "تعديل المعلومات",
+      "editInfoDescription": "يمكنك تعديل رقم الهاتف والعنوان",
+      "address": "العنوان",
+      "saving": "جاري الحفظ...",
+      "parentInfo": "معلومات الولي",
+      "parentName": "اسم الولي",
+      "parentEmail": "البريد الإلكتروني",
+      "parentPhone": "رقم الهاتف",
+      "digitalQRCard": "بطاقة QR الرقمية",
+      "qrBackupHint": "إذا فقدت بطاقتك الفعلية، يمكنك استخدام هذا الرمز كبديل مؤقت",
+      "qrNotAvailable": "رمز QR غير متوفر",
+      "minChars": "6 أحرف على الأقل",
+      "changingPassword": "جاري التغيير...",
+      "chooseTheme": "اختر سمة التطبيق المفضلة",
+      "themeLight": "فاتح",
+      "themeDark": "داكن",
+      "themeSystem": "تلقائي",
+      "accountInfo": "معلومات الحساب",
+      "loginId": "معرّف الدخول",
+      "createdAt": "تاريخ الإنشاء"
     }
   },
   "superAdmin": {
     "title": "لوحة التحكم الرئيسية",
+    "nav": {
+      "platformTitle": "منصة Q-Trust — لوحة الإدارة",
+      "tenants": "المؤسسات",
+      "billing": "الفوترة",
+      "leads": "طلبات العروض",
+      "signOut": "خروج"
+    },
     "tenants": {
       "title": "إدارة المؤسسات",
       "description": "إدارة جميع المؤسسات المسجلة",
@@ -872,7 +1149,15 @@
       "paymentMethod": "طريقة الدفع",
       "setupPayment": "سداد التركيب",
       "invoicesCount": "الفواتير ({count})",
-      "dueLabel": "استحقاق"
+      "dueLabel": "استحقاق",
+      "saveFailed": "تعذّر الحفظ",
+      "saveChanges": "حفظ التغييرات",
+      "planChangeWarning": "تغيير الباقة سيُحدّث حدّ الطلاب وحصة الذكاء الاصطناعي تلقائياً.",
+      "updateFailed": "تعذّر التحديث",
+      "cancelPayment": "إلغاء الدفع",
+      "recordPayment": "تسجيل الدفع",
+      "referencePlaceholder": "رقم المرجع (اختياري)",
+      "currency": "د.ت"
     },
     "billing": {
       "title": "الفوترة",
@@ -918,6 +1203,7 @@
       "new": "جديد",
       "contacted": "تم التواصل",
       "converted": "تم التحويل",
+      "closed": "مغلق",
       "pageTitle": "طلبات العروض التجريبية",
       "requestCount": "{count} طلب من صفحة التسويق",
       "noLeadsYet": "لا توجد طلبات بعد",
@@ -973,17 +1259,64 @@
   "notifications": {
     "title": "الإشعارات",
     "noNotifications": "لا توجد إشعارات",
-    "markAllRead": "تعيين الكل كمقروء",
-    "viewAll": "عرض الكل"
+    "markAllRead": "تعليم الكل كمقروء",
+    "viewAll": "عرض الكل",
+    "timeNow": "الآن",
+    "timeMinutes": "منذ {count} د",
+    "timeHours": "منذ {count} س",
+    "timeDays": "منذ {count} ي"
   },
   "fileUpload": {
     "dragDrop": "اسحب وأفلت الملف هنا",
+    "dropHere": "أفلت الملف هنا",
     "or": "أو",
     "browse": "اختر ملف",
+    "clickToSelect": "أو اضغط لاختيار ملف",
     "maxSize": "الحد الأقصى لحجم الملف",
+    "maxSizeMB": "الحد الأقصى: {size} ميغابايت",
     "uploadSuccess": "تم رفع الملف بنجاح",
     "uploadError": "خطأ في رفع الملف",
+    "uploadFailed": "فشل في رفع الملف",
+    "fileSizeExceeded": "حجم الملف يجب أن لا يتجاوز {size} ميغابايت",
+    "unsupportedType": "نوع الملف غير مدعوم",
+    "uploading": "جاري الرفع إلى السحابة...",
+    "uploadComplete": "تم الرفع بنجاح!",
+    "clickToRetry": "اضغط لإعادة المحاولة",
+    "clickOrDrop": "اضغط للاختيار أو اسحب وأفلت",
+    "clickToSelectOrDrop": "اضغط للاختيار أو اسحب وأفلت ملف",
+    "deleteAndReselect": "اضغط على الزر لحذف الملف واختيار ملف آخر",
     "remove": "حذف الملف",
     "cloudinary": "Cloudinary"
+  },
+  "calendar": {
+    "months": {
+      "0": "جانفي",
+      "1": "فيفري",
+      "2": "مارس",
+      "3": "أفريل",
+      "4": "ماي",
+      "5": "جوان",
+      "6": "جويلية",
+      "7": "أوت",
+      "8": "سبتمبر",
+      "9": "أكتوبر",
+      "10": "نوفمبر",
+      "11": "ديسمبر"
+    },
+    "weekdays": {
+      "0": "ح",
+      "1": "ن",
+      "2": "ث",
+      "3": "ر",
+      "4": "خ",
+      "5": "ج",
+      "6": "س"
+    }
+  },
+  "greeting": {
+    "salaam": "السلام عليكم ورحمة الله وبركاته",
+    "morningSubtitle": "نسأل الله أن يبارك في صباحكم وعملكم",
+    "afternoonSubtitle": "نسأل الله أن يبارك في عملكم اليوم",
+    "eveningSubtitle": "جعل الله مساءكم خيراً وبركة"
   }
 }

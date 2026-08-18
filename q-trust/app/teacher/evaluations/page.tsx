@@ -37,7 +37,6 @@ import {
   Search,
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
-import { GRADE_TYPE_LABELS } from "@/lib/constants"
 
 interface StudentOption {
   _id: string
@@ -328,7 +327,7 @@ export default function TeacherEvaluations() {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-sm">{grade.title}</h4>
                           <Badge variant="outline" className="text-xs">
-                            {GRADE_TYPE_LABELS[grade.type] || grade.type}
+                            {tc(`gradeTypes.${grade.type}`)}
                           </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -341,7 +340,7 @@ export default function TeacherEvaluations() {
                             {grade.score}/{grade.maxScore}
                           </span>
                           {grade.surah && <span>{t("surah")} {grade.surah}</span>}
-                          {grade.juz && <span>الجزء {grade.juz}</span>}
+                          {grade.juz && <span>{t("juz")} {grade.juz}</span>}
                         </div>
                       </div>
                     </div>
@@ -424,25 +423,25 @@ export default function TeacherEvaluations() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(GRADE_TYPE_LABELS).map(([key, label]) => (
+                  {(['EXAM', 'MONTHLY_EVALUATION', 'ORAL_TEST', 'MEMORIZATION', 'TAJWEED'] as const).map((key) => (
                     <SelectItem key={key} value={key}>
-                      {label}
+                      {tc(`gradeTypes.${key}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>عنوان التقييم *</Label>
+              <Label>{t("evaluationTitle")} *</Label>
               <Input
                 value={gradeForm.title}
                 onChange={(e) => setGradeForm({ ...gradeForm, title: e.target.value })}
-                placeholder="مثال: اختبار سورة البقرة"
+                placeholder={t("evaluationTitlePlaceholder")}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>الدرجة *</Label>
+                <Label>{t("score")} *</Label>
                 <Input
                   type="number"
                   value={gradeForm.score}
@@ -453,7 +452,7 @@ export default function TeacherEvaluations() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الدرجة القصوى *</Label>
+                <Label>{t("maxScore")} *</Label>
                 <Input
                   type="number"
                   value={gradeForm.maxScore}
@@ -479,11 +478,11 @@ export default function TeacherEvaluations() {
                 <Input
                   value={gradeForm.surah}
                   onChange={(e) => setGradeForm({ ...gradeForm, surah: e.target.value })}
-                  placeholder="البقرة"
+                  placeholder={t("surahPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>الجزء</Label>
+                <Label>{t("juz")}</Label>
                 <Input
                   type="number"
                   value={gradeForm.juz}
@@ -500,7 +499,7 @@ export default function TeacherEvaluations() {
               <Textarea
                 value={gradeForm.notes}
                 onChange={(e) => setGradeForm({ ...gradeForm, notes: e.target.value })}
-                placeholder="ملاحظات إضافية..."
+                placeholder={t("notesPlaceholder")}
                 rows={2}
               />
             </div>
@@ -550,7 +549,7 @@ export default function TeacherEvaluations() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>نوع الملاحظة</Label>
+              <Label>{t("feedbackType")}</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -560,7 +559,7 @@ export default function TeacherEvaluations() {
                   className="gap-1"
                 >
                   <ThumbsUp className="h-4 w-4" />
-                  إيجابية
+                  {t("positive")}
                 </Button>
                 <Button
                   type="button"
@@ -570,16 +569,16 @@ export default function TeacherEvaluations() {
                   className="gap-1"
                 >
                   <ThumbsDown className="h-4 w-4" />
-                  تحسينية
+                  {t("improvement")}
                 </Button>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>المحتوى *</Label>
+              <Label>{t("contentLabel")} *</Label>
               <Textarea
                 value={feedbackForm.content}
                 onChange={(e) => setFeedbackForm({ ...feedbackForm, content: e.target.value })}
-                placeholder="مثال: أداء ممتاز في تلاوة سورة البقرة اليوم..."
+                placeholder={t("feedbackPlaceholder")}
                 rows={4}
                 maxLength={1000}
               />

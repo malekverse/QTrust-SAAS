@@ -115,14 +115,14 @@ export default function StudentSettings() {
       })
       const result = await res.json()
       if (res.ok) {
-        toast({ title: tc("success"), description: "تم تحديث بياناتك بنجاح" })
+        toast({ title: tc("success"), description: t("profileUpdated") })
         // Refresh profile data after save
         fetchProfile()
       } else {
         toast({ title: tc("error"), description: result.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: tc("error"), description: "حدث خطأ أثناء الحفظ", variant: "destructive" })
+      toast({ title: tc("error"), description: t("saveError"), variant: "destructive" })
     } finally {
       setSavingProfile(false)
     }
@@ -130,11 +130,11 @@ export default function StudentSettings() {
 
   const changePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast({ title: tc("error"), description: "كلمات المرور غير متطابقة", variant: "destructive" })
+      toast({ title: tc("error"), description: t("passwordMismatch"), variant: "destructive" })
       return
     }
     if (newPassword.length < 6) {
-      toast({ title: tc("error"), description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" })
+      toast({ title: tc("error"), description: t("passwordTooShort"), variant: "destructive" })
       return
     }
 
@@ -157,7 +157,7 @@ export default function StudentSettings() {
         toast({ title: tc("error"), description: result.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: tc("error"), description: "حدث خطأ أثناء تغيير كلمة المرور", variant: "destructive" })
+      toast({ title: tc("error"), description: t("passwordChangeError"), variant: "destructive" })
     } finally {
       setChangingPassword(false)
     }
@@ -184,7 +184,7 @@ export default function StudentSettings() {
   if (!data) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">حدث خطأ أثناء تحميل البيانات</p>
+        <p className="text-muted-foreground">{t("loadError")}</p>
       </div>
     )
   }
@@ -209,7 +209,7 @@ export default function StudentSettings() {
           <TabsTrigger value="profile">{t("personalInfo")}</TabsTrigger>
           <TabsTrigger value="qrcode">{t("qrCode")}</TabsTrigger>
           <TabsTrigger value="password">{t("changePassword")}</TabsTrigger>
-          <TabsTrigger value="appearance">المظهر</TabsTrigger>
+          <TabsTrigger value="appearance">{t("appearance")}</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -229,7 +229,7 @@ export default function StudentSettings() {
                 <div>
                   <h3 className="text-lg font-semibold">{data.profile.displayName}</h3>
                   <p className="text-sm text-muted-foreground">
-                    رقم الانخراط: {data.profile.enrollmentNumber || 'غير محدد'}
+                    {t("enrollmentNumber")}: {data.profile.enrollmentNumber || t("notSpecified")}
                   </p>
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function StudentSettings() {
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    الاسم الكامل
+                    {t("fullName")}
                   </Label>
                   <p className="text-sm font-medium">{data.profile.displayName}</p>
                 </div>
@@ -248,20 +248,20 @@ export default function StudentSettings() {
                     <Mail className="h-3 w-3" />
                     {tc("email")}
                   </Label>
-                  <p className="text-sm font-medium" dir="ltr">{data.profile.email || 'غير محدد'}</p>
+                  <p className="text-sm font-medium" dir="ltr">{data.profile.email || t("notSpecified")}</p>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1">
                     <GraduationCap className="h-3 w-3" />
-                    المستوى التعليمي
+                    {t("educationLevel")}
                   </Label>
-                  <p className="text-sm font-medium">{data.profile.educationLevel || 'غير محدد'}</p>
+                  <p className="text-sm font-medium">{data.profile.educationLevel || t("notSpecified")}</p>
                 </div>
                 {data.profile.dateOfBirth && (
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      تاريخ الميلاد
+                      {t("dateOfBirth")}
                     </Label>
                     <p className="text-sm font-medium">
                       {new Date(data.profile.dateOfBirth).toLocaleDateString('ar-TN')}
@@ -275,8 +275,8 @@ export default function StudentSettings() {
           {/* Editable Fields */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">تعديل المعلومات</CardTitle>
-              <CardDescription>يمكنك تعديل رقم الهاتف والعنوان</CardDescription>
+              <CardTitle className="text-base">{t("editInfo")}</CardTitle>
+              <CardDescription>{t("editInfoDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -292,20 +292,20 @@ export default function StudentSettings() {
               <div className="space-y-2">
                 <Label htmlFor="address" className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
-                  العنوان
+                  {t("address")}
                 </Label>
                 <Input
                   id="address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="العنوان"
+                  placeholder={t("address")}
                 />
               </div>
               <Button onClick={saveProfile} disabled={savingProfile}>
                 {savingProfile ? (
                   <>
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    جاري الحفظ...
+                    {t("saving")}
                   </>
                 ) : (
                   tc("save")
@@ -318,25 +318,25 @@ export default function StudentSettings() {
           {(data.profile.parentName || data.profile.parentEmail || data.profile.parentPhone) && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">معلومات الولي</CardTitle>
+                <CardTitle className="text-base">{t("parentInfo")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {data.profile.parentName && (
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">اسم الولي</Label>
+                      <Label className="text-xs text-muted-foreground">{t("parentName")}</Label>
                       <p className="text-sm font-medium">{data.profile.parentName}</p>
                     </div>
                   )}
                   {data.profile.parentEmail && (
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">البريد الإلكتروني</Label>
+                      <Label className="text-xs text-muted-foreground">{t("parentEmail")}</Label>
                       <p className="text-sm font-medium" dir="ltr">{data.profile.parentEmail}</p>
                     </div>
                   )}
                   {data.profile.parentPhone && (
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">رقم الهاتف</Label>
+                      <Label className="text-xs text-muted-foreground">{t("parentPhone")}</Label>
                       <p className="text-sm font-medium" dir="ltr">{data.profile.parentPhone}</p>
                     </div>
                   )}
@@ -352,7 +352,7 @@ export default function StudentSettings() {
             <CardHeader className="text-center">
               <CardTitle className="text-base flex items-center justify-center gap-2">
                 <QrCode className="h-5 w-5 text-primary" />
-                بطاقة QR الرقمية
+                {t("digitalQRCard")}
               </CardTitle>
               <CardDescription>
                 {t("qrDescription")}
@@ -379,13 +379,13 @@ export default function StudentSettings() {
                   </div>
                   <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 max-w-sm">
                     <Smartphone className="h-5 w-5 shrink-0" />
-                    <span>إذا فقدت بطاقتك الفعلية، يمكنك استخدام هذا الرمز كبديل مؤقت</span>
+                    <span>{t("qrBackupHint")}</span>
                   </div>
                 </>
               ) : (
                 <div className="py-8 text-center text-muted-foreground">
                   <QrCode className="h-12 w-12 mx-auto mb-3 opacity-40" />
-                  <p>رمز QR غير متوفر</p>
+                  <p>{t("qrNotAvailable")}</p>
                 </div>
               )}
             </CardContent>
@@ -441,7 +441,7 @@ export default function StudentSettings() {
                     {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">6 أحرف على الأقل</p>
+                <p className="text-xs text-muted-foreground">{t("minChars")}</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
@@ -458,7 +458,7 @@ export default function StudentSettings() {
                 {changingPassword ? (
                   <>
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    جاري التغيير...
+                    {t("changingPassword")}
                   </>
                 ) : (
                   t("changePassword")
@@ -472,8 +472,8 @@ export default function StudentSettings() {
         <TabsContent value="appearance" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">المظهر</CardTitle>
-              <CardDescription>اختر سمة التطبيق المفضلة</CardDescription>
+              <CardTitle className="text-base">{t("appearance")}</CardTitle>
+              <CardDescription>{t("chooseTheme")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-3 max-w-md">
@@ -483,7 +483,7 @@ export default function StudentSettings() {
                   className="flex flex-col items-center gap-2 h-auto py-4"
                 >
                   <Sun className="h-5 w-5" />
-                  <span className="text-xs">فاتح</span>
+                  <span className="text-xs">{t("themeLight")}</span>
                 </Button>
                 <Button
                   variant={theme === "dark" ? "default" : "outline"}
@@ -491,7 +491,7 @@ export default function StudentSettings() {
                   className="flex flex-col items-center gap-2 h-auto py-4"
                 >
                   <Moon className="h-5 w-5" />
-                  <span className="text-xs">داكن</span>
+                  <span className="text-xs">{t("themeDark")}</span>
                 </Button>
                 <Button
                   variant={theme === "system" ? "default" : "outline"}
@@ -499,7 +499,7 @@ export default function StudentSettings() {
                   className="flex flex-col items-center gap-2 h-auto py-4"
                 >
                   <Settings className="h-5 w-5" />
-                  <span className="text-xs">تلقائي</span>
+                  <span className="text-xs">{t("themeSystem")}</span>
                 </Button>
               </div>
             </CardContent>
@@ -508,19 +508,19 @@ export default function StudentSettings() {
           {/* Account Info */}
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle className="text-base">معلومات الحساب</CardTitle>
+              <CardTitle className="text-base">{t("accountInfo")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">معرّف الدخول</span>
+                  <span className="text-muted-foreground">{t("loginId")}</span>
                   <span className="font-medium" dir="ltr">
                     {data.account.loginPhone || data.account.loginEmail}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">تاريخ الإنشاء</span>
+                  <span className="text-muted-foreground">{t("createdAt")}</span>
                   <span className="font-medium">
                     {new Date(data.account.createdAt).toLocaleDateString('ar-TN')}
                   </span>

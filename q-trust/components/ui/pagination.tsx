@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface PaginationProps {
   page: number
@@ -11,6 +12,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, pages, total, onPageChange }: PaginationProps) {
+  const t = useTranslations("pagination")
   if (pages <= 1) return null
 
   const canPrev = page > 1
@@ -24,7 +26,7 @@ export function Pagination({ page, pages, total, onPageChange }: PaginationProps
   return (
     <div className="flex items-center justify-between gap-4 pt-4">
       <p className="text-sm text-muted-foreground">
-        صفحة {page} من {pages} — {total} عنصر
+        {t("page")} {page} {t("of")} {pages} — {total} {t("items")}
       </p>
       <div className="flex items-center gap-1">
         <Button variant="outline" size="icon" className="h-8 w-8" disabled={!canPrev} onClick={() => onPageChange(1)}>

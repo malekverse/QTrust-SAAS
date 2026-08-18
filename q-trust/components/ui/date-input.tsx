@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { format, parse, isValid } from "date-fns"
+import { useTranslations } from "next-intl"
 
 interface DateInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
   value?: string
@@ -32,6 +33,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     showCalendarButton = false,
     ...props
   }, ref) {
+    const tc = useTranslations("common")
     const inputRef = React.useRef<HTMLInputElement>(null)
     const [isCalendarOpen, setIsCalendarOpen] = React.useState(false)
     // Track local input value for smooth typing
@@ -177,7 +179,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
                 size="icon"
                 className="shrink-0"
                 tabIndex={-1}
-                aria-label="فتح التقويم"
+                aria-label={tc("openCalendar")}
               >
                 <CalendarIcon className="h-4 w-4" />
               </Button>

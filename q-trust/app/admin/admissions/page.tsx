@@ -30,7 +30,7 @@ import {
   Mail,
   Calendar,
 } from "lucide-react"
-import { ADMISSION_STATUS, ADMISSION_STATUS_LABELS, GENDER_LABELS } from "@/lib/constants"
+import { ADMISSION_STATUS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 
 interface Application {
@@ -81,6 +81,7 @@ export default function AdmissionsPage() {
   const [reviewNotes, setReviewNotes] = useState("")
   const t = useTranslations("admin.admissions")
   const tc = useTranslations("common")
+  const admissionStatusKey: Record<string, string> = { PENDING: "statusPending", APPROVED: "statusApproved", WAITLISTED: "statusWaitlisted", REJECTED: "statusRejected" }
 
   const { data, isLoading } = useQuery({
     queryKey: ["admissions", tab, page],
@@ -95,7 +96,7 @@ export default function AdmissionsPage() {
         body: JSON.stringify({ status, reviewNotes: notes }),
       })
       if (!res.ok) {
-        const d = await res.json().catch(() => ({ message: "فشل الإجراء" }))
+        const d = await res.json().catch(() => ({ message: "actionFailed" }))
         throw new Error(d.message)
       }
       return res.json()
@@ -105,12 +106,12 @@ export default function AdmissionsPage() {
       setReviewing(null)
       setReviewNotes("")
       if (vars.status === ADMISSION_STATUS.APPROVED) {
-        success("تم القبول", "تم تحويل الطلب إلى طالب مسجّل")
+        success(t("approved"), t("approvedMessage"))
       } else {
-        success("تم التحديث", "تم تحديث حالة الطلب")
+        success(tc("updated"), t("statusUpdated"))
       }
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(tc("error"), err.message),
   })
 
   const openReview = (app: Application) => {
@@ -166,7 +167,7 @@ export default function AdmissionsPage() {
             </p>
             {tab === "PENDING" && (
               <p className="mt-1 text-sm text-muted-foreground">
-                الطلبات المرسلة عبر استمارة التسجيل العامة ستظهر هنا
+                {t("emptyStateHint")}
               </p>
             )}
           </CardContent>
@@ -182,14 +183,14 @@ export default function AdmissionsPage() {
                       {app.firstName} {app.lastName}
                     </h3>
                     <Badge variant="outline" className="text-[10px]">
-                      {GENDER_LABELS[app.gender]}
+                      {tc(app.gender === 'MALE' ? 'male' : 'female')}
                     </Badge>
                     <Badge variant="outline" className={`text-[10px] ${STATUS_STYLE[app.status] || ""}`}>
-                      {ADMISSION_STATUS_LABELS[app.status]}
+                      {t(admissionStatusKey[app.status])}
                     </Badge>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    {app.parentName && <span>الولي: {app.parentName}</span>}
+                    {app.parentName && <span>{t("guardian")}: {app.parentName}</span>}
                     {app.parentPhone && (
                       <span className="flex items-center gap-1" dir="ltr">
                         <Phone className="h-3 w-3" />
@@ -242,18 +243,18 @@ export default function AdmissionsPage() {
                   <Detail label={t("birthDate")} value={formatDate(reviewing.dateOfBirth)} />
                 )}
                 {reviewing.educationLevel && (
-                  <Detail label="المستوى" value={reviewing.educationLevel} />
+                  <Detail label={t("educationLevel")} value={reviewing.educationLevel} />
                 )}
-                {reviewing.address && <Detail label="العنوان" value={reviewing.address} />}
-                {reviewing.parentName && <Detail label="الولي" value={reviewing.parentName} />}
+                {reviewing.address && <Detail label={t("address")} value={reviewing.address} />}
+                {reviewing.parentName && <Detail label={t("guardian")} value={reviewing.parentName} />}
                 {reviewing.parentPhone && (
-                  <Detail label="هاتف الولي" value={reviewing.parentPhone} ltr />
+                  <Detail label={t("guardianPhone")} value={reviewing.parentPhone} ltr />
                 )}
               </dl>
 
               {reviewing.medicalNotes && (
                 <div className="text-sm">
-                  <p className="text-muted-foreground">ملاحظات صحية</p>
+                  <p className="text-muted-foreground">{t("medicalNotes")}</p>
                   <p className="mt-1">{reviewing.medicalNotes}</p>
                 </div>
               )}
@@ -264,7 +265,7 @@ export default function AdmissionsPage() {
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
                   rows={2}
-                  placeholder="سبب القرار أو ملاحظات..."
+                  placeholder={t("reviewNotesPlaceholder")}
                 />
               </div>
             </div>

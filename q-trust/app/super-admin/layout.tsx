@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
 import { ShieldCheck, Building2, Inbox, Receipt } from "lucide-react"
 import { SignOutButton } from "./sign-out-button"
+import { getTranslations } from "next-intl/server"
 
 export default async function SuperAdminLayout({
   children,
@@ -20,13 +21,15 @@ export default async function SuperAdminLayout({
     redirect("/")
   }
 
+  const t = await getTranslations("superAdmin.nav")
+
   return (
     <div dir="rtl" className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" />
-            <span className="font-bold text-base sm:text-lg">منصة Q-Trust — لوحة الإدارة</span>
+            <span className="font-bold text-base sm:text-lg">{t("platformTitle")}</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline text-sm text-muted-foreground">
@@ -44,21 +47,21 @@ export default async function SuperAdminLayout({
             className="px-3 py-2 text-sm rounded-md hover:bg-muted flex items-center gap-2 transition-colors"
           >
             <Building2 className="h-4 w-4" />
-            المؤسسات
+            {t("tenants")}
           </Link>
           <Link
             href="/super-admin/billing"
             className="px-3 py-2 text-sm rounded-md hover:bg-muted flex items-center gap-2 transition-colors"
           >
             <Receipt className="h-4 w-4" />
-            الفوترة
+            {t("billing")}
           </Link>
           <Link
             href="/super-admin/leads"
             className="px-3 py-2 text-sm rounded-md hover:bg-muted flex items-center gap-2 transition-colors"
           >
             <Inbox className="h-4 w-4" />
-            طلبات العروض
+            {t("leads")}
           </Link>
         </div>
       </nav>

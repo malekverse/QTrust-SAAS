@@ -114,7 +114,79 @@
     "serverError": "Error fetching data",
     "uploadSuccess": "File uploaded successfully",
     "deleteConfirm": "Are you sure you want to delete?",
-    "deleteWarning": "This action cannot be undone"
+    "deleteWarning": "This action cannot be undone",
+    "attendanceRate": "Attendance Rate",
+    "openCalendar": "Open calendar",
+    "justifiedAbsence": "Excused Absence",
+    "greetingSalam": "Peace be upon you and the mercy and blessings of God",
+    "greetingMorning": "May God bless your morning and your work",
+    "greetingAfternoon": "May God bless your work today",
+    "greetingEvening": "May God make your evening one of goodness and blessings",
+    "greetingStudentDua": "May God bless your memorization and knowledge",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "activityAreas": {
+      "QURAN_MEMORIZATION": "Quran Memorization",
+      "TAJWEED_QIRAAT": "Tajweed & Qiraat",
+      "QURAN_SCIENCES": "Quran Sciences",
+      "COMPETITIONS": "Competitions",
+      "YEAR_ROUND_ACTIVITY": "Year-round Activity"
+    },
+    "educationLevels": {
+      "ابتدائي": "Primary School",
+      "إعدادي": "Middle School",
+      "ثانوي": "High School",
+      "جامعي": "University",
+      "ماجستير": "Master's",
+      "دكتوراه": "Doctorate",
+      "أخرى": "Other"
+    },
+    "hifzTypes": {
+      "SABAQ": "Sabaq (New Memorization)",
+      "SABQI": "Sabqi (Recent Review)",
+      "MANZIL": "Manzil (Distant Review)"
+    },
+    "hifzQuality": {
+      "EXCELLENT": "Excellent",
+      "GOOD": "Good",
+      "NEEDS_REVIEW": "Needs Review",
+      "WEAK": "Weak"
+    },
+    "gradeTypes": {
+      "EXAM": "Exam",
+      "MONTHLY_EVALUATION": "Monthly Evaluation",
+      "ORAL_TEST": "Oral Test",
+      "MEMORIZATION": "Memorization",
+      "TAJWEED": "Tajweed"
+    },
+    "behaviorTypes": {
+      "POSITIVE": "Positive Behavior",
+      "CONCERN": "Behavioral Concern"
+    }
   },
   "pagination": {
     "page": "Page",
@@ -137,7 +209,14 @@
       "noAccount": "Don't have an account?",
       "contactAdmin": "Contact your association's administration",
       "errorInvalid": "Invalid credentials",
-      "errorGeneric": "An error occurred during sign in"
+      "errorGeneric": "An error occurred during sign in",
+      "errorAccessDenied": "Access denied. The account may be disabled",
+      "errorVerification": "Verification link is invalid or expired",
+      "tagline": "Management platform for Quran memorization associations and schools",
+      "welcomeTenant": "Welcome to {tenantName}",
+      "emailOrPhone": "Email or phone number",
+      "emailPlaceholder": "example@email.com or +216XXXXXXXX",
+      "copyright": "© {year} All rights reserved"
     },
     "onboarding": {
       "title": "Welcome to Q-Trust",
@@ -148,12 +227,21 @@
       "changing": "Changing...",
       "passwordMismatch": "Passwords do not match",
       "passwordTooShort": "Password must be at least 6 characters",
-      "success": "Password changed successfully"
+      "success": "Password changed successfully",
+      "greeting": "Welcome {name}",
+      "newPasswordPlaceholder": "Enter a new password",
+      "passwordHint": "At least 6 characters",
+      "confirmPasswordPlaceholder": "Re-enter your password",
+      "securityTip": "Choose a strong and secure password. Do not share it with anyone."
     },
     "error": {
       "title": "Login Error",
       "tryAgain": "Try Again",
-      "backToLogin": "Back to Login"
+      "backToLogin": "Back to Login",
+      "configError": "Server configuration error",
+      "accessDenied": "Access denied",
+      "verificationError": "Verification error",
+      "defaultError": "An error occurred during sign in"
     }
   },
   "suspended": {
@@ -441,7 +529,11 @@
       "parentInfo": "Parent Information",
       "idCard": "ID Card",
       "birthDate": "Date of Birth",
-      "declaration": "Declaration"
+      "declaration": "Declaration",
+      "statusPending": "Under Review",
+      "statusApproved": "Approved",
+      "statusWaitlisted": "Waitlisted",
+      "statusRejected": "Rejected"
     },
     "claims": {
       "title": "Claims Management",
@@ -485,7 +577,12 @@
         "SIRA": "Prophet's Biography",
         "AQIDA": "Aqida",
         "GENERAL": "General",
-        "OTHER": "Other"
+        "OTHER": "Other",
+        "QURAN_STUDY": "Quranic Studies",
+        "TAJWEED": "Tajweed",
+        "MEMORIZATION_GUIDE": "Memorization Guide",
+        "EXAM_MATERIAL": "Exam Material",
+        "COMPETITION": "Competitions"
       }
     },
     "families": {
@@ -521,7 +618,16 @@
       "weeklySchedule": "Weekly Schedule",
       "noSessionsForRoom": "No sessions linked to this room",
       "linkedSessions": "Linked Sessions",
-      "studentSuffix": "student(s)"
+      "studentSuffix": "student(s)",
+      "featureLabels": {
+        "WHITEBOARD": "Whiteboard",
+        "PROJECTOR": "Projector",
+        "AC": "Air Conditioning",
+        "COMPUTER": "Computer",
+        "SOUND_SYSTEM": "Sound System",
+        "PRAYER_MATS": "Prayer Mats",
+        "QURAN_COPIES": "Quran Copies"
+      }
     },
     "substitutes": {
       "title": "Substitute Management",
@@ -692,7 +798,9 @@
       "totalStudents": "Total Students",
       "weeklyAttendance": "Weekly Attendance",
       "noSessionsToday": "No sessions today",
-      "upcomingSessions": "Upcoming Sessions"
+      "upcomingSessions": "Upcoming Sessions",
+      "weeklySession": "weekly session",
+      "overviewDescription": "Overview of your sessions and students"
     },
     "sessions": {
       "title": "My Sessions",
@@ -702,7 +810,51 @@
       "startSession": "Start Session",
       "viewDetails": "View Details",
       "takeAttendance": "Take Attendance",
-      "substitute": "Substitute"
+      "substitute": "Substitute",
+      "contactAdminForSessions": "Contact administration to add new sessions",
+      "totalSessionCount": "{count} session(s)",
+      "recitationTab": "Recitation",
+      "behaviorTab": "Behavior",
+      "optionalNotesPlaceholder": "Optional notes...",
+      "recordRecitation": "Record Recitation",
+      "noSessionForDate": "No session on this date",
+      "behavioralNotes": "Behavioral Notes",
+      "behaviorEntry": {
+        "saveFailed": "Save failed",
+        "saved": "Saved",
+        "savedSuccess": "Behavioral note recorded successfully",
+        "missingData": "Missing data",
+        "descriptionRequired": "Please write a description for the note",
+        "searchStudent": "Search for student...",
+        "note": "Note",
+        "noStudents": "No students",
+        "dialogTitle": "Behavioral note — {name}",
+        "typeLabel": "Type",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "e.g., Helped a classmate with review",
+        "saveNote": "Save Note"
+      }
+    },
+    "hifz": {
+      "saveFailed": "Save failed",
+      "saved": "Saved",
+      "recitationRecorded": "Recitation recorded successfully",
+      "incompleteData": "Incomplete data",
+      "fillSurahAndVerses": "Please fill in the surah and verse numbers",
+      "searchStudent": "Search for student...",
+      "recitation": "Recitation",
+      "noStudents": "No students",
+      "recordRecitationFor": "Record recitation — {name}",
+      "typeLabel": "Type",
+      "surahLabel": "Surah",
+      "surahPlaceholder": "e.g., Al-Baqarah",
+      "fromVerse": "From verse",
+      "toVerse": "To verse",
+      "qualityLabel": "Rating",
+      "mistakeCount": "Mistake count (optional)",
+      "notesOptional": "Notes (optional)",
+      "additionalNotesPlaceholder": "Additional notes...",
+      "saveRecitation": "Save Recitation"
     },
     "evaluations": {
       "title": "Student Evaluations",
@@ -722,13 +874,28 @@
       "needsWork": "Needs Improvement",
       "saveEvaluation": "Save Evaluation",
       "evaluationSaved": "Evaluation saved successfully",
-      "noEvaluations": "No evaluations"
+      "noEvaluations": "No evaluations",
+      "evaluationTitle": "Evaluation Title",
+      "evaluationTitlePlaceholder": "e.g., Surah Al-Baqarah test",
+      "score": "Score",
+      "maxScore": "Maximum Score",
+      "juz": "Juz",
+      "feedbackType": "Feedback Type",
+      "positive": "Positive",
+      "improvement": "Improvement",
+      "contentLabel": "Content",
+      "feedbackPlaceholder": "e.g., Excellent performance in reciting Surah Al-Baqarah today...",
+      "notesPlaceholder": "Additional notes...",
+      "surahPlaceholder": "Al-Baqarah"
     },
     "analytics": {
       "title": "Statistics",
       "description": "Statistics for your sessions and students",
       "attendanceRate": "Attendance Rate",
-      "avgGrade": "Average Grade"
+      "avgGrade": "Average Grade",
+      "sessionsHeld": "sessions held",
+      "lateInstances": "late instances",
+      "sessionUnit": "session(s)"
     },
     "settings": {
       "title": "Settings",
@@ -737,7 +904,14 @@
       "currentPassword": "Current Password",
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
-      "passwordChanged": "Password changed successfully"
+      "passwordChanged": "Password changed successfully",
+      "accountInfo": "Account Information",
+      "accountInfoDescription": "Your basic information",
+      "contactAdminToChange": "To change your personal information, contact the administration",
+      "appearance": "Appearance",
+      "customizeAppearance": "Customize app appearance",
+      "darkMode": "Dark Mode",
+      "enableDarkMode": "Enable dark mode for the app"
     }
   },
   "student": {
@@ -748,7 +922,24 @@
       "attendanceRate": "Attendance Rate",
       "nextSession": "Next Session",
       "recentGrades": "Recent Grades",
-      "myQRCode": "My QR Code"
+      "myQRCode": "My QR Code",
+      "loadError": "Error loading data",
+      "connectionError": "Server connection error",
+      "retry": "Retry",
+      "salaam": "Assalamu Alaikum, {name}",
+      "greetingSubtext": "May Allah bless your memorization and knowledge",
+      "morningGreeting": "Good morning",
+      "afternoonGreeting": "Good afternoon",
+      "eveningGreeting": "Good evening",
+      "consecutiveDays": "consecutive attendance days",
+      "today": "Today",
+      "memorizationProgress": "Memorization Progress",
+      "completedJuz": "completed juz",
+      "performanceAverage": "Performance Average",
+      "enrolledCircles": "Enrolled Circles",
+      "attendanceOf": "{present} present out of {total} sessions",
+      "attendanceTrend": "Attendance Trend — Last 3 months",
+      "noGrades": "No evaluations yet"
     },
     "sessions": {
       "title": "My Circles",
@@ -756,12 +947,26 @@
       "noSessions": "You are not enrolled in any circle yet",
       "teacher": "Teacher",
       "schedule": "Schedule",
-      "room": "Room"
+      "room": "Room",
+      "loadError": "Error loading data",
+      "connectionError": "Server connection error",
+      "retry": "Retry",
+      "statusScheduled": "Upcoming",
+      "statusInProgress": "In Progress",
+      "statusFinished": "Finished",
+      "statusCancelled": "Cancelled",
+      "weeklySchedule": "Weekly Schedule",
+      "circlesList": "Circles List",
+      "today": "Today",
+      "upcomingSessions": "Upcoming Sessions"
     },
     "schedule": {
       "title": "My Schedule",
       "description": "Weekly schedule for my circles",
-      "noSchedule": "No schedule"
+      "noSchedule": "No schedule",
+      "fetchError": "Failed to load schedule",
+      "circleCount": "{count} circles",
+      "today": "Today"
     },
     "attendance": {
       "title": "Attendance Record",
@@ -771,20 +976,53 @@
       "totalAbsent": "Total Absent",
       "submitClaim": "Submit Claim",
       "claimReason": "Claim Reason",
-      "claimSubmitted": "Claim submitted successfully"
+      "claimSubmitted": "Claim submitted successfully",
+      "loadError": "Error loading data",
+      "connectionError": "Server connection error",
+      "retry": "Retry",
+      "claimError": "Error submitting claim",
+      "filterByStatus": "Filter by status",
+      "checkInTime": "Check-in: {time}",
+      "claimPlaceholder": "Example: I forgot my card but I was present in the session...",
+      "submitting": "Submitting..."
     },
     "performance": {
       "title": "Results & Evaluations",
       "description": "Track your memorization and review performance",
       "noResults": "No results yet",
       "hifzProgress": "Memorization Progress",
-      "overallGrade": "Overall Grade"
+      "overallGrade": "Overall Grade",
+      "loadError": "Error loading data",
+      "connectionError": "Server connection error",
+      "retry": "Retry",
+      "completedJuz": "completed juz",
+      "evaluationCount": "evaluations",
+      "earnedBadges": "earned badges",
+      "juzCount": "{completed} / {total} juz",
+      "quranProgress": "{percent}% of the Holy Quran",
+      "gradesTab": "Grades",
+      "hifzTab": "Recitation",
+      "behaviorTab": "Behavior",
+      "feedbackTab": "Teacher Notes",
+      "badgesTab": "Badges",
+      "surah": "Surah {name}",
+      "juz": "Juz {number}",
+      "noHifzRecords": "No recitation records yet",
+      "verses": "Verses {from} — {to}",
+      "mistakes": "{count} mistakes",
+      "noBehaviorRecords": "No behavior notes yet",
+      "noFeedback": "No feedback yet",
+      "achieved": "Achieved",
+      "startBadgeJourney": "Start your journey to earn badges"
     },
     "documents": {
       "title": "Library",
       "description": "Available documents and educational materials",
       "noDocuments": "No documents available",
-      "download": "Download"
+      "download": "Download",
+      "loadError": "Error loading data",
+      "connectionError": "Server connection error",
+      "retry": "Retry"
     },
     "settings": {
       "title": "Settings",
@@ -798,11 +1036,50 @@
       "qrCode": "QR Code",
       "qrDescription": "Use this code to record your attendance via the scanner",
       "showQR": "Show this code on your phone screen in front of the scanner to record your attendance",
-      "downloadQR": "Download Code"
+      "downloadQR": "Download Code",
+      "loadError": "Error loading data",
+      "profileUpdated": "Your information has been updated successfully",
+      "saveError": "Error saving changes",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordChangeError": "Error changing password",
+      "appearance": "Appearance",
+      "enrollmentNumber": "Enrollment Number",
+      "notSpecified": "Not specified",
+      "fullName": "Full Name",
+      "educationLevel": "Education Level",
+      "dateOfBirth": "Date of Birth",
+      "editInfo": "Edit Information",
+      "editInfoDescription": "You can edit your phone number and address",
+      "address": "Address",
+      "saving": "Saving...",
+      "parentInfo": "Guardian Information",
+      "parentName": "Guardian Name",
+      "parentEmail": "Email",
+      "parentPhone": "Phone Number",
+      "digitalQRCard": "Digital QR Card",
+      "qrBackupHint": "If you lose your physical card, you can use this code as a temporary replacement",
+      "qrNotAvailable": "QR code not available",
+      "minChars": "At least 6 characters",
+      "changingPassword": "Changing...",
+      "chooseTheme": "Choose your preferred app theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
+      "accountInfo": "Account Information",
+      "loginId": "Login ID",
+      "createdAt": "Created At"
     }
   },
   "superAdmin": {
     "title": "Main Dashboard",
+    "nav": {
+      "platformTitle": "Q-Trust Platform — Admin Panel",
+      "tenants": "Organizations",
+      "billing": "Billing",
+      "leads": "Demo Requests",
+      "signOut": "Sign Out"
+    },
     "tenants": {
       "title": "Organization Management",
       "description": "Manage all registered organizations",
@@ -872,7 +1149,15 @@
       "paymentMethod": "Payment Method",
       "setupPayment": "Setup Payment",
       "invoicesCount": "Invoices ({count})",
-      "dueLabel": "Due"
+      "dueLabel": "Due",
+      "saveFailed": "Failed to save",
+      "saveChanges": "Save Changes",
+      "planChangeWarning": "Changing the plan will automatically update the student limit and AI quota.",
+      "updateFailed": "Failed to update",
+      "cancelPayment": "Cancel Payment",
+      "recordPayment": "Record Payment",
+      "referencePlaceholder": "Reference number (optional)",
+      "currency": "TND"
     },
     "billing": {
       "title": "Billing",
@@ -918,6 +1203,7 @@
       "new": "New",
       "contacted": "Contacted",
       "converted": "Converted",
+      "closed": "Closed",
       "pageTitle": "Demo Requests",
       "requestCount": "{count} requests from marketing page",
       "noLeadsYet": "No requests yet",
@@ -974,16 +1260,63 @@
     "title": "Notifications",
     "noNotifications": "No notifications",
     "markAllRead": "Mark all as read",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "timeNow": "Now",
+    "timeMinutes": "{count}m ago",
+    "timeHours": "{count}h ago",
+    "timeDays": "{count}d ago"
   },
   "fileUpload": {
     "dragDrop": "Drag and drop file here",
+    "dropHere": "Drop file here",
     "or": "or",
     "browse": "Browse files",
+    "clickToSelect": "or click to select a file",
     "maxSize": "Maximum file size",
+    "maxSizeMB": "Max size: {size} MB",
     "uploadSuccess": "File uploaded successfully",
     "uploadError": "Upload error",
+    "uploadFailed": "Failed to upload file",
+    "fileSizeExceeded": "File size must not exceed {size} MB",
+    "unsupportedType": "File type not supported",
+    "uploading": "Uploading to cloud...",
+    "uploadComplete": "Upload complete!",
+    "clickToRetry": "Click to retry",
+    "clickOrDrop": "Click to select or drag and drop",
+    "clickToSelectOrDrop": "Click to select or drag and drop a file",
+    "deleteAndReselect": "Click the button to delete the file and select another",
     "remove": "Remove file",
     "cloudinary": "Cloudinary"
+  },
+  "calendar": {
+    "months": {
+      "0": "January",
+      "1": "February",
+      "2": "March",
+      "3": "April",
+      "4": "May",
+      "5": "June",
+      "6": "July",
+      "7": "August",
+      "8": "September",
+      "9": "October",
+      "10": "November",
+      "11": "December"
+    },
+    "weekdays": {
+      "0": "Sa",
+      "1": "Su",
+      "2": "Mo",
+      "3": "Tu",
+      "4": "We",
+      "5": "Th",
+      "6": "Fr"
+    }
+  },
+  "greeting": {
+    "salaam": "Peace be upon you",
+    "morningSubtitle": "May God bless your morning and your work",
+    "afternoonSubtitle": "May God bless your work today",
+    "eveningSubtitle": "May God make your evening good and blessed"
   }
 }

@@ -5,6 +5,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Upload, X, FileImage, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export type UploadType = 'photo' | 'cin_front' | 'cin_back' | 'document' | 'receipt'
 
@@ -49,6 +50,7 @@ export function FileUpload({
   /** Set to -1 to skip this component in tab order (useful in forms with many fields) */
   tabIndex = -1
 }: FileUploadProps & { tabIndex?: number }) {
+  const t = useTranslations("fileUpload")
   const [isDragging, setIsDragging] = React.useState(false)
   const [uploadState, setUploadState] = React.useState<UploadState>('idle')
   const [uploadError, setUploadError] = React.useState<string | null>(null)
@@ -59,7 +61,7 @@ export function FileUpload({
   const validateFile = (file: File): string | null => {
     // Check file size
     if (file.size > maxSize * 1024 * 1024) {
-      return `حجم الملف يجب أن لا يتجاوز ${maxSize} ميغابايت`
+      return t("fileSizeExceeded", { size: maxSize })
     }
 
     // Check file type
@@ -74,7 +76,7 @@ export function FileUpload({
     })
 
     if (!isValidType) {
-      return 'نوع الملف غير مدعوم'
+      return t("unsupportedType")
     }
 
     return null
@@ -92,7 +94,7 @@ export function FileUpload({
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.message || 'فشل في رفع الملف')
+      throw new Error(error.message || t("uploadFailed"))
     }
 
     const data = await response.json()
@@ -136,7 +138,7 @@ export function FileUpload({
       }, 2000)
     } catch (err) {
       clearInterval(progressInterval)
-      const message = err instanceof Error ? err.message : 'فشل في رفع الملف'
+      const message = err instanceof Error ? err.message : t("uploadFailed")
       setUploadError(message)
       setUploadState('error')
     }
@@ -238,13 +240,13 @@ export function FileUpload({
             )}
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">
-                تم رفع الملف بنجاح
+                {t("uploadSuccess")}
                 {isCloudinaryUrl && (
                   <span className="text-xs text-muted-foreground mr-2">(Cloudinary)</span>
                 )}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                اضغط على الزر لحذف الملف واختيار ملف آخر
+                {t("deleteAndReselect")}
               </p>
             </div>
             <Button
@@ -271,7 +273,7 @@ export function FileUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          aria-label={label ? `${label} - اضغط للاختيار أو اسحب وأفلت` : 'اضغط للاختيار أو اسحب وأفلت ملف'}
+          aria-label={label ? `${label} - ${t("clickOrDrop")}` : t("clickToSelectOrDrop")}
           className={cn(
             "relative flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -297,7 +299,7 @@ export function FileUpload({
             <>
               <Loader2 className="h-10 w-10 text-primary animate-spin" />
               <div className="text-center">
-                <p className="text-sm font-medium">جاري الرفع إلى السحابة...</p>
+                <p className="text-sm font-medium">{t("uploading")}</p>
                 <div className="mt-2 h-2 w-32 rounded-full bg-muted overflow-hidden">
                   <div 
                     className="h-full bg-primary transition-all duration-300"
@@ -310,14 +312,14 @@ export function FileUpload({
           ) : uploadState === 'success' ? (
             <>
               <CheckCircle className="h-10 w-10 text-emerald-500" />
-              <p className="text-sm font-medium text-emerald-600">تم الرفع بنجاح!</p>
+              <p className="text-sm font-medium text-emerald-600">{t("uploadComplete")}</p>
             </>
           ) : uploadState === 'error' ? (
             <>
               <AlertCircle className="h-10 w-10 text-destructive" />
               <div className="text-center">
                 <p className="text-sm font-medium text-destructive">{uploadError}</p>
-                <p className="text-xs text-muted-foreground mt-1">اضغط لإعادة المحاولة</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("clickToRetry")}</p>
               </div>
             </>
           ) : (
@@ -327,13 +329,13 @@ export function FileUpload({
               </div>
               <div className="text-center">
                 <p className="text-sm font-medium">
-                  {isDragging ? 'أفلت الملف هنا' : 'اسحب وأفلت الملف هنا'}
+                  {isDragging ? t("dropHere") : t("dragDrop")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  أو اضغط لاختيار ملف
+                  {t("clickToSelect")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  الحد الأقصى: {maxSize} ميغابايت
+                  {t("maxSizeMB", { size: maxSize })}
                 </p>
               </div>
             </>

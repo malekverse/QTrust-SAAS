@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info, Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 const ToastContext = React.createContext<{
   toast: (props: ToastProps) => string
@@ -183,13 +184,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ToastViewport({ 
-  toasts, 
-  dismiss 
-}: { 
+function ToastViewport({
+  toasts,
+  dismiss
+}: {
   toasts: Toast[]
-  dismiss: (id: string) => void 
+  dismiss: (id: string) => void
 }) {
+  const tc = useTranslations("common")
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-100 flex max-h-screen w-full flex-col gap-2 p-4 sm:top-auto sm:bottom-4 sm:right-4 sm:left-auto sm:translate-x-0 md:max-w-[400px]">
       {toasts.map((toast) => (
@@ -216,7 +218,7 @@ function ToastViewport({
           <button
             className="absolute left-2 top-2 rounded-md p-1.5 opacity-50 transition-all hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring group-hover:opacity-80"
             onClick={() => dismiss(toast.id)}
-            aria-label="إغلاق"
+            aria-label={tc("close")}
           >
             <X className="h-4 w-4" />
           </button>

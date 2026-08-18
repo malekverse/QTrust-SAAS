@@ -168,12 +168,12 @@ export default function SchedulePage() {
         queryClient.invalidateQueries({ queryKey: ["rooms"] })
         setAutoAssignDialogOpen(false)
         setAutoAssignPreview(null)
-        success("تم التعيين", result.message)
+        success(t("assigned"), result.message)
       } else {
         setAutoAssignPreview(result)
       }
     },
-    onError: (err: Error) => showError("خطأ", err.message),
+    onError: (err: Error) => showError(t("error"), err.message),
   })
 
   const sessions = data?.sessions || []
@@ -228,7 +228,7 @@ export default function SchedulePage() {
           </Button>
           <Button variant="outline" size="sm" onClick={handleCheckConflicts}>
             <AlertTriangle className="h-4 w-4 ml-2" />
-            فحص التعارضات
+            {t("checkConflicts")}
           </Button>
           <Button
             size="sm"
@@ -236,7 +236,7 @@ export default function SchedulePage() {
             disabled={noSessionsWithoutRooms === 0}
           >
             <Wand2 className="h-4 w-4 ml-2" />
-            تعيين تلقائي
+            {t("autoAssign")}
             {noSessionsWithoutRooms > 0 && (
               <Badge variant="secondary" className="mr-2 text-xs">
                 {noSessionsWithoutRooms}
@@ -256,10 +256,10 @@ export default function SchedulePage() {
             </div>
             <Select value={filterRoom} onValueChange={setFilterRoom}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="جميع القاعات" />
+                <SelectValue placeholder={t("allRooms")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">جميع القاعات</SelectItem>
+                <SelectItem value="all">{t("allRooms")}</SelectItem>
                 {rooms.map((r: any) => (
                   <SelectItem key={r._id} value={r._id}>
                     {r.name}
@@ -269,10 +269,10 @@ export default function SchedulePage() {
             </Select>
             <Select value={filterTeacher} onValueChange={setFilterTeacher}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="جميع المعلمين" />
+                <SelectValue placeholder={t("allTeachers")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">جميع المعلمين</SelectItem>
+                <SelectItem value="all">{t("allTeachers")}</SelectItem>
                 {teachers.map((t: any) => (
                   <SelectItem key={t._id} value={t._id}>
                     {t.fullName}
@@ -281,9 +281,9 @@ export default function SchedulePage() {
               </SelectContent>
             </Select>
             <div className="flex gap-2 text-sm">
-              <Badge variant="outline">{sessions.length} حصة</Badge>
+              <Badge variant="outline">{sessions.length} {t("sessionSuffix")}</Badge>
               {noSessionsWithoutRooms > 0 && (
-                <Badge variant="destructive">{noSessionsWithoutRooms} بدون قاعة</Badge>
+                <Badge variant="destructive">{noSessionsWithoutRooms} {t("withoutRoom")}</Badge>
               )}
             </div>
           </div>
@@ -309,7 +309,7 @@ export default function SchedulePage() {
                 }}
               >
                 <div className="p-3 text-center text-xs font-medium text-muted-foreground border-l">
-                  الوقت
+                  {t("time")}
                 </div>
                 {DAYS_OF_WEEK.map((day) => (
                   <div
@@ -320,7 +320,7 @@ export default function SchedulePage() {
                         : "text-muted-foreground"
                     }`}
                   >
-                    {day.label}
+                    {tc('days.' + String(day.value))}
                   </div>
                 ))}
               </div>
@@ -432,27 +432,27 @@ export default function SchedulePage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                  {DAYS_OF_WEEK.find((d) => d.value === selectedSession.dayOfWeek)?.label}
+                  {tc('days.' + String(selectedSession.dayOfWeek))}
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  {selectedSession.studentCount || 0} طالب
+                  {selectedSession.studentCount || 0} {t("studentSuffix")}
                   {selectedSession.roomId && (
                     <span className="text-muted-foreground">/ {selectedSession.roomId.capacity}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <DoorOpen className="h-4 w-4 text-muted-foreground" />
-                  {selectedSession.roomId?.name || "بدون قاعة"}
+                  {selectedSession.roomId?.name || t("noRoom")}
                 </div>
               </div>
               <div className="text-sm">
-                <span className="text-muted-foreground">المعلم: </span>
-                {selectedSession.teacherId?.fullName || "غير محدد"}
+                <span className="text-muted-foreground">{t("teacher")}: </span>
+                {selectedSession.teacherId?.fullName || t("unassigned")}
               </div>
               <Button asChild className="w-full">
                 <Link href={`/admin/sessions/${selectedSession._id}`}>
-                  إدارة الحصة
+                  {t("manageSession")}
                 </Link>
               </Button>
             </div>
@@ -466,7 +466,7 @@ export default function SchedulePage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              تقرير التعارضات
+              {t("conflictsReport")}
             </DialogTitle>
           </DialogHeader>
           {conflictData ? (
@@ -474,8 +474,8 @@ export default function SchedulePage() {
               {conflictData.summary.total === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-500 mb-3" />
-                  <p className="font-medium">لا توجد تعارضات</p>
-                  <p className="text-sm text-muted-foreground">الجدول نظيف</p>
+                  <p className="font-medium">{t("noConflicts")}</p>
+                  <p className="text-sm text-muted-foreground">{t("scheduleClean")}</p>
                 </div>
               ) : (
                 <>
@@ -483,19 +483,19 @@ export default function SchedulePage() {
                     <Card>
                       <CardContent className="p-3">
                         <p className="text-2xl font-bold text-destructive">{conflictData.summary.roomConflicts}</p>
-                        <p className="text-xs text-muted-foreground">تعارض قاعات</p>
+                        <p className="text-xs text-muted-foreground">{t("roomConflicts")}</p>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-3">
                         <p className="text-2xl font-bold text-destructive">{conflictData.summary.teacherConflicts}</p>
-                        <p className="text-xs text-muted-foreground">تعارض معلمين</p>
+                        <p className="text-xs text-muted-foreground">{t("teacherConflicts")}</p>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-3">
                         <p className="text-2xl font-bold text-amber-600">{conflictData.summary.overCapacity}</p>
-                        <p className="text-xs text-muted-foreground">تجاوز سعة</p>
+                        <p className="text-xs text-muted-foreground">{t("overCapacity")}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -535,13 +535,13 @@ export default function SchedulePage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Wand2 className="h-5 w-5" />
-              تعيين تلقائي للقاعات
+              {t("autoAssignRooms")}
             </DialogTitle>
           </DialogHeader>
           {autoAssignMutation.isPending && !autoAssignPreview ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin ml-2" />
-              <span>جاري الحساب...</span>
+              <span>{t("calculating")}</span>
             </div>
           ) : autoAssignPreview ? (
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -549,7 +549,7 @@ export default function SchedulePage() {
                 <div>
                   <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    تعيينات مقترحة ({autoAssignPreview.assignments.length})
+                    {t("suggestedAssignments")} ({autoAssignPreview.assignments.length})
                   </h4>
                   {autoAssignPreview.assignments.map((a: any) => (
                     <div key={a.sessionId} className="p-2 rounded border mb-2 bg-emerald-500/5">
@@ -565,7 +565,7 @@ export default function SchedulePage() {
                 <div>
                   <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
                     <XCircle className="h-4 w-4 text-destructive" />
-                    لا يمكن تعيينهم ({autoAssignPreview.unassignable.length})
+                    {t("cannotAssign")} ({autoAssignPreview.unassignable.length})
                   </h4>
                   {autoAssignPreview.unassignable.map((u: any) => (
                     <div key={u.sessionId} className="p-2 rounded border mb-2 bg-destructive/5">
@@ -587,7 +587,7 @@ export default function SchedulePage() {
                 disabled={autoAssignMutation.isPending}
               >
                 {autoAssignMutation.isPending && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
-                تطبيق ({autoAssignPreview.assignments.length})
+                {t("apply")} ({autoAssignPreview.assignments.length})
               </Button>
             )}
           </DialogFooter>

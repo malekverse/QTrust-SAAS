@@ -50,7 +50,6 @@ import {
   RefreshCw,
   CreditCard
 } from "lucide-react"
-import { getAttendanceStatusLabel, getDayName } from "@/lib/utils"
 import { ATTENDANCE_STATUS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 import { useTranslations } from "next-intl"
@@ -169,6 +168,7 @@ function MiniCalendar({
   selectedDate: string
   onDateChange: (date: string) => void 
 }) {
+  const t = useTranslations("admin.attendance")
   const [viewDate, setViewDate] = useState(() => new Date(selectedDate))
   
   const getDaysInMonth = (date: Date) => {
@@ -197,7 +197,7 @@ function MiniCalendar({
     onDateChange(newDate.toISOString().split("T")[0])
   }
 
-  const weekDays = ["أح", "إث", "ثل", "أر", "خم", "جم", "سب"]
+  const weekDays = [t("weekDaySun"), t("weekDayMon"), t("weekDayTue"), t("weekDayWed"), t("weekDayThu"), t("weekDayFri"), t("weekDaySat")]
 
   return (
     <div className="p-3">
@@ -263,7 +263,7 @@ function MiniCalendar({
           }}
         >
           <CalendarDays className="h-4 w-4 ml-2" />
-          اليوم
+          {t("today")}
         </Button>
       </div>
     </div>
@@ -273,6 +273,12 @@ function MiniCalendar({
 export default function AttendancePage() {
   const t = useTranslations("admin.attendance")
   const tc = useTranslations("common")
+  const attendanceStatusKeys: Record<string, string> = {
+    PRESENT: 'present',
+    ABSENT: 'absent',
+    LATE: 'late',
+    JUSTIFIED_ABSENCE: 'justifiedAbsence',
+  }
   const queryClient = useQueryClient()
   const { success, error: showError } = useToast()
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -323,7 +329,7 @@ export default function AttendancePage() {
       void queryClient.invalidateQueries({ queryKey: ["attendance-by-date", selectedDate] })
     },
     onError: (err: Error) => {
-      showError("فشل التحديث", err.message || "حدث خطأ أثناء تحديث الحضور")
+      showError(t("updateFailed"), err.message || t("updateError"))
     },
   })
 
@@ -373,7 +379,7 @@ export default function AttendancePage() {
         rows.push([
           session.name,
           getStudentName(student),
-          getAttendanceStatusLabel(student.status),
+          tc(attendanceStatusKeys[student.status] || student.status),
           student.checkInTime 
             ? new Date(student.checkInTime).toLocaleTimeString("ar-TN", { hour: "2-digit", minute: "2-digit" })
             : "-"
@@ -485,7 +491,7 @@ export default function AttendancePage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="h-4 w-4 ml-2" />
-            طباعة
+            {t("print")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!data?.sessions?.length}>
             <Download className="h-4 w-4 ml-2" />
@@ -513,7 +519,7 @@ export default function AttendancePage() {
                     <Calendar className="h-5 w-5 text-primary" />
                     <span>{formattedDate}</span>
                     {isToday && (
-                      <Badge variant="secondary" className="text-xs">اليوم</Badge>
+                      <Badge variant="secondary" className="text-xs">{t("today")}</Badge>
                     )}
                   </Button>
                   
@@ -550,7 +556,7 @@ export default function AttendancePage() {
                     size="sm"
                     onClick={() => setSelectedDate(new Date().toISOString().split("T")[0])}
                   >
-                    العودة لليوم
+                    {t("returnToToday")}
                   </Button>
                 )}
               </div>
@@ -568,7 +574,7 @@ export default function AttendancePage() {
             <div className="relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="البحث عن طالب..."
+                placeholder={t("searchStudent")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pr-10"
@@ -587,7 +593,7 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{overallStats.total}</p>
-              <p className="text-xs text-muted-foreground">إجمالي الطلاب</p>
+              <p className="text-xs text-muted-foreground">{t("totalStudents")}</p>
             </div>
           </CardContent>
         </Card>
@@ -631,7 +637,7 @@ export default function AttendancePage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{overallStats.rate}%</p>
-              <p className="text-xs text-muted-foreground">نسبة الحضور</p>
+              <p className="text-xs text-muted-foreground">{t("attendanceRate")}</p>
             </div>
           </CardContent>
         </Card>
@@ -642,7 +648,7 @@ export default function AttendancePage() {
         <div className="flex justify-center">
           <Badge variant="secondary" className="gap-2">
             <Loader2 className="h-3 w-3 animate-spin" />
-            جاري التحديث...
+            {t("updating")}
           </Badge>
         </div>
       )}
@@ -668,14 +674,14 @@ export default function AttendancePage() {
           <CardContent className="p-6 text-center">
             <XCircle className="h-12 w-12 mx-auto mb-3 text-destructive opacity-50" />
             <p className="text-destructive font-medium">{tc("serverError")}</p>
-            <p className="text-sm text-muted-foreground mt-1">يرجى المحاولة مرة أخرى</p>
+            <p className="text-sm text-muted-foreground mt-1">{t("pleaseTryAgain")}</p>
             <Button 
               variant="outline" 
               className="mt-4"
               onClick={() => refetch()}
             >
               <RefreshCw className="h-4 w-4 ml-2" />
-              إعادة المحاولة
+              {t("retry")}
             </Button>
           </CardContent>
         </Card>
@@ -686,19 +692,19 @@ export default function AttendancePage() {
             {searchQuery ? (
               <>
                 <p className="font-medium text-lg">{tc("noResults")}</p>
-                <p className="text-sm mt-1">جرب البحث باسم مختلف</p>
+                <p className="text-sm mt-1">{t("tryDifferentSearch")}</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
                   onClick={() => setSearchQuery("")}
                 >
-                  مسح البحث
+                  {t("clearSearch")}
                 </Button>
               </>
             ) : (
               <>
                 <p className="font-medium text-lg">{t("noAttendance")}</p>
-                <p className="text-sm mt-1">{getDayName(data?.dayOfWeek || 0)}</p>
+                <p className="text-sm mt-1">{tc('days.' + String(data?.dayOfWeek || 0))}</p>
               </>
             )}
           </CardContent>
@@ -724,7 +730,7 @@ export default function AttendancePage() {
                           variant="secondary" 
                           className={`text-xs ${attendanceRate >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : attendanceRate >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}
                         >
-                          {attendanceRate}% حضور
+                          {attendanceRate}% {t("attendanceSuffix")}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
@@ -748,7 +754,7 @@ export default function AttendancePage() {
                         </span>
                       </div>
                       <span className="text-muted-foreground font-medium">
-                        {session.stats.total} طالب
+                        {session.stats.total} {t("studentSuffix")}
                       </span>
                     </div>
                   </div>
@@ -757,7 +763,7 @@ export default function AttendancePage() {
                   {/* Bulk Actions */}
                   <div className="flex items-center justify-between mb-4 pb-3 border-b">
                     <span className="text-sm text-muted-foreground">
-                      {session.students.length} طالب في هذه الحصة
+                      {session.students.length} {t("studentsInSession")}
                     </span>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -767,7 +773,7 @@ export default function AttendancePage() {
                           ) : (
                             <MoreVertical className="h-4 w-4 ml-2" />
                           )}
-                          إجراءات جماعية
+                          {t("bulkActions")}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -796,7 +802,7 @@ export default function AttendancePage() {
 
                   {session.students.length === 0 ? (
                     <p className="text-center py-4 text-muted-foreground">
-                      لا يوجد طلاب مسجلون في هذه الحصة
+                      {t("noStudentsInSession")}
                     </p>
                   ) : (
                     <TooltipProvider>
@@ -835,7 +841,7 @@ export default function AttendancePage() {
                                       </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      {isPaid ? "الاشتراك الشهري مدفوع" : "الاشتراك الشهري غير مدفوع"}
+                                      {isPaid ? t("subscriptionPaid") : t("subscriptionUnpaid")}
                                     </TooltipContent>
                                   </Tooltip>
                                 </div>
@@ -862,7 +868,7 @@ export default function AttendancePage() {
                                 <SelectTrigger className="w-40 bg-background">
                                   <div className="flex items-center gap-2">
                                     {getStatusIcon(currentStatus)}
-                                    <span>{getAttendanceStatusLabel(currentStatus)}</span>
+                                    <span>{tc(attendanceStatusKeys[currentStatus] || currentStatus)}</span>
                                   </div>
                                 </SelectTrigger>
                                 <SelectContent>

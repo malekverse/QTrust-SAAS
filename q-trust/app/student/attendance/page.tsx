@@ -117,11 +117,11 @@ export default function StudentAttendance() {
         setStats(data.stats)
       } else {
         const errData = await res.json().catch(() => null)
-        setError(errData?.message || "حدث خطأ أثناء تحميل البيانات")
+        setError(errData?.message || t("loadError"))
       }
     } catch (err) {
       console.error("Error:", err)
-      setError("حدث خطأ في الاتصال بالخادم")
+      setError(t("connectionError"))
     } finally {
       setLoading(false)
     }
@@ -166,7 +166,7 @@ export default function StudentAttendance() {
     } catch {
       toast({
         title: tc("error"),
-        description: "حدث خطأ أثناء تقديم الاعتراض",
+        description: t("claimError"),
         variant: "destructive"
       })
     } finally {
@@ -207,7 +207,7 @@ export default function StudentAttendance() {
         <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground/40" />
         <p className="text-muted-foreground">{error}</p>
         <Button variant="outline" onClick={() => { setLoading(true); fetchAttendance() }}>
-          إعادة المحاولة
+          {t("retry")}
         </Button>
       </div>
     )
@@ -230,7 +230,7 @@ export default function StudentAttendance() {
           <Card className="card-lift">
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-foreground">{stats.rate}%</p>
-              <p className="text-xs text-muted-foreground">نسبة الحضور</p>
+              <p className="text-xs text-muted-foreground">{tc("attendanceRate")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
@@ -265,7 +265,7 @@ export default function StudentAttendance() {
         <Filter className="h-4 w-4 text-muted-foreground" />
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="تصفية حسب الحالة" />
+            <SelectValue placeholder={t("filterByStatus")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{tc("all")}</SelectItem>
@@ -315,7 +315,7 @@ export default function StudentAttendance() {
                         </span>
                         {record.checkInTime && (
                           <span className="text-primary font-medium">
-                            تسجيل: {formatTime(record.checkInTime)}
+                            {t("checkInTime", { time: formatTime(record.checkInTime) })}
                           </span>
                         )}
                       </div>
@@ -384,7 +384,7 @@ export default function StudentAttendance() {
                 id="reason"
                 value={claimReason}
                 onChange={(e) => setClaimReason(e.target.value)}
-                placeholder="مثال: نسيت بطاقتي ولكنني كنت حاضراً في الحصة..."
+                placeholder={t("claimPlaceholder")}
                 rows={4}
                 maxLength={500}
               />
@@ -402,7 +402,7 @@ export default function StudentAttendance() {
               {submittingClaim ? (
                 <>
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الإرسال...
+                  {t("submitting")}
                 </>
               ) : (
                 tc("submit")

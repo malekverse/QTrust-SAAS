@@ -85,10 +85,10 @@ export default function TeacherSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            معلومات الحساب
+            {t("accountInfo")}
           </CardTitle>
           <CardDescription>
-            معلوماتك الأساسية
+            {t("accountInfoDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -112,7 +112,7 @@ export default function TeacherSettingsPage() {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            لتغيير معلوماتك الشخصية، تواصل مع الإدارة
+            {t("contactAdminToChange")}
           </p>
         </CardContent>
       </Card>
@@ -251,18 +251,18 @@ export default function TeacherSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
-            المظهر
+            {t("appearance")}
           </CardTitle>
           <CardDescription>
-            تخصيص مظهر التطبيق
+            {t("customizeAppearance")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <Label>الوضع الداكن</Label>
+              <Label>{t("darkMode")}</Label>
               <p className="text-sm text-muted-foreground">
-                تفعيل المظهر الداكن للتطبيق
+                {t("enableDarkMode")}
               </p>
             </div>
             <Switch

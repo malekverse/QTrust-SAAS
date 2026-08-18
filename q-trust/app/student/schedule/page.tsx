@@ -10,7 +10,7 @@ import { CalendarClock, Clock, DoorOpen, MapPin, User } from "lucide-react"
 
 async function fetchMySchedule() {
   const res = await fetch("/api/student/schedule")
-  if (!res.ok) throw new Error("فشل في جلب الجدول")
+  if (!res.ok) throw new Error("fetchError")
   return res.json()
 }
 
@@ -63,7 +63,7 @@ export default function StudentSchedulePage() {
       <PageHeader title={t("title")} description={t("description")}>
         <Badge variant="outline" className="text-sm">
           <CalendarClock className="h-3.5 w-3.5 ml-1" />
-          {sessions.length} حلقة
+          {t("circleCount", { count: sessions.length })}
         </Badge>
       </PageHeader>
 
@@ -92,7 +92,7 @@ export default function StudentSchedulePage() {
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {day.label}
+                      {tc(`days.${String(day.value)}`)}
                     </div>
                     <div className="border border-t-0 rounded-b-lg min-h-[120px] p-1.5 space-y-1.5">
                       {daySessions.length === 0 ? (
@@ -140,10 +140,10 @@ export default function StudentSchedulePage() {
                 <Card key={day.value} className={isToday ? "ring-2 ring-primary" : ""}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <h3 className="font-semibold">{day.label}</h3>
+                      <h3 className="font-semibold">{tc(`days.${String(day.value)}`)}</h3>
                       {isToday && (
                         <Badge variant="outline" className="student-surface-emerald-chip text-xs font-semibold">
-                          اليوم
+                          {t("today")}
                         </Badge>
                       )}
                     </div>

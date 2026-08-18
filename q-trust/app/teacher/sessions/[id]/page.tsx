@@ -45,7 +45,7 @@ import {
   BookOpen,
   Heart,
 } from "lucide-react"
-import { getDayName, getAttendanceStatusLabel, getAttendanceStatusColor, formatDate } from "@/lib/utils"
+import { getAttendanceStatusColor, formatDate } from "@/lib/utils"
 import { ATTENDANCE_STATUS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 import { HifzEntry } from "./hifz-entry"
@@ -229,7 +229,7 @@ export default function TeacherSessionDetailPage({
       {/* Header */}
       <PageHeader
         title={data.session.name}
-        description={`${getDayName(data.session.dayOfWeek)} • ${data.session.startTime} - ${data.session.endTime}`}
+        description={`${tc('days.' + String(data.session.dayOfWeek))} • ${data.session.startTime} - ${data.session.endTime}`}
       >
         {data.session.roomId && (
           <Badge variant="outline" className="text-sm">
@@ -318,11 +318,11 @@ export default function TeacherSessionDetailPage({
           </TabsTrigger>
           <TabsTrigger value="hifz" className="flex items-center gap-1.5">
             <BookOpen className="h-4 w-4" />
-            التسميع
+            {t("recitationTab")}
           </TabsTrigger>
           <TabsTrigger value="behavior" className="flex items-center gap-1.5">
             <Heart className="h-4 w-4" />
-            السلوك
+            {t("behaviorTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -391,7 +391,7 @@ export default function TeacherSessionDetailPage({
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={getAttendanceStatusColor(student.status)}>
-                            {getAttendanceStatusLabel(student.status)}
+                            {tc({ PRESENT: 'present', ABSENT: 'absent', LATE: 'late', JUSTIFIED_ABSENCE: 'justifiedAbsence' }[student.status] || student.status)}
                           </Badge>
                           <Button
                             variant="ghost"
@@ -438,7 +438,7 @@ export default function TeacherSessionDetailPage({
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
-                    placeholder="ملاحظات اختيارية..."
+                    placeholder={t("optionalNotesPlaceholder")}
                   />
                 </div>
               </div>
@@ -461,7 +461,7 @@ export default function TeacherSessionDetailPage({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                تسجيل التسميع
+                {t("recordRecitation")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -475,7 +475,7 @@ export default function TeacherSessionDetailPage({
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <BookOpen className="h-10 w-10 mx-auto mb-2 opacity-40" />
-                  <p>لا توجد حصة في هذا التاريخ</p>
+                  <p>{t("noSessionForDate")}</p>
                 </div>
               )}
             </CardContent>
@@ -488,7 +488,7 @@ export default function TeacherSessionDetailPage({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Heart className="h-5 w-5" />
-                الملاحظات السلوكية
+                {t("behavioralNotes")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -502,7 +502,7 @@ export default function TeacherSessionDetailPage({
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Heart className="h-10 w-10 mx-auto mb-2 opacity-40" />
-                  <p>لا توجد حصة في هذا التاريخ</p>
+                  <p>{t("noSessionForDate")}</p>
                 </div>
               )}
             </CardContent>

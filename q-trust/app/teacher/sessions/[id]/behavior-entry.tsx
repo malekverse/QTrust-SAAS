@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,7 +32,7 @@ import {
   ThumbsUp,
   AlertTriangle,
 } from "lucide-react"
-import { BEHAVIOR_TYPE, BEHAVIOR_TYPE_LABELS } from "@/lib/constants"
+import { BEHAVIOR_TYPE } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 
 interface Student {
@@ -64,6 +65,8 @@ export function BehaviorEntry({
   selectedDate: string
 }) {
   const queryClient = useQueryClient()
+  const t = useTranslations("teacher.sessions.behaviorEntry")
+  const tc = useTranslations("common")
   const { success, error: showError } = useToast()
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -90,7 +93,7 @@ export function BehaviorEntry({
         body: JSON.stringify(data),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "فشل الحفظ" }))
+        const err = await res.json().catch(() => ({ message: t("saveFailed") }))
         throw new Error(err.message)
       }
       return res.json()
@@ -100,10 +103,10 @@ export function BehaviorEntry({
       setDialogOpen(false)
       setDescription("")
       setType(BEHAVIOR_TYPE.POSITIVE)
-      success("تم الحفظ", "تم تسجيل الملاحظة السلوكية بنجاح")
+      success(t("saved"), t("savedSuccess"))
     },
     onError: (err: Error) => {
-      showError("خطأ", err.message)
+      showError(tc("error"), err.message)
     },
   })
 
@@ -117,7 +120,7 @@ export function BehaviorEntry({
   const handleSave = () => {
     if (!selectedStudent) return
     if (!description.trim()) {
-      showError("بيانات ناقصة", "يرجى كتابة وصف الملاحظة")
+      showError(t("missingData"), t("descriptionRequired"))
       return
     }
     createMutation.mutate({
@@ -158,7 +161,7 @@ export function BehaviorEntry({
       <div className="relative w-64 mb-4">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="بحث عن طالب..."
+          placeholder={t("searchStudent")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pr-10"
@@ -204,7 +207,7 @@ export function BehaviorEntry({
                 {logs.length > 0 && <CheckCircle className="h-4 w-4 text-emerald-500" />}
                 <Button variant="outline" size="sm" onClick={() => openForStudent(student)}>
                   <Plus className="h-3.5 w-3.5 ml-1" />
-                  ملاحظة
+                  {t("note")}
                 </Button>
               </div>
             </div>
@@ -215,7 +218,7 @@ export function BehaviorEntry({
       {filteredStudents.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <Heart className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p>لا يوجد طلاب</p>
+          <p>{t("noStudents")}</p>
         </div>
       )}
 
@@ -225,20 +228,20 @@ export function BehaviorEntry({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Heart className="h-5 w-5" />
-              ملاحظة سلوكية — {selectedStudent?.fullName}
+              {t("dialogTitle", { name: selectedStudent?.fullName ?? "" })}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Type */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">النوع</label>
+              <label className="text-sm font-medium">{t("typeLabel")}</label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(BEHAVIOR_TYPE_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  {(['POSITIVE', 'CONCERN'] as const).map((k) => (
+                    <SelectItem key={k} value={k}>{tc(`behaviorTypes.${k}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -246,22 +249,22 @@ export function BehaviorEntry({
 
             {/* Description */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">الوصف</label>
+              <label className="text-sm font-medium">{t("descriptionLabel")}</label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="مثال: ساعد زميله في المراجعة"
+                placeholder={t("descriptionPlaceholder")}
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              حفظ الملاحظة
+              {t("saveNote")}
             </Button>
           </DialogFooter>
         </DialogContent>

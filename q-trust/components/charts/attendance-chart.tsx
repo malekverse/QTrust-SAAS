@@ -15,6 +15,7 @@ import {
   LineChart,
   Line,
 } from "recharts"
+import { useTranslations } from "next-intl"
 
 const COLORS = {
   primary: "hsl(156, 71%, 25%)",
@@ -46,6 +47,7 @@ interface TrendData {
 }
 
 export function AttendanceByDayChart({ data }: { data: AttendanceByDayData[] }) {
+  const tc = useTranslations("common")
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -60,9 +62,9 @@ export function AttendanceByDayChart({ data }: { data: AttendanceByDayData[] }) 
           }}
         />
         <Legend />
-        <Bar dataKey="present" name="حاضر" fill={COLORS.primary} radius={[4, 4, 0, 0]} />
-        <Bar dataKey="late" name="متأخر" fill={COLORS.amber} radius={[4, 4, 0, 0]} />
-        <Bar dataKey="absent" name="غائب" fill={COLORS.red} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="present" name={tc("present")} fill={COLORS.primary} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="late" name={tc("late")} fill={COLORS.amber} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="absent" name={tc("absent")} fill={COLORS.red} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   )
@@ -100,6 +102,7 @@ export function AttendanceDistributionChart({ data }: { data: AttendanceDistribu
 }
 
 export function AttendanceTrendChart({ data }: { data: TrendData[] }) {
+  const tc = useTranslations("common")
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -112,7 +115,7 @@ export function AttendanceTrendChart({ data }: { data: TrendData[] }) {
             border: "1px solid hsl(var(--border))",
             borderRadius: "0.5rem",
           }}
-          formatter={(value) => [`${value}%`, "نسبة الحضور"]}
+          formatter={(value) => [`${value}%`, tc("attendanceRate")]}
         />
         <Line
           type="monotone"
@@ -127,11 +130,12 @@ export function AttendanceTrendChart({ data }: { data: TrendData[] }) {
   )
 }
 
-export function SessionAttendanceChart({ 
-  data 
-}: { 
-  data: Array<{ name: string; rate: number }> 
+export function SessionAttendanceChart({
+  data
+}: {
+  data: Array<{ name: string; rate: number }>
 }) {
+  const tc = useTranslations("common")
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 80, bottom: 5 }}>
@@ -144,7 +148,7 @@ export function SessionAttendanceChart({
             border: "1px solid hsl(var(--border))",
             borderRadius: "0.5rem",
           }}
-          formatter={(value) => [`${value}%`, "نسبة الحضور"]}
+          formatter={(value) => [`${value}%`, tc("attendanceRate")]}
         />
         <Bar dataKey="rate" fill={COLORS.primary} radius={[0, 4, 4, 0]}>
           {data.map((entry, index) => (

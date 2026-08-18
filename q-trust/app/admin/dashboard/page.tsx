@@ -45,11 +45,10 @@ import Room from "@/models/Room"
 import StudentSession from "@/models/StudentSession"
 import mongoose from "mongoose"
 import { auth } from "@/lib/auth"
-import { ROLES, ATTENDANCE_STATUS, SESSION_STATUS, CLAIM_STATUS, DEFAULT_QR_SETTINGS, MONTH_LABELS } from "@/lib/constants"
+import { ROLES, ATTENDANCE_STATUS, SESSION_STATUS, CLAIM_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
 import { AttendanceCharts } from "./attendance-charts"
 import { formatDistanceToNow } from "date-fns"
 import { ar } from "date-fns/locale"
-import { getDayName } from "@/lib/utils"
 import { getTranslations } from "next-intl/server"
 
 async function DashboardStats() {
@@ -57,6 +56,7 @@ async function DashboardStats() {
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return <StatsLoading />
     await dbConnect()
+    const t = await getTranslations("admin.dashboard")
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -105,36 +105,36 @@ async function DashboardStats() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link href="/admin/teachers" className="group">
           <StatCard
-            title="المعلمون النشطون"
+            title={t("activeTeachers")}
             value={teacherCount}
-            subtitle="معلم مسجل في المنظومة"
+            subtitle={t("teachersSubtitle")}
             icon={Users}
             className="transition-all group-hover:border-primary/50 group-hover:shadow-md"
           />
         </Link>
         <Link href="/admin/students" className="group">
           <StatCard
-            title="الطلاب المسجلون"
+            title={t("registeredStudents")}
             value={studentCount}
-            subtitle="طالب نشط"
+            subtitle={t("activeStudentSubtitle")}
             icon={GraduationCap}
             className="transition-all group-hover:border-primary/50 group-hover:shadow-md"
           />
         </Link>
         <Link href="/admin/sessions" className="group">
           <StatCard
-            title="الحصص الفعالة"
+            title={t("activeSessions")}
             value={sessionCount}
-            subtitle="حصة أسبوعية"
+            subtitle={t("weeklySessionSubtitle")}
             icon={Calendar}
             className="transition-all group-hover:border-primary/50 group-hover:shadow-md"
           />
         </Link>
         <Link href="/admin/attendance" className="group">
           <StatCard
-            title="نسبة الحضور اليوم"
+            title={t("todayAttendanceRate")}
             value={`${attendanceRate}%`}
-            subtitle="من إجمالي الطلاب"
+            subtitle={t("ofTotalStudents")}
             icon={ClipboardCheck}
             className="transition-all group-hover:border-primary/50 group-hover:shadow-md"
           />
@@ -248,6 +248,7 @@ async function PortalOverview() {
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return null
     await dbConnect()
+    const t = await getTranslations("admin.dashboard")
 
     const [portalAccounts, pendingClaims, totalStudents] = await Promise.all([
       Student.countDocuments({ tenantId, hasPortalAccess: true }),
@@ -265,7 +266,7 @@ async function PortalOverview() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Smartphone className="h-5 w-5 text-primary" />
-            بوابة الطلاب
+            {t("studentPortal")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -274,7 +275,7 @@ async function PortalOverview() {
               <GraduationCap className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <div>
                 <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{portalAccounts}</p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-500">حساب بوابة نشط</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-500">{t("activePortalAccounts")}</p>
               </div>
             </div>
             {pendingClaims > 0 && (
@@ -283,7 +284,7 @@ async function PortalOverview() {
                   <MessageSquareWarning className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   <div>
                     <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{pendingClaims}</p>
-                    <p className="text-xs text-amber-600 dark:text-amber-500">اعتراض بانتظار المراجعة</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-500">{t("pendingClaimsReview")}</p>
                   </div>
                 </div>
               </Link>
@@ -294,7 +295,7 @@ async function PortalOverview() {
                 <p className="text-lg font-bold text-blue-700 dark:text-blue-400">
                   {totalStudents > 0 ? Math.round((portalAccounts / totalStudents) * 100) : 0}%
                 </p>
-                <p className="text-xs text-blue-600 dark:text-blue-500">نسبة تفعيل البوابة</p>
+                <p className="text-xs text-blue-600 dark:text-blue-500">{t("portalActivationRate")}</p>
               </div>
             </div>
           </div>
@@ -312,6 +313,8 @@ async function PaymentOverview() {
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return null
     await dbConnect()
+    const t = await getTranslations("admin.dashboard")
+    const tc = await getTranslations("common")
 
     void MonthlyPayment
 
@@ -339,7 +342,7 @@ async function PaymentOverview() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
-            اشتراكات {MONTH_LABELS[currentMonth as keyof typeof MONTH_LABELS]} {currentYear}
+            {`${t("subscriptionsForMonth")} ${tc('months.' + currentMonth)} ${currentYear}`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -348,7 +351,7 @@ async function PaymentOverview() {
               <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <div>
                 <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{paidCount}</p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-500">دفعوا هذا الشهر</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-500">{t("paidThisMonth")}</p>
               </div>
             </div>
             {unpaidCount > 0 && (
@@ -357,7 +360,7 @@ async function PaymentOverview() {
                   <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                   <div>
                     <p className="text-lg font-bold text-red-700 dark:text-red-400">{unpaidCount}</p>
-                    <p className="text-xs text-red-600 dark:text-red-500">لم يدفعوا بعد</p>
+                    <p className="text-xs text-red-600 dark:text-red-500">{t("notPaidYet")}</p>
                   </div>
                 </div>
               </Link>
@@ -366,7 +369,7 @@ async function PaymentOverview() {
               <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
                 <p className="text-lg font-bold text-blue-700 dark:text-blue-400">{paymentRate}%</p>
-                <p className="text-xs text-blue-600 dark:text-blue-500">نسبة التحصيل</p>
+                <p className="text-xs text-blue-600 dark:text-blue-500">{t("collectionRate")}</p>
               </div>
             </div>
           </div>
@@ -384,6 +387,7 @@ async function RoomOverview() {
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return null
     await dbConnect()
+    const t = await getTranslations("admin.dashboard")
 
     void Room
     void SessionTemplate
@@ -413,7 +417,7 @@ async function RoomOverview() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <DoorOpen className="h-5 w-5 text-primary" />
-            القاعات والجدول الزمني
+            {t("roomsAndSchedule")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -425,7 +429,7 @@ async function RoomOverview() {
                   <p className="text-lg font-bold text-violet-700 dark:text-violet-400">
                     {usedRooms}/{totalRooms}
                   </p>
-                  <p className="text-xs text-violet-600 dark:text-violet-500">قاعة مستخدمة</p>
+                  <p className="text-xs text-violet-600 dark:text-violet-500">{t("roomsUsed")}</p>
                 </div>
               </div>
             </Link>
@@ -434,7 +438,7 @@ async function RoomOverview() {
                 <CalendarClock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <p className="text-lg font-bold text-blue-700 dark:text-blue-400">{activeSessions}</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-500">حصة نشطة</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-500">{t("activeSession")}</p>
                 </div>
               </div>
             </Link>
@@ -444,7 +448,7 @@ async function RoomOverview() {
                   <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   <div>
                     <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{sessionsWithoutRoom}</p>
-                    <p className="text-xs text-amber-600 dark:text-amber-500">بدون قاعة</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-500">{t("withoutRoom")}</p>
                   </div>
                 </div>
               </Link>
@@ -474,55 +478,55 @@ async function QuickActions() {
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/students">
               <UserPlus className="h-6 w-6 text-emerald-600" />
-              <span>إضافة طالب</span>
+              <span>{t("addStudent")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/sessions">
               <CalendarPlus className="h-6 w-6 text-blue-600" />
-              <span>إضافة حصة</span>
+              <span>{t("addSession")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/attendance">
               <ClipboardCheck className="h-6 w-6 text-amber-600" />
-              <span>إدارة الحضور</span>
+              <span>{t("manageAttendance")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/students/qr-cards">
               <QrCode className="h-6 w-6 text-purple-600" />
-              <span>طباعة البطاقات</span>
+              <span>{t("printCards")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/subscriptions">
               <CreditCard className="h-6 w-6 text-pink-600" />
-              <span>إدارة الاشتراكات</span>
+              <span>{t("manageSubscriptions")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/claims">
               <MessageSquareWarning className="h-6 w-6 text-orange-600" />
-              <span>مراجعة الاعتراضات</span>
+              <span>{t("reviewClaims")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/rooms">
               <DoorOpen className="h-6 w-6 text-violet-600" />
-              <span>إدارة القاعات</span>
+              <span>{t("manageRooms")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/schedule">
               <CalendarClock className="h-6 w-6 text-indigo-600" />
-              <span>الجدول الزمني</span>
+              <span>{t("schedule")}</span>
             </Link>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-primary hover:bg-primary/5" asChild>
             <Link href="/admin/documents">
               <BookOpen className="h-6 w-6 text-teal-600" />
-              <span>إدارة المكتبة</span>
+              <span>{t("manageLibrary")}</span>
             </Link>
           </Button>
         </div>
@@ -534,6 +538,7 @@ async function QuickActions() {
 async function TodaysSessions() {
   try {
     const t = await getTranslations("admin.dashboard")
+    const tc = await getTranslations("common")
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return <SessionsLoading />
     await dbConnect()
@@ -566,7 +571,7 @@ async function TodaysSessions() {
         <div className="text-center py-8 text-muted-foreground">
           <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p className="font-medium">{t("noUpcoming")}</p>
-          <p className="text-sm mt-1">{getDayName(dayOfWeek)}</p>
+          <p className="text-sm mt-1">{tc('days.' + String(dayOfWeek))}</p>
         </div>
       )
     }
@@ -644,11 +649,11 @@ async function TodaysSessions() {
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{session.name}</p>
                     {isOngoing && (
-                      <Badge variant="default" className="bg-emerald-500 text-xs">جارية الآن</Badge>
+                      <Badge variant="default" className="bg-emerald-500 text-xs">{t("ongoingNow")}</Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {session.teacherId?.fullName || "غير محدد"}
+                    {session.teacherId?.fullName || t("notAssigned")}
                   </p>
                 </div>
               </div>
@@ -664,7 +669,7 @@ async function TodaysSessions() {
         <div className="pt-2 border-t">
           <Button variant="ghost" size="sm" className="w-full" asChild>
             <Link href="/admin/sessions">
-              عرض جميع الحصص
+              {t("viewAllSessions")}
               <ArrowLeft className="h-4 w-4 mr-2" />
             </Link>
           </Button>
@@ -713,20 +718,30 @@ function ActivityLoading() {
   )
 }
 
-const activityTypeConfig: Record<string, { color: string; label: string; icon: any }> = {
-  ATTENDANCE_CHECK_IN: { color: "bg-emerald-500", label: "تسجيل حضور", icon: CheckCircle },
-  STUDENT_CREATED: { color: "bg-blue-500", label: "إضافة طالب", icon: UserPlus },
-  STUDENT_UPDATED: { color: "bg-cyan-500", label: "تعديل طالب", icon: Users },
-  TEACHER_CREATED: { color: "bg-purple-500", label: "إضافة معلم", icon: UserPlus },
-  TEACHER_UPDATED: { color: "bg-violet-500", label: "تعديل معلم", icon: Users },
-  SESSION_CREATED: { color: "bg-amber-500", label: "إضافة حصة", icon: CalendarPlus },
-  SESSION_UPDATED: { color: "bg-orange-500", label: "تعديل حصة", icon: Calendar },
-  ATTENDANCE_UPDATED: { color: "bg-teal-500", label: "تعديل حضور", icon: ClipboardCheck },
+const activityTypeConfig: Record<string, { color: string; icon: any }> = {
+  ATTENDANCE_CHECK_IN: { color: "bg-emerald-500", icon: CheckCircle },
+  STUDENT_CREATED: { color: "bg-blue-500", icon: UserPlus },
+  STUDENT_UPDATED: { color: "bg-cyan-500", icon: Users },
+  TEACHER_CREATED: { color: "bg-purple-500", icon: UserPlus },
+  TEACHER_UPDATED: { color: "bg-violet-500", icon: Users },
+  SESSION_CREATED: { color: "bg-amber-500", icon: CalendarPlus },
+  SESSION_UPDATED: { color: "bg-orange-500", icon: Calendar },
+  ATTENDANCE_UPDATED: { color: "bg-teal-500", icon: ClipboardCheck },
 }
 
 async function RecentActivity() {
   try {
     const t = await getTranslations("admin.dashboard")
+    const activityLabels: Record<string, string> = {
+      ATTENDANCE_CHECK_IN: t("activityCheckIn"),
+      STUDENT_CREATED: t("activityStudentCreated"),
+      STUDENT_UPDATED: t("activityStudentUpdated"),
+      TEACHER_CREATED: t("activityTeacherCreated"),
+      TEACHER_UPDATED: t("activityTeacherUpdated"),
+      SESSION_CREATED: t("activitySessionCreated"),
+      SESSION_UPDATED: t("activitySessionUpdated"),
+      ATTENDANCE_UPDATED: t("activityAttendanceUpdated"),
+    }
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return <ActivityLoading />
     await dbConnect()
@@ -748,12 +763,12 @@ async function RecentActivity() {
     return (
       <div className="space-y-3">
         {activities.map((activity: any) => {
-          const config = activityTypeConfig[activity.type] || { color: "bg-gray-500", label: activity.type, icon: Activity }
+          const config = activityTypeConfig[activity.type] || { color: "bg-gray-500", icon: Activity }
           return (
             <div key={activity._id.toString()} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
               <div className={`w-2 h-2 rounded-full mt-2 ${config.color}`} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{config.label}</p>
+                <p className="text-sm font-medium">{activityLabels[activity.type] || activity.type}</p>
                 <p className="text-xs text-muted-foreground truncate">
                   {activity.description}
                 </p>
@@ -781,6 +796,7 @@ async function SystemAlerts() {
     const tenantId = (await auth())?.user?.tenantId
     if (!tenantId) return null
     await dbConnect()
+    const t = await getTranslations("admin.dashboard")
 
     const [inactiveStudents, inactiveTeachers, lowAttendanceSessions] = await Promise.all([
       Student.countDocuments({ tenantId, isActive: false }),
@@ -794,7 +810,7 @@ async function SystemAlerts() {
     if (inactiveStudents > 0) {
       alerts.push({
         type: "warning",
-        message: `${inactiveStudents} طالب غير نشط`,
+        message: `${inactiveStudents} ${t("inactiveStudentAlert")}`,
         link: "/admin/students"
       })
     }
@@ -802,7 +818,7 @@ async function SystemAlerts() {
     if (inactiveTeachers > 0) {
       alerts.push({
         type: "warning", 
-        message: `${inactiveTeachers} معلم غير نشط`,
+        message: `${inactiveTeachers} ${t("inactiveTeacherAlert")}`,
         link: "/admin/teachers"
       })
     }
@@ -811,7 +827,7 @@ async function SystemAlerts() {
       return (
         <div className="flex items-center gap-2 rounded-lg p-3 admin-alert-strip--success">
           <CheckCircle className="h-5 w-5 shrink-0" />
-          <span className="text-sm font-medium">جميع الأنظمة تعمل بشكل طبيعي</span>
+          <span className="text-sm font-medium">{t("allSystemsNormal")}</span>
         </div>
       )
     }
@@ -860,6 +876,7 @@ function ChartLoading() {
 }
 
 async function ChartsSection() {
+  const t = await getTranslations("admin.dashboard")
   const data = await getWeeklyAttendanceData()
   
   if (data.weeklyData.length === 0 && data.distribution.length === 0) {
@@ -867,8 +884,8 @@ async function ChartsSection() {
       <Card>
         <CardContent className="p-8 text-center text-muted-foreground">
           <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p className="font-medium">لا توجد بيانات كافية للرسوم البيانية</p>
-          <p className="text-sm mt-1">سيتم عرض الإحصائيات بعد تسجيل بيانات الحضور</p>
+          <p className="font-medium">{t("noChartData")}</p>
+          <p className="text-sm mt-1">{t("chartDataHint")}</p>
         </CardContent>
       </Card>
     )
@@ -878,7 +895,7 @@ async function ChartsSection() {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold">تطور الحضور الأسبوعي</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("weeklyAttendanceTrend")}</CardTitle>
           <BarChart3 className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -887,7 +904,7 @@ async function ChartsSection() {
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold">توزيع الحضور الإجمالي</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("attendanceDistribution")}</CardTitle>
           <TrendingUp className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -909,7 +926,7 @@ export default async function AdminDashboardPage() {
       {/* Page Header */}
       <PageHeader
         title={t("title")}
-        description="نظرة عامة على نشاط الجمعية"
+        description={t("overviewDescription")}
       />
 
       {/* System Alerts */}
@@ -949,7 +966,7 @@ export default async function AdminDashboardPage() {
         {/* Today's Sessions */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">حصص اليوم</CardTitle>
+            <CardTitle className="text-lg font-semibold">{t("todaySessions")}</CardTitle>
             <Calendar className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>

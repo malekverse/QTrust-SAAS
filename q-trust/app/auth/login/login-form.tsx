@@ -38,13 +38,13 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   })
 
-  // Map NextAuth error codes to user-friendly Arabic messages
+  // Map NextAuth error codes to user-friendly messages
   const getErrorMessage = (errorCode: string): string => {
     const errorMessages: Record<string, string> = {
       "CredentialsSignin": t("errorInvalid"),
       "Configuration": t("errorInvalid"),
-      "AccessDenied": "تم رفض الوصول. الحساب قد يكون معطلاً",
-      "Verification": "رابط التحقق غير صالح أو منتهي الصلاحية",
+      "AccessDenied": t("errorAccessDenied"),
+      "Verification": t("errorVerification"),
       "Default": t("errorGeneric"),
     }
     return errorMessages[errorCode] || errorMessages["Default"]
@@ -97,7 +97,7 @@ export function LoginForm({
           {tenantName ? (
             <p className="text-foreground font-semibold text-base">{tenantName}</p>
           ) : (
-            <p className="text-muted-foreground text-sm">منصة إدارة جمعيات ومدارس تحفيظ القرآن</p>
+            <p className="text-muted-foreground text-sm">{t("tagline")}</p>
           )}
         </div>
 
@@ -106,7 +106,7 @@ export function LoginForm({
           <CardHeader className="space-y-1 text-center pb-4">
             <CardTitle className="text-xl">{t("title")}</CardTitle>
             <CardDescription>
-              {tenantName ? `مرحباً بك في ${tenantName}` : t("subtitle")}
+              {tenantName ? t("welcomeTenant", { tenantName }) : t("subtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -118,11 +118,11 @@ export function LoginForm({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">البريد الإلكتروني أو رقم الهاتف</Label>
+                <Label htmlFor="email">{t("emailOrPhone")}</Label>
                 <Input
                   id="email"
                   type="text"
-                  placeholder="example@email.com أو +216XXXXXXXX"
+                  placeholder={t("emailPlaceholder")}
                   className="text-left"
                   dir="ltr"
                   {...register("email")}
@@ -180,7 +180,7 @@ export function LoginForm({
             بسم الله الرحمن الرحيم
           </p>
           <p className="mt-2">
-            © {new Date().getFullYear()} جميع الحقوق محفوظة
+            {t("copyright", { year: new Date().getFullYear() })}
           </p>
         </div>
       </div>

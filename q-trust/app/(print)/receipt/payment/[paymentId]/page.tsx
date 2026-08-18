@@ -5,7 +5,8 @@ import MonthlyPayment from "@/models/MonthlyPayment"
 import Student from "@/models/Student"
 import Tenant from "@/models/Tenant"
 import { requireTenantSession, TenantAuthError } from "@/lib/tenant"
-import { ROLES, MONTH_LABELS } from "@/lib/constants"
+import { ROLES } from "@/lib/constants"
+import { getTranslations } from "next-intl/server"
 import { PrintButton } from "./print-button"
 
 export const dynamic = "force-dynamic"
@@ -127,7 +128,8 @@ export default async function PaymentReceiptPage({
   const receipt = await getReceipt(paymentId, tenantId)
   if (!receipt) notFound()
 
-  const monthLabel = MONTH_LABELS[receipt.month as keyof typeof MONTH_LABELS] || receipt.month
+  const tc = await getTranslations("common")
+  const monthLabel = tc(`months.${receipt.month}`)
   const accent = receipt.primaryColor
 
   return (

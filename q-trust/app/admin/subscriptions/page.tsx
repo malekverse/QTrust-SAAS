@@ -53,7 +53,6 @@ import {
   MessageCircle,
   ImageIcon,
 } from "lucide-react"
-import { MONTH_LABELS } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 import { FileUpload } from "@/components/ui/file-upload"
 import { useTranslations } from "next-intl"
@@ -168,10 +167,10 @@ export default function SubscriptionsPage() {
       setPaymentAmount("")
       setPaymentNotes("")
       setPaymentReceiptUrl(undefined)
-      success("تم التحديث", "تم تحديث حالة الدفع بنجاح")
+      success(t("updated"), t("paymentStatusUpdated"))
     },
     onError: () => {
-      toastError("خطأ", "حدث خطأ أثناء تحديث حالة الدفع")
+      toastError(t("error"), t("paymentUpdateError"))
     },
   })
 
@@ -180,10 +179,10 @@ export default function SubscriptionsPage() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["payments", selectedMonth, selectedYear] })
       setSelectedStudents(new Set())
-      success("تم التحديث", result.message)
+      success(t("updated"), result.message)
     },
     onError: () => {
-      toastError("خطأ", "حدث خطأ أثناء التحديث الجماعي")
+      toastError(t("error"), t("bulkUpdateError"))
     },
   })
 
@@ -195,19 +194,19 @@ export default function SubscriptionsPage() {
         body: JSON.stringify({ studentId, month: selectedMonth, year: selectedYear }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.message || "فشل إرسال التذكير")
+      if (!res.ok) throw new Error(data.message || t("reminderSendFailed"))
       return data as { status: string; error?: string }
     },
     onSuccess: (data) => {
       if (data.status === "SENT") {
-        success("تم الإرسال", "تم إرسال تذكير الدفع لوليّ الطالب")
+        success(t("sent"), t("reminderSentToParent"))
       } else if (data.status === "SKIPPED") {
-        toastError("غير مُفعّل", "مزوّد الرسائل غير مُفعّل — فعّله من صفحة الرسائل")
+        toastError(t("notEnabled"), t("messagingProviderDisabled"))
       } else {
-        toastError("فشل الإرسال", data.error || "تعذّر إرسال الرسالة")
+        toastError(t("sendFailed"), data.error || t("messageSendError"))
       }
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(t("error"), err.message),
   })
 
   const { filteredStudents, stats } = useMemo(() => {
@@ -349,9 +348,9 @@ export default function SubscriptionsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(MONTH_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
+                  {Array.from({length: 12}, (_, i) => i + 1).map((m) => (
+                    <SelectItem key={m} value={String(m)}>
+                      {tc('months.' + m)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -433,7 +432,7 @@ export default function SubscriptionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.rate}%</p>
-              <p className="text-xs text-muted-foreground">نسبة التحصيل</p>
+              <p className="text-xs text-muted-foreground">{t("collectionRate")}</p>
             </div>
           </CardContent>
         </Card>
@@ -446,7 +445,7 @@ export default function SubscriptionsPage() {
             <div className="relative flex-1 w-full">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="بحث سريع بالاسم أو الهاتف أو رقم الانخراط..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pr-10"
@@ -472,7 +471,7 @@ export default function SubscriptionsPage() {
                 >
                   {bulkMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                   <CircleDollarSign className="ml-2 h-4 w-4" />
-                  تأكيد دفع ({selectedStudents.size})
+                  {t("confirmBulkPayment")} ({selectedStudents.size})
                 </Button>
               )}
             </div>
@@ -502,20 +501,20 @@ export default function SubscriptionsPage() {
               <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
               {search ? (
                 <>
-                  <p className="font-medium">لا توجد نتائج للبحث</p>
-                  <p className="text-sm mt-1">جرب البحث بكلمات مختلفة</p>
+                  <p className="font-medium">{t("noSearchResults")}</p>
+                  <p className="text-sm mt-1">{t("tryDifferentSearch")}</p>
                   <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>
-                    مسح البحث
+                    {t("clearSearch")}
                   </Button>
                 </>
               ) : activeTab === "unpaid" ? (
                 <>
                   <CheckCircle className="h-12 w-12 mx-auto mb-3 text-emerald-500 opacity-70" />
-                  <p className="font-medium text-emerald-600">جميع الطلاب دفعوا هذا الشهر</p>
-                  <p className="text-sm mt-1">ما شاء الله، بارك الله فيكم</p>
+                  <p className="font-medium text-emerald-600">{t("allPaidThisMonth")}</p>
+                  <p className="text-sm mt-1">{t("allPaidCongrats")}</p>
                 </>
               ) : (
-                <p className="font-medium">لا يوجد طلاب مسجلون</p>
+                <p className="font-medium">{t("noStudentsRegistered")}</p>
               )}
             </div>
           ) : (
@@ -632,7 +631,7 @@ export default function SubscriptionsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="عرض صورة الوصل"
+                            title={t("viewReceipt")}
                             onClick={() => window.open(student.receiptPhotoUrl, "_blank")}
                           >
                             <ImageIcon className="h-4 w-4" />
@@ -642,7 +641,7 @@ export default function SubscriptionsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="طباعة الوصل"
+                            title={t("printReceipt")}
                             onClick={() =>
                               window.open(`/receipt/payment/${student.paymentId}`, "_blank")
                             }
@@ -654,7 +653,7 @@ export default function SubscriptionsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="إرسال تذكير للوليّ"
+                            title={t("sendReminderToParent")}
                             disabled={
                               remindMutation.isPending && remindMutation.variables === student._id
                             }
@@ -680,8 +679,8 @@ export default function SubscriptionsPage() {
       {/* Results Count */}
       {!isLoading && filteredStudents.length > 0 && (
         <p className="text-sm text-muted-foreground text-center">
-          عرض {filteredStudents.length} من {stats.total} طالب —{" "}
-          {MONTH_LABELS[selectedMonth as keyof typeof MONTH_LABELS]} {selectedYear}
+          {t("showingResults", { shown: filteredStudents.length, total: stats.total })} —{" "}
+          {tc('months.' + selectedMonth)} {selectedYear}
         </p>
       )}
 
@@ -691,13 +690,12 @@ export default function SubscriptionsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CircleDollarSign className="h-5 w-5 text-emerald-600" />
-              تأكيد الدفع
+              {t("confirmPaymentTitle")}
             </DialogTitle>
             <DialogDescription>
               {paymentStudent && (
                 <span>
-                  تسجيل دفع {paymentStudent.displayName} لشهر{" "}
-                  {MONTH_LABELS[selectedMonth as keyof typeof MONTH_LABELS]} {selectedYear}
+                  {t("confirmPaymentDesc", { name: paymentStudent.displayName, month: tc('months.' + selectedMonth), year: selectedYear })}
                 </span>
               )}
             </DialogDescription>
@@ -709,7 +707,7 @@ export default function SubscriptionsPage() {
                 type="number"
                 value={paymentAmount}
                 onChange={(e) => setPaymentAmount(e.target.value)}
-                placeholder="المبلغ بالدينار"
+                placeholder={t("amountPlaceholder")}
                 dir="ltr"
                 min="0"
                 step="0.5"
@@ -720,12 +718,12 @@ export default function SubscriptionsPage() {
               <Textarea
                 value={paymentNotes}
                 onChange={(e) => setPaymentNotes(e.target.value)}
-                placeholder="أي ملاحظات..."
+                placeholder={t("notesPlaceholder")}
                 className="resize-none"
               />
             </div>
             <FileUpload
-              label="صورة الوصل / التحويل (اختياري)"
+              label={t("receiptPhotoLabel")}
               uploadType="receipt"
               accept="image/*,application/pdf"
               maxSize={10}

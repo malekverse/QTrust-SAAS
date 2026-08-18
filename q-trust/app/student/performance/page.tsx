@@ -23,7 +23,7 @@ import {
   Heart,
   AlertTriangle,
 } from "lucide-react"
-import { GRADE_TYPE_LABELS, HIFZ_TYPE_LABELS, HIFZ_QUALITY_LABELS, BEHAVIOR_TYPE, BEHAVIOR_TYPE_LABELS } from "@/lib/constants"
+import { BEHAVIOR_TYPE } from "@/lib/constants"
 
 interface GradeData {
   _id: string
@@ -130,7 +130,7 @@ export default function StudentPerformance() {
         setStats(data.stats)
       } else {
         const errData = await perfRes.json().catch(() => null)
-        setError(errData?.message || "حدث خطأ أثناء تحميل البيانات")
+        setError(errData?.message || t("loadError"))
       }
       if (hifzRes.ok) {
         setHifzLogs(await hifzRes.json())
@@ -140,7 +140,7 @@ export default function StudentPerformance() {
       }
     } catch (err) {
       console.error("Error:", err)
-      setError("حدث خطأ في الاتصال بالخادم")
+      setError(t("connectionError"))
     } finally {
       setLoading(false)
     }
@@ -197,7 +197,7 @@ export default function StudentPerformance() {
         <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground/40" />
         <p className="text-muted-foreground">{error}</p>
         <Button variant="outline" onClick={() => { setLoading(true); fetchPerformance() }}>
-          إعادة المحاولة
+          {t("retry")}
         </Button>
       </div>
     )
@@ -232,7 +232,7 @@ export default function StudentPerformance() {
                 <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <p className="text-2xl font-bold">{stats.completedJuz}</p>
-              <p className="text-xs text-muted-foreground">جزء مكتمل</p>
+              <p className="text-xs text-muted-foreground">{t("completedJuz")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
@@ -241,7 +241,7 @@ export default function StudentPerformance() {
                 <GraduationCap className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <p className="text-2xl font-bold">{stats.totalGrades}</p>
-              <p className="text-xs text-muted-foreground">تقييم</p>
+              <p className="text-xs text-muted-foreground">{t("evaluationCount")}</p>
             </CardContent>
           </Card>
           <Card className="card-lift">
@@ -250,7 +250,7 @@ export default function StudentPerformance() {
                 <Trophy className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <p className="text-2xl font-bold">{badges.filter(b => b.achieved).length}</p>
-              <p className="text-xs text-muted-foreground">شارة مكتسبة</p>
+              <p className="text-xs text-muted-foreground">{t("earnedBadges")}</p>
             </CardContent>
           </Card>
         </div>
@@ -262,7 +262,7 @@ export default function StudentPerformance() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm">{t("hifzProgress")}</h3>
-              <span className="text-sm text-muted-foreground">{stats.completedJuz} / {stats.totalJuz} جزء</span>
+              <span className="text-sm text-muted-foreground">{t("juzCount", { completed: stats.completedJuz, total: stats.totalJuz })}</span>
             </div>
             <div className="h-4 rounded-full bg-muted overflow-hidden">
               <div 
@@ -273,7 +273,7 @@ export default function StudentPerformance() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              {Math.round((stats.completedJuz / stats.totalJuz) * 100)}% من القرآن الكريم
+              {t("quranProgress", { percent: Math.round((stats.completedJuz / stats.totalJuz) * 100) })}
             </p>
           </CardContent>
         </Card>
@@ -281,11 +281,11 @@ export default function StudentPerformance() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5 max-w-2xl">
-          <TabsTrigger value="grades">التقييمات</TabsTrigger>
-          <TabsTrigger value="hifz">التسميع</TabsTrigger>
-          <TabsTrigger value="behavior">السلوك</TabsTrigger>
-          <TabsTrigger value="feedback">ملاحظات المعلم</TabsTrigger>
-          <TabsTrigger value="badges">الشارات</TabsTrigger>
+          <TabsTrigger value="grades">{t("gradesTab")}</TabsTrigger>
+          <TabsTrigger value="hifz">{t("hifzTab")}</TabsTrigger>
+          <TabsTrigger value="behavior">{t("behaviorTab")}</TabsTrigger>
+          <TabsTrigger value="feedback">{t("feedbackTab")}</TabsTrigger>
+          <TabsTrigger value="badges">{t("badgesTab")}</TabsTrigger>
         </TabsList>
 
         {/* Grades Tab */}
@@ -312,7 +312,7 @@ export default function StudentPerformance() {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-sm">{grade.title}</h4>
                           <Badge variant="outline" className="text-xs">
-                            {GRADE_TYPE_LABELS[grade.type] || grade.type}
+                            {tc(`gradeTypes.${grade.type}`)}
                           </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -321,8 +321,8 @@ export default function StudentPerformance() {
                             <GraduationCap className="h-3 w-3" />
                             {grade.teacher}
                           </span>
-                          {grade.surah && <span>سورة {grade.surah}</span>}
-                          {grade.juz && <span>الجزء {grade.juz}</span>}
+                          {grade.surah && <span>{t("surah", { name: grade.surah })}</span>}
+                          {grade.juz && <span>{t("juz", { number: grade.juz })}</span>}
                         </div>
                         {grade.notes && (
                           <p className="text-xs text-muted-foreground mt-1.5 italic bg-muted/40 rounded-md px-2 py-1">
@@ -347,7 +347,7 @@ export default function StudentPerformance() {
             <Card>
               <CardContent className="py-12 text-center">
                 <BookOpen className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد سجلات تسميع بعد</p>
+                <p className="text-muted-foreground">{t("noHifzRecords")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -361,16 +361,16 @@ export default function StudentPerformance() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm">سورة {log.surah}</h4>
+                          <h4 className="font-medium text-sm">{t("surah", { name: log.surah })}</h4>
                           <Badge variant="outline" className={`text-xs ${hifzTypeColor[log.type] || ''}`}>
-                            {HIFZ_TYPE_LABELS[log.type] || log.type}
+                            {tc(`hifzTypes.${log.type}`)}
                           </Badge>
                           <Badge variant="outline" className={`text-xs ${hifzQualityColor[log.quality] || ''}`}>
-                            {HIFZ_QUALITY_LABELS[log.quality] || log.quality}
+                            {tc(`hifzQuality.${log.quality}`)}
                           </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                          <span>الآيات {log.fromVerse} — {log.toVerse}</span>
+                          <span>{t("verses", { from: log.fromVerse, to: log.toVerse })}</span>
                           <span>{formatDate(log.date)}</span>
                           {log.teacherId?.fullName && (
                             <span className="flex items-center gap-1">
@@ -379,7 +379,7 @@ export default function StudentPerformance() {
                             </span>
                           )}
                           {typeof log.mistakeCount === 'number' && (
-                            <span>{log.mistakeCount} خطأ</span>
+                            <span>{t("mistakes", { count: log.mistakeCount })}</span>
                           )}
                         </div>
                         {log.notes && (
@@ -402,7 +402,7 @@ export default function StudentPerformance() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Heart className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد ملاحظات سلوكية بعد</p>
+                <p className="text-muted-foreground">{t("noBehaviorRecords")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -430,7 +430,7 @@ export default function StudentPerformance() {
                                 ? 'border-emerald-500/40 text-emerald-700 dark:text-emerald-400'
                                 : 'border-amber-500/40 text-amber-700 dark:text-amber-400'
                             }`}>
-                              {BEHAVIOR_TYPE_LABELS[log.type] || log.type}
+                              {tc(`behaviorTypes.${log.type}`)}
                             </Badge>
                           </div>
                           <p className="text-sm text-foreground leading-relaxed">{log.description}</p>
@@ -462,7 +462,7 @@ export default function StudentPerformance() {
             <Card>
               <CardContent className="py-12 text-center">
                 <ThumbsUp className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">لا توجد ملاحظات بعد</p>
+                <p className="text-muted-foreground">{t("noFeedback")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -525,7 +525,7 @@ export default function StudentPerformance() {
                   <h4 className="font-semibold text-sm">{badge.title}</h4>
                   <p className="text-xs text-muted-foreground mt-1">{badge.description}</p>
                   {badge.achieved && (
-                    <Badge className="mt-2 bg-amber-500 text-white text-xs">مكتسبة</Badge>
+                    <Badge className="mt-2 bg-amber-500 text-white text-xs">{t("achieved")}</Badge>
                   )}
                 </CardContent>
               </Card>
@@ -535,7 +535,7 @@ export default function StudentPerformance() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Trophy className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-muted-foreground">ابدأ رحلتك لاكتساب الشارات</p>
+                <p className="text-muted-foreground">{t("startBadgeJourney")}</p>
               </CardContent>
             </Card>
           )}

@@ -114,7 +114,79 @@
     "serverError": "Erreur lors de la récupération des données",
     "uploadSuccess": "Fichier téléversé avec succès",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ?",
-    "deleteWarning": "Cette action est irréversible"
+    "deleteWarning": "Cette action est irréversible",
+    "attendanceRate": "Taux de présence",
+    "openCalendar": "Ouvrir le calendrier",
+    "justifiedAbsence": "Absence justifiée",
+    "greetingSalam": "Que la paix, la miséricorde et les bénédictions de Dieu soient sur vous",
+    "greetingMorning": "Que Dieu bénisse votre matinée et votre travail",
+    "greetingAfternoon": "Que Dieu bénisse votre travail aujourd'hui",
+    "greetingEvening": "Que Dieu fasse de votre soirée un moment de bonté et de bénédiction",
+    "greetingStudentDua": "Que Dieu bénisse ta mémorisation et ton savoir",
+    "goodMorning": "Bonjour",
+    "goodAfternoon": "Bon après-midi",
+    "goodEvening": "Bonsoir",
+    "months": {
+      "1": "Janvier",
+      "2": "Février",
+      "3": "Mars",
+      "4": "Avril",
+      "5": "Mai",
+      "6": "Juin",
+      "7": "Juillet",
+      "8": "Août",
+      "9": "Septembre",
+      "10": "Octobre",
+      "11": "Novembre",
+      "12": "Décembre"
+    },
+    "days": {
+      "0": "Dimanche",
+      "1": "Lundi",
+      "2": "Mardi",
+      "3": "Mercredi",
+      "4": "Jeudi",
+      "5": "Vendredi",
+      "6": "Samedi"
+    },
+    "activityAreas": {
+      "QURAN_MEMORIZATION": "Mémorisation du Coran",
+      "TAJWEED_QIRAAT": "Tajwid et Qiraat",
+      "QURAN_SCIENCES": "Sciences du Coran",
+      "COMPETITIONS": "Compétitions",
+      "YEAR_ROUND_ACTIVITY": "Activité annuelle"
+    },
+    "educationLevels": {
+      "ابتدائي": "Primaire",
+      "إعدادي": "Collège",
+      "ثانوي": "Lycée",
+      "جامعي": "Université",
+      "ماجستير": "Master",
+      "دكتوراه": "Doctorat",
+      "أخرى": "Autre"
+    },
+    "hifzTypes": {
+      "SABAQ": "Sabaq (Nouvelle leçon)",
+      "SABQI": "Sabqi (Révision récente)",
+      "MANZIL": "Manzil (Révision ancienne)"
+    },
+    "hifzQuality": {
+      "EXCELLENT": "Excellent",
+      "GOOD": "Bien",
+      "NEEDS_REVIEW": "À réviser",
+      "WEAK": "Faible"
+    },
+    "gradeTypes": {
+      "EXAM": "Examen",
+      "MONTHLY_EVALUATION": "Évaluation mensuelle",
+      "ORAL_TEST": "Test oral",
+      "MEMORIZATION": "Mémorisation",
+      "TAJWEED": "Tajwid"
+    },
+    "behaviorTypes": {
+      "POSITIVE": "Comportement positif",
+      "CONCERN": "Préoccupation comportementale"
+    }
   },
   "pagination": {
     "page": "Page",
@@ -137,7 +209,14 @@
       "noAccount": "Vous n'avez pas de compte ?",
       "contactAdmin": "Contactez l'administration de votre association",
       "errorInvalid": "Identifiants incorrects",
-      "errorGeneric": "Erreur lors de la connexion"
+      "errorGeneric": "Erreur lors de la connexion",
+      "errorAccessDenied": "Accès refusé. Le compte peut être désactivé",
+      "errorVerification": "Le lien de vérification est invalide ou expiré",
+      "tagline": "Plateforme de gestion des associations et écoles de mémorisation du Coran",
+      "welcomeTenant": "Bienvenue sur {tenantName}",
+      "emailOrPhone": "E-mail ou numéro de téléphone",
+      "emailPlaceholder": "example@email.com ou +216XXXXXXXX",
+      "copyright": "© {year} Tous droits réservés"
     },
     "onboarding": {
       "title": "Bienvenue sur Q-Trust",
@@ -148,12 +227,21 @@
       "changing": "Modification en cours...",
       "passwordMismatch": "Les mots de passe ne correspondent pas",
       "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
-      "success": "Mot de passe modifié avec succès"
+      "success": "Mot de passe modifié avec succès",
+      "greeting": "Bienvenue {name}",
+      "newPasswordPlaceholder": "Entrez un nouveau mot de passe",
+      "passwordHint": "6 caractères minimum",
+      "confirmPasswordPlaceholder": "Confirmez le mot de passe",
+      "securityTip": "Choisissez un mot de passe fort et sécurisé. Ne le partagez avec personne."
     },
     "error": {
       "title": "Erreur de connexion",
       "tryAgain": "Réessayer",
-      "backToLogin": "Retour à la connexion"
+      "backToLogin": "Retour à la connexion",
+      "configError": "Erreur de configuration du serveur",
+      "accessDenied": "Accès refusé",
+      "verificationError": "Erreur de vérification",
+      "defaultError": "Une erreur est survenue lors de la connexion"
     }
   },
   "suspended": {
@@ -441,7 +529,11 @@
       "parentInfo": "Informations du parent",
       "idCard": "Carte d'identité",
       "birthDate": "Date de naissance",
-      "declaration": "Déclaration"
+      "declaration": "Déclaration",
+      "statusPending": "En cours d'examen",
+      "statusApproved": "Approuvé",
+      "statusWaitlisted": "Liste d'attente",
+      "statusRejected": "Rejeté"
     },
     "claims": {
       "title": "Gestion des réclamations",
@@ -485,7 +577,12 @@
         "SIRA": "Biographie du Prophète",
         "AQIDA": "Aqida",
         "GENERAL": "Général",
-        "OTHER": "Autre"
+        "OTHER": "Autre",
+        "QURAN_STUDY": "Études coraniques",
+        "TAJWEED": "Tajwid",
+        "MEMORIZATION_GUIDE": "Guide de mémorisation",
+        "EXAM_MATERIAL": "Matériel d'examen",
+        "COMPETITION": "Compétitions"
       }
     },
     "families": {
@@ -521,7 +618,16 @@
       "weeklySchedule": "Emploi du temps hebdomadaire",
       "noSessionsForRoom": "Aucune session associée à cette salle",
       "linkedSessions": "Sessions associées",
-      "studentSuffix": "élève(s)"
+      "studentSuffix": "élève(s)",
+      "featureLabels": {
+        "WHITEBOARD": "Tableau blanc",
+        "PROJECTOR": "Projecteur",
+        "AC": "Climatisation",
+        "COMPUTER": "Ordinateur",
+        "SOUND_SYSTEM": "Système audio",
+        "PRAYER_MATS": "Tapis de prière",
+        "QURAN_COPIES": "Copies du Coran"
+      }
     },
     "substitutes": {
       "title": "Gestion des suppléants",
@@ -692,7 +798,9 @@
       "totalStudents": "Total des élèves",
       "weeklyAttendance": "Présence de la semaine",
       "noSessionsToday": "Pas de sessions aujourd'hui",
-      "upcomingSessions": "Prochaines sessions"
+      "upcomingSessions": "Prochaines sessions",
+      "weeklySession": "session hebdomadaire",
+      "overviewDescription": "Aperçu de vos sessions et élèves"
     },
     "sessions": {
       "title": "Mes sessions",
@@ -702,7 +810,51 @@
       "startSession": "Démarrer la session",
       "viewDetails": "Voir les détails",
       "takeAttendance": "Prendre les présences",
-      "substitute": "Suppléant"
+      "substitute": "Suppléant",
+      "contactAdminForSessions": "Contactez l'administration pour ajouter de nouvelles sessions",
+      "totalSessionCount": "{count} session(s)",
+      "recitationTab": "Récitation",
+      "behaviorTab": "Comportement",
+      "optionalNotesPlaceholder": "Notes facultatives...",
+      "recordRecitation": "Enregistrer la récitation",
+      "noSessionForDate": "Pas de session à cette date",
+      "behavioralNotes": "Notes comportementales",
+      "behaviorEntry": {
+        "saveFailed": "Échec de la sauvegarde",
+        "saved": "Enregistré",
+        "savedSuccess": "Note comportementale enregistrée avec succès",
+        "missingData": "Données manquantes",
+        "descriptionRequired": "Veuillez écrire une description pour la note",
+        "searchStudent": "Rechercher un élève...",
+        "note": "Note",
+        "noStudents": "Aucun élève",
+        "dialogTitle": "Note comportementale — {name}",
+        "typeLabel": "Type",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "ex. : A aidé un camarade dans la révision",
+        "saveNote": "Enregistrer la note"
+      }
+    },
+    "hifz": {
+      "saveFailed": "Échec de la sauvegarde",
+      "saved": "Enregistré",
+      "recitationRecorded": "Récitation enregistrée avec succès",
+      "incompleteData": "Données incomplètes",
+      "fillSurahAndVerses": "Veuillez remplir la sourate et les numéros de versets",
+      "searchStudent": "Rechercher un élève...",
+      "recitation": "Récitation",
+      "noStudents": "Aucun élève",
+      "recordRecitationFor": "Enregistrer la récitation — {name}",
+      "typeLabel": "Type",
+      "surahLabel": "Sourate",
+      "surahPlaceholder": "ex. : Al-Baqarah",
+      "fromVerse": "Du verset",
+      "toVerse": "Au verset",
+      "qualityLabel": "Évaluation",
+      "mistakeCount": "Nombre d'erreurs (facultatif)",
+      "notesOptional": "Notes (facultatif)",
+      "additionalNotesPlaceholder": "Notes supplémentaires...",
+      "saveRecitation": "Enregistrer la récitation"
     },
     "evaluations": {
       "title": "Évaluation des élèves",
@@ -722,13 +874,28 @@
       "needsWork": "À améliorer",
       "saveEvaluation": "Enregistrer l'évaluation",
       "evaluationSaved": "Évaluation enregistrée avec succès",
-      "noEvaluations": "Aucune évaluation"
+      "noEvaluations": "Aucune évaluation",
+      "evaluationTitle": "Titre de l'évaluation",
+      "evaluationTitlePlaceholder": "ex. : Test Sourate Al-Baqarah",
+      "score": "Note",
+      "maxScore": "Note maximale",
+      "juz": "Juz",
+      "feedbackType": "Type de commentaire",
+      "positive": "Positive",
+      "improvement": "À améliorer",
+      "contentLabel": "Contenu",
+      "feedbackPlaceholder": "ex. : Excellente performance en récitation de Sourate Al-Baqarah aujourd'hui...",
+      "notesPlaceholder": "Notes supplémentaires...",
+      "surahPlaceholder": "Al-Baqarah"
     },
     "analytics": {
       "title": "Statistiques",
       "description": "Statistiques de vos sessions et élèves",
       "attendanceRate": "Taux de présence",
-      "avgGrade": "Note moyenne"
+      "avgGrade": "Note moyenne",
+      "sessionsHeld": "sessions tenues",
+      "lateInstances": "retards",
+      "sessionUnit": "session(s)"
     },
     "settings": {
       "title": "Paramètres",
@@ -737,7 +904,14 @@
       "currentPassword": "Mot de passe actuel",
       "newPassword": "Nouveau mot de passe",
       "confirmPassword": "Confirmer le mot de passe",
-      "passwordChanged": "Mot de passe modifié avec succès"
+      "passwordChanged": "Mot de passe modifié avec succès",
+      "accountInfo": "Informations du compte",
+      "accountInfoDescription": "Vos informations de base",
+      "contactAdminToChange": "Pour modifier vos informations personnelles, contactez l'administration",
+      "appearance": "Apparence",
+      "customizeAppearance": "Personnaliser l'apparence de l'application",
+      "darkMode": "Mode sombre",
+      "enableDarkMode": "Activer le mode sombre pour l'application"
     }
   },
   "student": {
@@ -748,7 +922,24 @@
       "attendanceRate": "Taux de présence",
       "nextSession": "Prochaine session",
       "recentGrades": "Dernières évaluations",
-      "myQRCode": "Mon code QR"
+      "myQRCode": "Mon code QR",
+      "loadError": "Erreur lors du chargement des données",
+      "connectionError": "Erreur de connexion au serveur",
+      "retry": "Réessayer",
+      "salaam": "Assalamu Alaikum, {name}",
+      "greetingSubtext": "Qu'Allah bénisse votre mémorisation et votre savoir",
+      "morningGreeting": "Bonjour",
+      "afternoonGreeting": "Bon après-midi",
+      "eveningGreeting": "Bonsoir",
+      "consecutiveDays": "jours de présence consécutifs",
+      "today": "Aujourd'hui",
+      "memorizationProgress": "Progrès de mémorisation",
+      "completedJuz": "juz complété",
+      "performanceAverage": "Moyenne de performance",
+      "enrolledCircles": "Cercles inscrits",
+      "attendanceOf": "{present} présences sur {total} sessions",
+      "attendanceTrend": "Tendance de présence — 3 derniers mois",
+      "noGrades": "Aucune évaluation pour le moment"
     },
     "sessions": {
       "title": "Mes cercles",
@@ -756,12 +947,26 @@
       "noSessions": "Vous n'êtes inscrit à aucun cercle",
       "teacher": "Enseignant",
       "schedule": "Horaire",
-      "room": "Salle"
+      "room": "Salle",
+      "loadError": "Erreur lors du chargement des données",
+      "connectionError": "Erreur de connexion au serveur",
+      "retry": "Réessayer",
+      "statusScheduled": "À venir",
+      "statusInProgress": "En cours",
+      "statusFinished": "Terminée",
+      "statusCancelled": "Annulée",
+      "weeklySchedule": "Emploi du temps hebdomadaire",
+      "circlesList": "Liste des cercles",
+      "today": "Aujourd'hui",
+      "upcomingSessions": "Sessions à venir"
     },
     "schedule": {
       "title": "Mon emploi du temps",
       "description": "Emploi du temps hebdomadaire de mes cercles",
-      "noSchedule": "Aucun emploi du temps"
+      "noSchedule": "Aucun emploi du temps",
+      "fetchError": "Échec du chargement de l'emploi du temps",
+      "circleCount": "{count} cercles",
+      "today": "Aujourd'hui"
     },
     "attendance": {
       "title": "Registre de présence",
@@ -771,20 +976,53 @@
       "totalAbsent": "Total absent",
       "submitClaim": "Soumettre une réclamation",
       "claimReason": "Motif de la réclamation",
-      "claimSubmitted": "Réclamation soumise avec succès"
+      "claimSubmitted": "Réclamation soumise avec succès",
+      "loadError": "Erreur lors du chargement des données",
+      "connectionError": "Erreur de connexion au serveur",
+      "retry": "Réessayer",
+      "claimError": "Erreur lors de la soumission de la réclamation",
+      "filterByStatus": "Filtrer par statut",
+      "checkInTime": "Pointage : {time}",
+      "claimPlaceholder": "Exemple : J'ai oublié ma carte mais j'étais présent à la session...",
+      "submitting": "Envoi en cours..."
     },
     "performance": {
       "title": "Résultats et évaluations",
       "description": "Suivi de vos performances en mémorisation et révision",
       "noResults": "Aucun résultat pour le moment",
       "hifzProgress": "Progrès de mémorisation",
-      "overallGrade": "Note globale"
+      "overallGrade": "Note globale",
+      "loadError": "Erreur lors du chargement des données",
+      "connectionError": "Erreur de connexion au serveur",
+      "retry": "Réessayer",
+      "completedJuz": "juz complété",
+      "evaluationCount": "évaluations",
+      "earnedBadges": "badges obtenus",
+      "juzCount": "{completed} / {total} juz",
+      "quranProgress": "{percent}% du Saint Coran",
+      "gradesTab": "Évaluations",
+      "hifzTab": "Récitation",
+      "behaviorTab": "Comportement",
+      "feedbackTab": "Notes de l'enseignant",
+      "badgesTab": "Badges",
+      "surah": "Sourate {name}",
+      "juz": "Juz {number}",
+      "noHifzRecords": "Aucun enregistrement de récitation",
+      "verses": "Versets {from} — {to}",
+      "mistakes": "{count} erreurs",
+      "noBehaviorRecords": "Aucune note de comportement",
+      "noFeedback": "Aucune remarque pour le moment",
+      "achieved": "Obtenu",
+      "startBadgeJourney": "Commencez votre parcours pour obtenir des badges"
     },
     "documents": {
       "title": "Bibliothèque",
       "description": "Documents et matériaux pédagogiques disponibles",
       "noDocuments": "Aucun document disponible",
-      "download": "Télécharger"
+      "download": "Télécharger",
+      "loadError": "Erreur lors du chargement des données",
+      "connectionError": "Erreur de connexion au serveur",
+      "retry": "Réessayer"
     },
     "settings": {
       "title": "Paramètres",
@@ -798,11 +1036,50 @@
       "qrCode": "Code QR",
       "qrDescription": "Utilisez ce code pour enregistrer votre présence via le scanner",
       "showQR": "Présentez ce code sur l'écran de votre téléphone devant le scanner pour enregistrer votre présence",
-      "downloadQR": "Télécharger le code"
+      "downloadQR": "Télécharger le code",
+      "loadError": "Erreur lors du chargement des données",
+      "profileUpdated": "Vos informations ont été mises à jour avec succès",
+      "saveError": "Erreur lors de la sauvegarde",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+      "passwordChangeError": "Erreur lors du changement de mot de passe",
+      "appearance": "Apparence",
+      "enrollmentNumber": "Numéro d'inscription",
+      "notSpecified": "Non spécifié",
+      "fullName": "Nom complet",
+      "educationLevel": "Niveau d'éducation",
+      "dateOfBirth": "Date de naissance",
+      "editInfo": "Modifier les informations",
+      "editInfoDescription": "Vous pouvez modifier votre numéro de téléphone et votre adresse",
+      "address": "Adresse",
+      "saving": "Sauvegarde en cours...",
+      "parentInfo": "Informations du tuteur",
+      "parentName": "Nom du tuteur",
+      "parentEmail": "E-mail",
+      "parentPhone": "Numéro de téléphone",
+      "digitalQRCard": "Carte QR numérique",
+      "qrBackupHint": "Si vous perdez votre carte physique, vous pouvez utiliser ce code comme remplacement temporaire",
+      "qrNotAvailable": "Code QR non disponible",
+      "minChars": "Au moins 6 caractères",
+      "changingPassword": "Modification en cours...",
+      "chooseTheme": "Choisissez votre thème préféré",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "themeSystem": "Système",
+      "accountInfo": "Informations du compte",
+      "loginId": "Identifiant de connexion",
+      "createdAt": "Date de création"
     }
   },
   "superAdmin": {
     "title": "Panneau d'administration principal",
+    "nav": {
+      "platformTitle": "Plateforme Q-Trust — Panneau d'administration",
+      "tenants": "Établissements",
+      "billing": "Facturation",
+      "leads": "Demandes de démo",
+      "signOut": "Déconnexion"
+    },
     "tenants": {
       "title": "Gestion des établissements",
       "description": "Gérer tous les établissements inscrits",
@@ -872,7 +1149,15 @@
       "paymentMethod": "Mode de paiement",
       "setupPayment": "Paiement de l'installation",
       "invoicesCount": "Factures ({count})",
-      "dueLabel": "Échéance"
+      "dueLabel": "Échéance",
+      "saveFailed": "Échec de l'enregistrement",
+      "saveChanges": "Enregistrer les modifications",
+      "planChangeWarning": "Le changement de forfait mettra automatiquement à jour la limite d'élèves et le quota IA.",
+      "updateFailed": "Échec de la mise à jour",
+      "cancelPayment": "Annuler le paiement",
+      "recordPayment": "Enregistrer le paiement",
+      "referencePlaceholder": "Numéro de référence (facultatif)",
+      "currency": "TND"
     },
     "billing": {
       "title": "Facturation",
@@ -918,6 +1203,7 @@
       "new": "Nouveau",
       "contacted": "Contacté",
       "converted": "Converti",
+      "closed": "Fermé",
       "pageTitle": "Demandes de démonstration",
       "requestCount": "{count} demandes depuis la page marketing",
       "noLeadsYet": "Aucune demande pour le moment",
@@ -974,16 +1260,63 @@
     "title": "Notifications",
     "noNotifications": "Aucune notification",
     "markAllRead": "Tout marquer comme lu",
-    "viewAll": "Voir tout"
+    "viewAll": "Voir tout",
+    "timeNow": "Maintenant",
+    "timeMinutes": "Il y a {count} min",
+    "timeHours": "Il y a {count} h",
+    "timeDays": "Il y a {count} j"
   },
   "fileUpload": {
     "dragDrop": "Glissez-déposez le fichier ici",
+    "dropHere": "Déposez le fichier ici",
     "or": "ou",
     "browse": "Parcourir",
+    "clickToSelect": "ou cliquez pour choisir un fichier",
     "maxSize": "Taille maximale du fichier",
+    "maxSizeMB": "Taille max : {size} Mo",
     "uploadSuccess": "Fichier téléversé avec succès",
     "uploadError": "Erreur de téléversement",
+    "uploadFailed": "Echec du téléversement",
+    "fileSizeExceeded": "La taille du fichier ne doit pas dépasser {size} Mo",
+    "unsupportedType": "Type de fichier non pris en charge",
+    "uploading": "Téléversement vers le cloud...",
+    "uploadComplete": "Téléversement réussi !",
+    "clickToRetry": "Cliquez pour réessayer",
+    "clickOrDrop": "Cliquez pour choisir ou glissez-déposez",
+    "clickToSelectOrDrop": "Cliquez pour choisir ou glissez-déposez un fichier",
+    "deleteAndReselect": "Cliquez sur le bouton pour supprimer le fichier et en choisir un autre",
     "remove": "Supprimer le fichier",
     "cloudinary": "Cloudinary"
+  },
+  "calendar": {
+    "months": {
+      "0": "Janvier",
+      "1": "Février",
+      "2": "Mars",
+      "3": "Avril",
+      "4": "Mai",
+      "5": "Juin",
+      "6": "Juillet",
+      "7": "Août",
+      "8": "Septembre",
+      "9": "Octobre",
+      "10": "Novembre",
+      "11": "Décembre"
+    },
+    "weekdays": {
+      "0": "Sa",
+      "1": "Di",
+      "2": "Lu",
+      "3": "Ma",
+      "4": "Me",
+      "5": "Je",
+      "6": "Ve"
+    }
+  },
+  "greeting": {
+    "salaam": "Que la paix soit sur vous",
+    "morningSubtitle": "Que Dieu bénisse votre matinée et votre travail",
+    "afternoonSubtitle": "Que Dieu bénisse votre travail aujourd'hui",
+    "eveningSubtitle": "Que Dieu fasse de votre soirée un bien et une bénédiction"
   }
 }

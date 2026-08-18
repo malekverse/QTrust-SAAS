@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BrandLogo } from "@/components/brand-logo"
+import { useTranslations } from "next-intl"
 
 const iconMap = {
   LayoutDashboard,
@@ -79,6 +80,8 @@ export function Sidebar({
   rtl = true,
 }: SidebarProps) {
   const pathname = usePathname()
+  const t = useTranslations("nav")
+  const tNavbar = useTranslations("navbar")
 
   const handleLinkClick = () => {
     // Close mobile menu when navigating
@@ -155,7 +158,7 @@ export function Sidebar({
                 href={dashboardHref}
                 onClick={handleLinkClick}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-accent/30 p-1"
-                aria-label="الرئيسية"
+                aria-label={t("home")}
               >
                 <BrandLogo variant="symbol" className="h-8 w-8" />
               </Link>
@@ -170,7 +173,7 @@ export function Sidebar({
             onClick={handleClose}
             onTouchEnd={handleClose}
             className="lg:hidden h-11 w-11 min-h-[44px] min-w-[44px] touch-manipulation"
-            aria-label="إغلاق القائمة"
+            aria-label={tNavbar("closeMenu")}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -245,7 +248,7 @@ export function Sidebar({
             ) : (
               <>
                 {rtl ? <ChevronRight className="h-4 w-4 ms-2" /> : <ChevronLeft className="h-4 w-4 me-2" />}
-                <span>{rtl ? "تصغير" : "Collapse"}</span>
+                <span>{t("collapse")}</span>
               </>
             )}
           </Button>

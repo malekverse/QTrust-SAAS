@@ -47,7 +47,7 @@ interface MessageLogItem {
 async function fetchConfig(): Promise<ConfigResponse | { locked: true }> {
   const res = await fetch("/api/settings/messaging")
   if (res.status === 402 || res.status === 403) return { locked: true }
-  if (!res.ok) throw new Error("فشل تحميل الإعدادات")
+  if (!res.ok) throw new Error("fetchError")
   return res.json()
 }
 async function fetchLogs(): Promise<MessageLogItem[]> {
@@ -102,7 +102,7 @@ export default function MessagingPage() {
         body: JSON.stringify(payload),
       })
       if (!res.ok) {
-        const d = await res.json().catch(() => ({ message: "فشل الحفظ" }))
+        const d = await res.json().catch(() => ({ message: "saveFailed" }))
         throw new Error(d.message)
       }
       return res.json()
@@ -111,9 +111,9 @@ export default function MessagingPage() {
       queryClient.invalidateQueries({ queryKey: ["messaging-config"] })
       setWaToken("")
       setTwToken("")
-      success("تم الحفظ", "تم تحديث إعدادات الرسائل")
+      success(tc("success"), t("settingsUpdated"))
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(tc("error"), err.message),
   })
 
   const cfg = config && !("locked" in config) ? config : null
@@ -140,8 +140,8 @@ export default function MessagingPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <MessageCircle className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
-            <p className="font-medium">ميزة الرسائل متاحة في الباقة الاحترافية فما فوق</p>
-            <p className="mt-1 text-sm text-muted-foreground">قم بترقية اشتراكك لتفعيل إشعارات الأولياء.</p>
+            <p className="font-medium">{t("lockedTitle")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("lockedDescription")}</p>
           </CardContent>
         </Card>
       </div>
@@ -156,22 +156,21 @@ export default function MessagingPage() {
       <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 text-sm">
         <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
         <div className="text-muted-foreground">
-          إعدادات مزوّد الرسائل اختيارية. عند تعطيلها، تُسجَّل الرسائل دون إرسال فعلي إلى أن تُدخل بيانات
-          الاعتماد. يمكنك تفعيلها لاحقاً بإدخال بيانات واتساب Cloud API أو Twilio.
+          {t("infoBanner")}
         </div>
       </div>
 
       {/* Feature toggles */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">التذكيرات</CardTitle>
+          <CardTitle className="text-lg">{t("reminders")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-medium">تذكيرات الدفع</p>
+              <p className="font-medium">{t("paymentReminders")}</p>
               <p className="text-sm text-muted-foreground">
-                إظهار زر «إرسال تذكير» للأولياء في صفحة الاشتراكات. معطّل افتراضياً.
+                {t("paymentRemindersDescription")}
               </p>
             </div>
             <Switch checked={remindersEnabled} onCheckedChange={setRemindersEnabled} />
@@ -184,12 +183,12 @@ export default function MessagingPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageCircle className="h-5 w-5" />
-            مزوّد الرسائل
+            {t("messagingProvider")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label>المزوّد</Label>
+            <Label>{t("provider")}</Label>
             <Select value={provider} onValueChange={setProvider}>
               <SelectTrigger className="max-w-sm">
                 <SelectValue />
@@ -209,12 +208,12 @@ export default function MessagingPage() {
                 <Input value={waPhoneId} onChange={(e) => setWaPhoneId(e.target.value)} dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>Access Token {cfg?.whatsapp.accessTokenSet && <span className="text-xs text-emerald-600">(محفوظ)</span>}</Label>
+                <Label>Access Token {cfg?.whatsapp.accessTokenSet && <span className="text-xs text-emerald-600">({t("saved")})</span>}</Label>
                 <Input
                   type="password"
                   value={waToken}
                   onChange={(e) => setWaToken(e.target.value)}
-                  placeholder={cfg?.whatsapp.accessTokenSet ? "•••••• (اتركه فارغاً للإبقاء)" : ""}
+                  placeholder={cfg?.whatsapp.accessTokenSet ? t("leaveBlankToKeep") : ""}
                   dir="ltr"
                 />
               </div>
@@ -228,17 +227,17 @@ export default function MessagingPage() {
                 <Input value={twSid} onChange={(e) => setTwSid(e.target.value)} dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>Auth Token {cfg?.twilio.authTokenSet && <span className="text-xs text-emerald-600">(محفوظ)</span>}</Label>
+                <Label>Auth Token {cfg?.twilio.authTokenSet && <span className="text-xs text-emerald-600">({t("saved")})</span>}</Label>
                 <Input
                   type="password"
                   value={twToken}
                   onChange={(e) => setTwToken(e.target.value)}
-                  placeholder={cfg?.twilio.authTokenSet ? "•••••• (اتركه فارغاً للإبقاء)" : ""}
+                  placeholder={cfg?.twilio.authTokenSet ? t("leaveBlankToKeep") : ""}
                   dir="ltr"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>رقم المُرسِل (From)</Label>
+                <Label>{t("senderNumber")}</Label>
                 <Input value={twFrom} onChange={(e) => setTwFrom(e.target.value)} placeholder="+216..." dir="ltr" />
               </div>
             </div>

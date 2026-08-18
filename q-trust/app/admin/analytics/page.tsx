@@ -60,7 +60,7 @@ interface Analytics {
 
 async function fetchAnalytics(): Promise<Analytics> {
   const res = await fetch("/api/analytics")
-  if (!res.ok) throw new Error("فشل تحميل التحليلات")
+  if (!res.ok) throw new Error("fetchError")
   return res.json()
 }
 
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
         <PageHeader title={t("title")} description={t("description")} />
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            تعذّر تحميل التحليلات
+            {t("loadError")}
           </CardContent>
         </Card>
       </div>
@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{data.dropoutRisk.length}</p>
-              <p className="text-xs text-muted-foreground">طلاب في خطر الانقطاع ({highRisk} مرتفع)</p>
+              <p className="text-xs text-muted-foreground">{t("dropoutRiskSummary", { high: highRisk })}</p>
             </div>
           </CardContent>
         </Card>
@@ -123,9 +123,9 @@ export default function AnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold" dir="ltr">
-                {data.revenue.totalCollected.toFixed(0)} د.ت
+                {data.revenue.totalCollected.toFixed(0)} {tc("currencyTND")}
               </p>
-              <p className="text-xs text-muted-foreground">محصّل آخر 6 أشهر</p>
+              <p className="text-xs text-muted-foreground">{t("collectedLast6Months")}</p>
             </div>
           </CardContent>
         </Card>
@@ -136,9 +136,9 @@ export default function AnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold" dir="ltr">
-                {data.revenue.projectedNext.toFixed(0)} د.ت
+                {data.revenue.projectedNext.toFixed(0)} {tc("currencyTND")}
               </p>
-              <p className="text-xs text-muted-foreground">توقّع الشهر القادم (متوسط)</p>
+              <p className="text-xs text-muted-foreground">{t("projectedNextMonth")}</p>
             </div>
           </CardContent>
         </Card>
@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
                   <div
                     className="w-full max-w-[48px] rounded-t-md bg-gradient-to-t from-primary/70 to-primary transition-all"
                     style={{ height: `${Math.max(2, (m.collected / maxCollected) * 100)}%` }}
-                    title={`${m.collected} د.ت — ${m.paidCount} دفعة`}
+                    title={t("barTooltip", { amount: m.collected, count: m.paidCount })}
                   />
                 </div>
                 <span className="text-xs text-muted-foreground">{m.label}</span>
@@ -171,9 +171,9 @@ export default function AnalyticsPage() {
             ))}
           </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            المتوسط الشهري: <span dir="ltr">{data.revenue.avgMonthlyCollected.toFixed(2)} د.ت</span>
+            {t("monthlyAverage", { amount: data.revenue.avgMonthlyCollected.toFixed(2) })}
             {" • "}
-            المبالغ من الدفعات المسجّلة بمبلغ محدّد فقط
+            {t("revenueNote")}
           </p>
         </CardContent>
       </Card>
@@ -190,17 +190,17 @@ export default function AnalyticsPage() {
           {data.dropoutRisk.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
               <CheckCircle className="mx-auto mb-2 h-10 w-10 text-emerald-500 opacity-70" />
-              <p>لا يوجد طلاب في خطر الانقطاع حالياً — ما شاء الله</p>
+              <p>{t("noDropoutRisk")}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>الطالب</TableHead>
-                  <TableHead>المستوى</TableHead>
-                  <TableHead>غيابات متتالية</TableHead>
-                  <TableHead className="hidden sm:table-cell">نسبة الغياب</TableHead>
-                  <TableHead className="hidden sm:table-cell">عدد الحصص</TableHead>
+                  <TableHead>{t("studentCol")}</TableHead>
+                  <TableHead>{t("levelCol")}</TableHead>
+                  <TableHead>{t("consecutiveAbsences")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t("absenceRate")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t("sessionCount")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -216,7 +216,7 @@ export default function AnalyticsPage() {
                             : "border-amber-500/40 text-amber-700 dark:text-amber-400"
                         }
                       >
-                        {r.level === "HIGH" ? "مرتفع" : "متوسط"}
+                        {r.level === "HIGH" ? t("riskHigh") : t("riskMedium")}
                       </Badge>
                     </TableCell>
                     <TableCell dir="ltr" className="text-start">{r.consecutiveAbsences}</TableCell>
@@ -235,21 +235,21 @@ export default function AnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <GraduationCap className="h-5 w-5" />
-            أداء المعلمين
+            {t("teacherPerformance")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {data.teachers.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">لا توجد بيانات حصص بعد</div>
+            <div className="py-8 text-center text-muted-foreground">{t("noSessionData")}</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>المعلم</TableHead>
-                  <TableHead>مكتملة</TableHead>
-                  <TableHead>ملغاة</TableHead>
-                  <TableHead className="hidden sm:table-cell">مجدولة</TableHead>
-                  <TableHead>نسبة الإنجاز</TableHead>
+                  <TableHead>{t("teacherCol")}</TableHead>
+                  <TableHead>{t("completed")}</TableHead>
+                  <TableHead>{t("cancelled")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t("scheduled")}</TableHead>
+                  <TableHead>{t("fulfillmentRate")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

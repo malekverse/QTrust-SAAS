@@ -88,7 +88,7 @@ export default function OnboardingPage() {
             {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            {session?.user?.fullName && `أهلاً ${session.user.fullName}`}
+            {session?.user?.fullName && t("greeting", { name: session.user.fullName })}
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function OnboardingPage() {
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="أدخل كلمة مرور جديدة"
+                    placeholder={t("newPasswordPlaceholder")}
                     className="text-left pl-10"
                     dir="ltr"
                     required
@@ -132,7 +132,7 @@ export default function OnboardingPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">6 أحرف على الأقل</p>
+                <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>
               </div>
 
               <div className="space-y-2">
@@ -143,7 +143,7 @@ export default function OnboardingPage() {
                     type={showConfirm ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="أعد إدخال كلمة المرور"
+                    placeholder={t("confirmPasswordPlaceholder")}
                     className="text-left pl-10"
                     dir="ltr"
                     required
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
               <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
                 <ShieldCheck className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                 <p className="text-xs text-muted-foreground">
-                  اختر كلمة مرور قوية وآمنة. لا تشاركها مع أي شخص.
+                  {t("securityTip")}
                 </p>
               </div>
 

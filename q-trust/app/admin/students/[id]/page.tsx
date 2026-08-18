@@ -33,9 +33,8 @@ import {
   IdCard,
   CreditCard
 } from "lucide-react"
-import { formatDate, getAttendanceStatusLabel, getAttendanceStatusColor } from "@/lib/utils"
+import { formatDate, getAttendanceStatusColor } from "@/lib/utils"
 import { IslamicDivider } from "@/components/layout/islamic-divider"
-import { GENDER_LABELS, ACTIVITY_AREA_LABELS, MONTH_LABELS } from "@/lib/constants"
 import QRCode from "qrcode"
 import Image from "next/image"
 import { getTranslations } from "next-intl/server"
@@ -148,6 +147,13 @@ export default async function StudentDetailPage({
 
   const { student, sessions, attendanceRecords, paymentRecords, currentMonthPaid, stats, qrDataUrl } = data
 
+  const attendanceStatusKeys: Record<string, string> = {
+    PRESENT: 'present',
+    ABSENT: 'absent',
+    LATE: 'late',
+    JUSTIFIED_ABSENCE: 'justifiedAbsence',
+  }
+
   const getInitials = (firstName?: string, lastName?: string) => {
     if (firstName && lastName) {
       return `${firstName[0]}${lastName[0]}`.toUpperCase()
@@ -195,7 +201,7 @@ export default async function StudentDetailPage({
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <h1 className="text-2xl font-bold">{displayName}</h1>
                   <Badge variant={student.gender === 'MALE' ? 'secondary' : 'outline'}>
-                    {GENDER_LABELS[student.gender as keyof typeof GENDER_LABELS] || student.gender}
+                    {tc(student.gender === 'MALE' ? 'male' : 'female')}
                   </Badge>
                   <Badge variant={student.isActive ? "success" : "destructive"}>
                     {student.isActive ? tc("active") : tc("inactive")}
@@ -375,7 +381,7 @@ export default async function StudentDetailPage({
                   <div className="flex flex-wrap gap-2">
                     {student.activityAreas.map((area: string) => (
                       <Badge key={area} variant="outline">
-                        {ACTIVITY_AREA_LABELS[area as keyof typeof ACTIVITY_AREA_LABELS] || area}
+                        {tc('activityAreas.' + area)}
                       </Badge>
                     ))}
                   </div>
@@ -508,7 +514,7 @@ export default async function StudentDetailPage({
                 >
                   <div>
                     <p className="font-medium">
-                      {MONTH_LABELS[record.month as keyof typeof MONTH_LABELS]} {record.year}
+                      {tc('months.' + record.month)} {record.year}
                     </p>
                     {record.paidAt && (
                       <p className="text-sm text-muted-foreground">
@@ -552,7 +558,7 @@ export default async function StudentDetailPage({
                     </p>
                   </div>
                   <Badge className={getAttendanceStatusColor(record.status)}>
-                    {getAttendanceStatusLabel(record.status)}
+                    {tc(attendanceStatusKeys[record.status] || record.status)}
                   </Badge>
                 </div>
               ))}

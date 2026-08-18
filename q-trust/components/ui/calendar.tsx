@@ -21,6 +21,7 @@ import {
 import { ar } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useTranslations } from "next-intl"
 import {
   Select,
   SelectContent,
@@ -35,15 +36,12 @@ interface CalendarProps {
   className?: string
 }
 
-const MONTHS = [
-  "جانفي", "فيفري", "مارس", "أفريل", "ماي", "جوان",
-  "جويلية", "أوت", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
-]
-
-const WEEKDAYS = ["ح", "ن", "ث", "ر", "خ", "ج", "س"]
-
 export function Calendar({ selected, onSelect, className }: CalendarProps) {
+  const t = useTranslations("calendar")
   const [currentMonth, setCurrentMonth] = React.useState(selected || new Date())
+
+  const MONTHS = Array.from({ length: 12 }, (_, i) => t(`months.${i}`))
+  const WEEKDAYS = Array.from({ length: 7 }, (_, i) => t(`weekdays.${i}`))
 
   // Generate years from 1920 to current year
   const currentYear = new Date().getFullYear()

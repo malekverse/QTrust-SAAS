@@ -18,7 +18,6 @@ import {
   GraduationCap,
 } from "lucide-react"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { GRADE_TYPE_LABELS } from "@/lib/constants"
 
 interface DashboardData {
   student: {
@@ -67,11 +66,11 @@ interface DashboardData {
   }[]
 }
 
-function getGreetingMessage(): string {
+function getGreetingMessage(t: (key: string) => string): string {
   const hour = new Date().getHours()
-  if (hour < 12) return "صباح الخير"
-  if (hour < 17) return "مساء النور"
-  return "مساء الخير"
+  if (hour < 12) return t("morningGreeting")
+  if (hour < 17) return t("afternoonGreeting")
+  return t("eveningGreeting")
 }
 
 export default function StudentDashboard() {
@@ -94,11 +93,11 @@ export default function StudentDashboard() {
         setData(json)
       } else {
         const errData = await res.json().catch(() => null)
-        setError(errData?.message || "حدث خطأ أثناء تحميل البيانات")
+        setError(errData?.message || t("loadError"))
       }
     } catch (err) {
       console.error("Error fetching dashboard:", err)
-      setError("حدث خطأ في الاتصال بالخادم")
+      setError(t("connectionError"))
     } finally {
       setLoading(false)
     }
@@ -111,9 +110,9 @@ export default function StudentDashboard() {
   if (error || !data) {
     return (
       <div className="text-center py-12 space-y-3">
-        <p className="text-muted-foreground">{error || "حدث خطأ أثناء تحميل البيانات"}</p>
+        <p className="text-muted-foreground">{error || t("loadError")}</p>
         <Button variant="outline" onClick={() => { setError(null); setLoading(true); fetchDashboard() }}>
-          إعادة المحاولة
+          {t("retry")}
         </Button>
       </div>
     )
@@ -137,10 +136,10 @@ export default function StudentDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-2">
               <h1 className="text-2xl sm:text-3xl font-arabic font-bold text-primary">
-                السلام عليكم، {firstName}
+                {t("salaam", { name: firstName })}
               </h1>
               <p className="text-muted-foreground font-arabic">
-                {getGreetingMessage()} — نسأل الله أن يبارك في حفظك وعلمك
+                {getGreetingMessage(t)} — {t("greetingSubtext")}
               </p>
             </div>
             {data.stats.streak > 0 && (
@@ -148,7 +147,7 @@ export default function StudentDashboard() {
                 <Flame className="h-8 w-8 text-amber-500 animate-pulse" />
                 <div>
                   <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{data.stats.streak}</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-500">يوم حضور متواصل</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-500">{t("consecutiveDays")}</p>
                 </div>
               </div>
             )}
@@ -179,7 +178,7 @@ export default function StudentDashboard() {
                   <h3 className="font-semibold text-foreground">{t("nextSession")}</h3>
                   {data.nextSession.isToday && (
                     <Badge variant="outline" className="student-surface-emerald-chip text-xs font-semibold">
-                      اليوم
+                      {t("today")}
                     </Badge>
                   )}
                 </div>
@@ -232,7 +231,7 @@ export default function StudentDashboard() {
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-start justify-between">
               <div className="space-y-1.5">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">تقدم الحفظ</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{t("memorizationProgress")}</p>
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">
                   {data.stats.completedJuz}<span className="text-sm text-muted-foreground font-normal">/{data.stats.totalJuz}</span>
                 </p>
@@ -248,7 +247,7 @@ export default function StudentDashboard() {
                   style={{ width: `${(data.stats.completedJuz / data.stats.totalJuz) * 100}%` }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1">جزء مكتمل</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{t("completedJuz")}</p>
             </div>
           </CardContent>
         </Card>
@@ -258,7 +257,7 @@ export default function StudentDashboard() {
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-start justify-between">
               <div className="space-y-1.5">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">معدل الأداء</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{t("performanceAverage")}</p>
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">{data.stats.performanceAverage}%</p>
               </div>
               <div className="rounded-xl bg-amber-500/10 p-2.5">
@@ -281,7 +280,7 @@ export default function StudentDashboard() {
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-start justify-between">
               <div className="space-y-1.5">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">الحلقات المسجلة</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{t("enrolledCircles")}</p>
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">{data.stats.enrolledSessions}</p>
               </div>
               <div className="rounded-xl bg-blue-500/10 p-2.5">
@@ -289,7 +288,7 @@ export default function StudentDashboard() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              {data.stats.presentCount} حضور من {data.stats.totalSessions} حصة
+              {t("attendanceOf", { present: data.stats.presentCount, total: data.stats.totalSessions })}
             </p>
           </CardContent>
         </Card>
@@ -302,7 +301,7 @@ export default function StudentDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              اتجاه الحضور — آخر 3 أشهر
+              {t("attendanceTrend")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -373,7 +372,7 @@ export default function StudentDashboard() {
             {data.recentGrades.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                <p>لا توجد تقييمات بعد</p>
+                <p>{t("noGrades")}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -382,7 +381,7 @@ export default function StudentDashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{grade.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {GRADE_TYPE_LABELS[grade.type] || grade.type}
+                        {tc(`gradeTypes.${grade.type}`)}
                       </p>
                     </div>
                     <div className="text-left mr-3">

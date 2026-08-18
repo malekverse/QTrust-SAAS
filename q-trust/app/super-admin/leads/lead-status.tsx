@@ -2,13 +2,14 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 const LEAD_STATUS_VALUES = ["NEW", "CONTACTED", "CONVERTED", "CLOSED"] as const
 
-const STATUS_LABELS: Record<string, string> = {
-  NEW: "جديد",
-  CONTACTED: "تم التواصل",
-  CONVERTED: "تم التعاقد",
-  CLOSED: "مغلق",
+const STATUS_KEYS: Record<string, string> = {
+  NEW: "new",
+  CONTACTED: "contacted",
+  CONVERTED: "converted",
+  CLOSED: "closed",
 }
 
 const selectCls =
@@ -22,6 +23,7 @@ export function LeadStatusSelect({
   status: string
 }) {
   const router = useRouter()
+  const t = useTranslations("superAdmin.leads")
   const [saving, setSaving] = useState(false)
 
   async function onChange(next: string) {
@@ -48,7 +50,7 @@ export function LeadStatusSelect({
     >
       {LEAD_STATUS_VALUES.map((s) => (
         <option key={s} value={s}>
-          {STATUS_LABELS[s] ?? s}
+          {t(STATUS_KEYS[s] ?? s)}
         </option>
       ))}
     </select>

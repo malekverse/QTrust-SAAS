@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,9 +32,7 @@ import {
 } from "lucide-react"
 import {
   HIFZ_TYPE,
-  HIFZ_TYPE_LABELS,
   HIFZ_QUALITY,
-  HIFZ_QUALITY_LABELS,
 } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 
@@ -79,6 +78,8 @@ export function HifzEntry({
   students: Student[]
   selectedDate: string
 }) {
+  const t = useTranslations("teacher.hifz")
+  const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: showError } = useToast()
   const [search, setSearch] = useState("")
@@ -111,7 +112,7 @@ export function HifzEntry({
         body: JSON.stringify(data),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "فشل الحفظ" }))
+        const err = await res.json().catch(() => ({ message: t("saveFailed") }))
         throw new Error(err.message)
       }
       return res.json()
@@ -120,10 +121,10 @@ export function HifzEntry({
       queryClient.invalidateQueries({ queryKey: ["hifz-logs", sessionId, occurrenceId] })
       setDialogOpen(false)
       resetForm()
-      success("تم الحفظ", "تم تسجيل التسميع بنجاح")
+      success(t("saved"), t("recitationRecorded"))
     },
     onError: (err: Error) => {
-      showError("خطأ", err.message)
+      showError(tc("error"), err.message)
     },
   })
 
@@ -148,7 +149,7 @@ export function HifzEntry({
     const from = parseInt(fromVerse)
     const to = parseInt(toVerse)
     if (!surah || isNaN(from) || isNaN(to) || from < 1 || to < 1) {
-      showError("بيانات ناقصة", "يرجى ملء السورة ورقم الآيات")
+      showError(t("incompleteData"), t("fillSurahAndVerses"))
       return
     }
     createMutation.mutate({
@@ -194,7 +195,7 @@ export function HifzEntry({
       <div className="relative w-64 mb-4">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="بحث عن طالب..."
+          placeholder={t("searchStudent")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pr-10"
@@ -224,9 +225,9 @@ export function HifzEntry({
                           variant="outline"
                           className={`text-[10px] ${TYPE_COLORS[log.type] || ""}`}
                         >
-                          {HIFZ_TYPE_LABELS[log.type]?.split(" ")[0]} — {log.surah} ({log.fromVerse}-{log.toVerse})
+                          {tc(`hifzTypes.${log.type}`).split(" ")[0]} — {log.surah} ({log.fromVerse}-{log.toVerse})
                           <span className={`mr-1 ${QUALITY_COLORS[log.quality] || ""} px-1 rounded`}>
-                            {HIFZ_QUALITY_LABELS[log.quality]}
+                            {tc(`hifzQuality.${log.quality}`)}
                           </span>
                         </Badge>
                       ))}
@@ -244,7 +245,7 @@ export function HifzEntry({
                   onClick={() => openForStudent(student)}
                 >
                   <Plus className="h-3.5 w-3.5 ml-1" />
-                  تسميع
+                  {t("recitation")}
                 </Button>
               </div>
             </div>
@@ -255,7 +256,7 @@ export function HifzEntry({
       {filteredStudents.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <BookOpen className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p>لا يوجد طلاب</p>
+          <p>{t("noStudents")}</p>
         </div>
       )}
 
@@ -265,20 +266,20 @@ export function HifzEntry({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
-              تسجيل تسميع — {selectedStudent?.fullName}
+              {t("recordRecitationFor", { name: selectedStudent?.fullName ?? "" })}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Type */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">النوع</label>
+              <label className="text-sm font-medium">{t("typeLabel")}</label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(HIFZ_TYPE_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  {(['SABAQ', 'SABQI', 'MANZIL'] as const).map((k) => (
+                    <SelectItem key={k} value={k}>{tc(`hifzTypes.${k}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -286,18 +287,18 @@ export function HifzEntry({
 
             {/* Surah */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">السورة</label>
+              <label className="text-sm font-medium">{t("surahLabel")}</label>
               <Input
                 value={surah}
                 onChange={(e) => setSurah(e.target.value)}
-                placeholder="مثال: البقرة"
+                placeholder={t("surahPlaceholder")}
               />
             </div>
 
             {/* Verse range */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">من الآية</label>
+                <label className="text-sm font-medium">{t("fromVerse")}</label>
                 <Input
                   type="number"
                   min={1}
@@ -308,7 +309,7 @@ export function HifzEntry({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">إلى الآية</label>
+                <label className="text-sm font-medium">{t("toVerse")}</label>
                 <Input
                   type="number"
                   min={1}
@@ -322,14 +323,14 @@ export function HifzEntry({
 
             {/* Quality */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">التقييم</label>
+              <label className="text-sm font-medium">{t("qualityLabel")}</label>
               <Select value={quality} onValueChange={setQuality}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(HIFZ_QUALITY_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  {(['EXCELLENT', 'GOOD', 'NEEDS_REVIEW', 'WEAK'] as const).map((k) => (
+                    <SelectItem key={k} value={k}>{tc(`hifzQuality.${k}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -337,7 +338,7 @@ export function HifzEntry({
 
             {/* Mistake count */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">عدد الأخطاء (اختياري)</label>
+              <label className="text-sm font-medium">{t("mistakeCount")}</label>
               <Input
                 type="number"
                 min={0}
@@ -350,22 +351,22 @@ export function HifzEntry({
 
             {/* Notes */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">ملاحظات (اختياري)</label>
+              <label className="text-sm font-medium">{t("notesOptional")}</label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="ملاحظات إضافية..."
+                placeholder={t("additionalNotesPlaceholder")}
                 rows={2}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              إلغاء
+              {tc("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              حفظ التسميع
+              {t("saveRecitation")}
             </Button>
           </DialogFooter>
         </DialogContent>

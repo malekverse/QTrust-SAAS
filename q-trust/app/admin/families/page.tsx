@@ -58,7 +58,7 @@ interface StudentLite {
 
 async function fetchFamilies(page: number): Promise<{ data: Family[]; pagination: { page: number; pages: number; total: number } }> {
   const res = await fetch(`/api/families?page=${page}`)
-  if (!res.ok) throw new Error("فشل تحميل العائلات")
+  if (!res.ok) throw new Error("fetchError")
   return res.json()
 }
 
@@ -112,7 +112,7 @@ export default function FamiliesPage() {
         body: JSON.stringify(payload),
       })
       if (!res.ok) {
-        const d = await res.json().catch(() => ({ message: "فشل الحفظ" }))
+        const d = await res.json().catch(() => ({ message: "saveFailed" }))
         throw new Error(d.message)
       }
       // POST doesn't reconcile membership; do it via PATCH after create.
@@ -132,23 +132,23 @@ export default function FamiliesPage() {
       queryClient.invalidateQueries({ queryKey: ["families"] })
       queryClient.invalidateQueries({ queryKey: ["students-lite"] })
       setDialogOpen(false)
-      success("تم الحفظ", editing ? "تم تحديث العائلة" : "تمت إضافة العائلة")
+      success(tc("success"), editing ? t("familyUpdated") : t("familyAdded"))
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(tc("error"), err.message),
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/families/${id}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("فشل الحذف")
+      if (!res.ok) throw new Error("deleteFailed")
       return true
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["families"] })
       queryClient.invalidateQueries({ queryKey: ["students-lite"] })
-      success("تم الحذف", "تم حذف العائلة")
+      success(tc("deleted"), t("familyDeleted"))
     },
-    onError: (err: Error) => toastError("خطأ", err.message),
+    onError: (err: Error) => toastError(tc("error"), err.message),
   })
 
   const openCreate = () => {
@@ -212,7 +212,7 @@ export default function FamiliesPage() {
             <UsersRound className="mx-auto mb-3 h-12 w-12 text-muted-foreground/40" />
             <p className="font-medium text-muted-foreground">{t("noFamilies")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              أنشئ عائلة لتجميع الإخوة وتطبيق خصم الإخوة تلقائياً
+              {t("emptyStateHint")}
             </p>
             <Button className="mt-4" onClick={openCreate}>
               <Plus className="ml-2 h-4 w-4" />
@@ -244,7 +244,7 @@ export default function FamiliesPage() {
                       size="icon"
                       className="text-red-600 hover:text-red-700"
                       onClick={() => {
-                        if (confirm(`حذف عائلة ${family.primaryGuardianName}؟ (لن يُحذف الطلاب)`)) {
+                        if (confirm(t("deleteConfirm", { name: family.primaryGuardianName }))) {
                           deleteMutation.mutate(family._id)
                         }
                       }}
@@ -257,7 +257,7 @@ export default function FamiliesPage() {
                 {/* Members */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {family.students.length === 0 ? (
-                    <span className="text-xs text-muted-foreground">لا يوجد طلاب مرتبطون</span>
+                    <span className="text-xs text-muted-foreground">{t("noLinkedStudents")}</span>
                   ) : (
                     family.students.map((s) => (
                       <Badge key={s._id} variant="secondary" className="text-[11px]">
@@ -271,24 +271,24 @@ export default function FamiliesPage() {
                 <div className="mt-4 rounded-lg bg-muted/50 p-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">
-                      {family.students.length} طالب × {family.monthlyFeePerChildTND || 0} د.ت
+                      {t("billingPerChild", { count: family.students.length, fee: family.monthlyFeePerChildTND || 0 })}
                     </span>
                     {family.billing.discountApplied && (
                       <Badge variant="outline" className="border-emerald-500/40 text-[10px] text-emerald-700 dark:text-emerald-400">
                         <Percent className="ml-0.5 h-2.5 w-2.5" />
-                        خصم {family.siblingDiscountPercent}%
+                        {t("discountBadge", { percent: family.siblingDiscountPercent })}
                       </Badge>
                     )}
                   </div>
                   <div className="mt-1 flex items-baseline justify-between">
-                    <span className="font-medium">إجمالي العائلة شهرياً</span>
+                    <span className="font-medium">{t("monthlyTotal")}</span>
                     <span className="text-lg font-bold" dir="ltr">
-                      {family.billing.familyTotal.toFixed(2)} د.ت
+                      {family.billing.familyTotal.toFixed(2)} {tc("currencyTND")}
                     </span>
                   </div>
                   {family.billing.discountApplied && (
                     <p className="mt-0.5 text-[11px] text-muted-foreground" dir="ltr">
-                      {family.billing.perChildDiscounted.toFixed(2)} د.ت / طفل بعد الخصم
+                      {t("perChildAfterDiscount", { amount: family.billing.perChildDiscounted.toFixed(2) })}
                     </p>
                   )}
                 </div>
@@ -306,7 +306,7 @@ export default function FamiliesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? "تعديل العائلة" : t("addFamily")}</DialogTitle>
+            <DialogTitle>{editing ? t("editFamily") : t("addFamily")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-1">
@@ -315,7 +315,7 @@ export default function FamiliesPage() {
               <Input
                 value={form.primaryGuardianName}
                 onChange={(e) => setForm({ ...form, primaryGuardianName: e.target.value })}
-                placeholder="اسم الولي الأساسي"
+                placeholder={t("guardianNamePlaceholder")}
               />
             </div>
 
@@ -342,7 +342,7 @@ export default function FamiliesPage() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>المعلوم الشهري لكل طفل (د.ت)</Label>
+                <Label>{t("monthlyFeeLabel")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -353,7 +353,7 @@ export default function FamiliesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>نسبة خصم الإخوة (%)</Label>
+                <Label>{t("siblingDiscountLabel")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -371,7 +371,7 @@ export default function FamiliesPage() {
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="بحث عن طالب..."
+                  placeholder={t("searchStudentPlaceholder")}
                   value={studentSearch}
                   onChange={(e) => setStudentSearch(e.target.value)}
                   className="pr-10"
@@ -394,19 +394,19 @@ export default function FamiliesPage() {
                         <span className="text-sm">{s.displayName}</span>
                         {inOtherFamily && !selectedStudents.has(s._id) && (
                           <Badge variant="outline" className="mr-auto text-[10px] text-amber-600">
-                            في عائلة أخرى
+                            {t("inOtherFamily")}
                           </Badge>
                         )}
                       </label>
                     )
                   })}
                   {filteredStudents.length === 0 && (
-                    <p className="p-3 text-center text-sm text-muted-foreground">لا يوجد طلاب</p>
+                    <p className="p-3 text-center text-sm text-muted-foreground">{t("noStudentsFound")}</p>
                   )}
                 </div>
               </ScrollArea>
               <p className="text-xs text-muted-foreground">
-                {selectedStudents.size} طالب محدد
+                {t("selectedCount", { count: selectedStudents.size })}
               </p>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/layout/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ROOM_FEATURE_LABELS, DAYS_OF_WEEK } from "@/lib/constants"
+import { DAYS_OF_WEEK } from "@/lib/constants"
 import { ArrowRight, DoorOpen, Users, MapPin, Calendar } from "lucide-react"
 import Link from "next/link"
 
@@ -137,7 +137,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
             <div className="flex flex-wrap gap-2">
               {room.features.map((f: string) => (
                 <Badge key={f} variant="outline" className="text-sm py-1 px-3">
-                  {ROOM_FEATURE_LABELS[f] || f}
+                  {t('featureLabels.' + f)}
                 </Badge>
               ))}
             </div>
@@ -160,7 +160,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                 return (
                   <div key={day.value} className="min-h-[100px]">
                     <div className="text-center text-xs font-medium text-muted-foreground mb-2 pb-1 border-b">
-                      {day.label}
+                      {tc('days.' + String(day.value))}
                     </div>
                     <div className="space-y-1">
                       {daySessions.map((s: any) => (
@@ -196,7 +196,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
           <CardContent>
             <div className="space-y-3">
               {sessions.map((s: any) => {
-                const dayLabel = DAYS_OF_WEEK.find((d) => d.value === s.dayOfWeek)?.label || ""
+                const dayLabel = tc('days.' + String(s.dayOfWeek))
                 const teacher = s.teacherId as any
                 const utilPercent = room.capacity > 0
                   ? Math.round((s.studentCount / room.capacity) * 100)

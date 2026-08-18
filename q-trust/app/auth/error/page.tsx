@@ -16,10 +16,10 @@ function ErrorContent() {
   const tc = useTranslations("common")
 
   const errorMessages: Record<string, string> = {
-    Configuration: "خطأ في إعدادات الخادم",
-    AccessDenied: "تم رفض الوصول",
-    Verification: "خطأ في التحقق",
-    Default: "حدث خطأ أثناء تسجيل الدخول",
+    Configuration: t("configError"),
+    AccessDenied: t("accessDenied"),
+    Verification: t("verificationError"),
+    Default: t("defaultError"),
   }
 
   const errorMessage = errorMessages[error || "Default"] || errorMessages.Default

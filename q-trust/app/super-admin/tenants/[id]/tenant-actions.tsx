@@ -16,6 +16,7 @@ import {
   PAYMENT_METHOD_LABELS,
   INVOICE_STATUS_LABELS,
 } from "@/lib/constants"
+import { useTranslations } from "next-intl"
 
 const selectCls =
   "w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -31,6 +32,8 @@ export function PlanStatusForm({
   status: string
 }) {
   const router = useRouter()
+  const t = useTranslations("superAdmin.tenants")
+  const tc = useTranslations("common")
   const [nextPlan, setNextPlan] = useState(plan)
   const [nextStatus, setNextStatus] = useState(status)
   const [saving, setSaving] = useState(false)
@@ -49,12 +52,12 @@ export function PlanStatusForm({
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.message || "تعذّر الحفظ")
+        setError(data.message || t("saveFailed"))
         return
       }
       router.refresh()
     } catch {
-      setError("خطأ في الاتصال")
+      setError(t("connectionError"))
     } finally {
       setSaving(false)
     }
@@ -65,7 +68,7 @@ export function PlanStatusForm({
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-muted-foreground mb-1">الباقة</p>
+          <p className="text-xs text-muted-foreground mb-1">{t("planLabel")}</p>
           <select value={nextPlan} onChange={(e) => setNextPlan(e.target.value)} className={selectCls}>
             {Object.values(PLANS).map((p) => (
               <option key={p} value={p}>
@@ -75,7 +78,7 @@ export function PlanStatusForm({
           </select>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground mb-1">الحالة</p>
+          <p className="text-xs text-muted-foreground mb-1">{tc("status")}</p>
           <select
             value={nextStatus}
             onChange={(e) => setNextStatus(e.target.value)}
@@ -91,11 +94,11 @@ export function PlanStatusForm({
       </div>
       {nextPlan !== plan && (
         <p className="text-xs text-amber-600">
-          تغيير الباقة سيُحدّث حدّ الطلاب وحصة الذكاء الاصطناعي تلقائياً.
+          {t("planChangeWarning")}
         </p>
       )}
       <Button size="sm" onClick={save} disabled={!dirty || saving} className="w-full">
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "حفظ التغييرات"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t("saveChanges")}
       </Button>
     </div>
   )
@@ -112,6 +115,8 @@ export function InvoicePaymentControl({
   amountTND: number
 }) {
   const router = useRouter()
+  const t = useTranslations("superAdmin.tenants")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [method, setMethod] = useState<string>(PAYMENT_METHODS.BANK_TRANSFER)
   const [ref, setRef] = useState("")
@@ -131,13 +136,13 @@ export function InvoicePaymentControl({
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.message || "تعذّر التحديث")
+        setError(data.message || t("updateFailed"))
         return
       }
       setOpen(false)
       router.refresh()
     } catch {
-      setError("خطأ في الاتصال")
+      setError(t("connectionError"))
     } finally {
       setBusy(false)
     }
@@ -145,7 +150,7 @@ export function InvoicePaymentControl({
 
   return (
     <div className="text-left">
-      <p className="text-sm font-semibold">{amountTND} د.ت</p>
+      <p className="text-sm font-semibold">{amountTND} {t("currency")}</p>
       <Badge variant={isPaid ? "default" : "outline"} className="text-xs">
         {INVOICE_STATUS_LABELS[status] ?? status}
       </Badge>
@@ -158,7 +163,7 @@ export function InvoicePaymentControl({
           className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
           <Undo2 className="h-3 w-3" />
-          إلغاء الدفع
+          {t("cancelPayment")}
         </button>
       ) : !open ? (
         <Button
@@ -167,7 +172,7 @@ export function InvoicePaymentControl({
           className="mt-1 h-7 text-xs"
           onClick={() => setOpen(true)}
         >
-          تسجيل الدفع
+          {t("recordPayment")}
         </Button>
       ) : (
         <div className="mt-2 space-y-2 rounded-md border p-2 text-right w-48">
@@ -182,7 +187,7 @@ export function InvoicePaymentControl({
           <Input
             value={ref}
             onChange={(e) => setRef(e.target.value)}
-            placeholder="رقم المرجع (اختياري)"
+            placeholder={t("referencePlaceholder")}
             className="h-8 text-xs"
           />
           <div className="flex gap-1">
@@ -203,7 +208,7 @@ export function InvoicePaymentControl({
               ) : (
                 <>
                   <Check className="h-3 w-3 ml-1" />
-                  تأكيد
+                  {tc("confirm")}
                 </>
               )}
             </Button>
@@ -214,7 +219,7 @@ export function InvoicePaymentControl({
               onClick={() => setOpen(false)}
               disabled={busy}
             >
-              إلغاء
+              {tc("cancel")}
             </Button>
           </div>
         </div>

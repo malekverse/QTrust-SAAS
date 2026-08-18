@@ -122,10 +122,10 @@ export default function AdminClaims() {
         fetchClaims()
       } else {
         const data = await res.json()
-        toast({ title: "خطأ", description: data.message, variant: "destructive" })
+        toast({ title: tc("error"), description: data.message, variant: "destructive" })
       }
     } catch {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء المراجعة", variant: "destructive" })
+      toast({ title: tc("error"), description: t("reviewError"), variant: "destructive" })
     } finally {
       setSubmitting(false)
     }
@@ -315,7 +315,7 @@ export default function AdminClaims() {
             <DialogDescription>
               {selectedClaim && (
                 <span>
-                  اعتراض {selectedClaim.studentName} بتاريخ {formatDate(selectedClaim.date)}
+                  {t("claimDialogDescription", { name: selectedClaim.studentName, date: formatDate(selectedClaim.date) })}
                 </span>
               )}
             </DialogDescription>
@@ -323,7 +323,7 @@ export default function AdminClaims() {
           <div className="space-y-4 py-2">
             {selectedClaim && (
               <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-sm font-medium mb-1">سبب الاعتراض:</p>
+                <p className="text-sm font-medium mb-1">{t("claimReason")}:</p>
                 <p className="text-sm text-muted-foreground">{selectedClaim.reason}</p>
               </div>
             )}

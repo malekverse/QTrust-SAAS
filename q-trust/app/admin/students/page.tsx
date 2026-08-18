@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/layout/page-header"
@@ -80,13 +80,11 @@ import {
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { 
-  GENDER, 
-  GENDER_LABELS, 
-  ACTIVITY_AREAS, 
-  ACTIVITY_AREA_LABELS, 
+import {
+  GENDER,
+  ACTIVITY_AREAS,
   EDUCATION_LEVELS,
-  DECLARATION_TEXT 
+  DECLARATION_TEXT
 } from "@/lib/constants"
 
 // Type for student form
@@ -114,12 +112,12 @@ type StudentFormInput = {
   notes?: string
 }
 
-// Schema for form validation
-const studentFormSchema = z.object({
+// Schema for form validation (factory: accepts t() for i18n)
+const createStudentFormSchema = (t: (key: string) => string) => z.object({
   enrollmentNumber: z.string().optional(),
   cin: z.string().optional().or(z.literal('')),
-  firstName: z.string().min(2, 'الاسم يجب أن يكون على الأقل حرفين'),
-  lastName: z.string().min(2, 'اللقب يجب أن يكون على الأقل حرفين'),
+  firstName: z.string().min(2, t("firstNameMinLength")),
+  lastName: z.string().min(2, t("lastNameMinLength")),
   fatherName: z.string().optional(),
   gender: z.enum([GENDER.MALE, GENDER.FEMALE]),
   profession: z.string().optional(),
@@ -130,7 +128,7 @@ const studentFormSchema = z.object({
   phone: z.string().optional().or(z.literal('')),
   email: z.string().optional().or(z.literal('')),
   activityAreas: z.array(z.string()),
-  declarationAccepted: z.boolean().refine(val => val === true, 'يجب الموافقة على الإقرار'),
+  declarationAccepted: z.boolean().refine(val => val === true, t("declarationRequired")),
   signatureLocation: z.string().optional(),
   signatureDate: z.string().optional(),
   photoUrl: z.string().optional(),
@@ -219,6 +217,7 @@ export default function StudentsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "active" | "inactive">("all")
   const t = useTranslations("admin.students")
   const tc = useTranslations("common")
+  const studentFormSchema = useMemo(() => createStudentFormSchema(t), [t])
 
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 300)
@@ -268,10 +267,10 @@ export default function StudentsPage() {
       queryClient.invalidateQueries({ queryKey: ["nextEnrollmentNumber"] })
       setIsCreateOpen(false)
       reset()
-      success("تم التسجيل بنجاح", `تم إضافة الطالب ${data.firstName} ${data.lastName}`)
+      success(t("createSuccessTitle"), t("createSuccessMessage", { name: `${data.firstName} ${data.lastName}` }))
     },
     onError: (err: Error) => {
-      error("فشل التسجيل", err.message || "حدث خطأ أثناء إضافة الطالب")
+      error(t("createFailedTitle"), err.message || t("createFailedMessage"))
     },
   })
 
@@ -280,10 +279,10 @@ export default function StudentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] })
       setDeleteId(null)
-      success("تم الحذف", "تم حذف الطالب بنجاح")
+      success(t("deleteSuccessTitle"), t("deleteSuccessMessage"))
     },
     onError: (err: Error) => {
-      error("فشل الحذف", err.message || "حدث خطأ أثناء حذف الطالب")
+      error(t("deleteFailedTitle"), err.message || t("deleteFailedMessage"))
     },
   })
 
@@ -349,12 +348,12 @@ export default function StudentsPage() {
           credentialType: data.account.credentialType
         })
         queryClient.invalidateQueries({ queryKey: ["students"] })
-        success("تم إنشاء الحساب", `تم إنشاء حساب البوابة للطالب بنجاح`)
+        success(t("accountCreatedTitle"), t("accountCreatedMessage"))
       } else {
-        error("خطأ", data.message)
+        error(tc("error"), data.message)
       }
     } catch {
-      error("خطأ", "حدث خطأ أثناء إنشاء الحساب")
+      error(tc("error"), t("accountCreateError"))
     } finally {
       setAccountCreating(false)
     }
@@ -374,10 +373,10 @@ export default function StudentsPage() {
         })
         setResetPasswordDialogOpen(true)
       } else {
-        error("خطأ", data.message)
+        error(tc("error"), data.message)
       }
     } catch {
-      error("خطأ", "حدث خطأ أثناء إعادة تعيين كلمة المرور")
+      error(tc("error"), t("resetPasswordError"))
     }
   }
 
@@ -431,10 +430,10 @@ export default function StudentsPage() {
                   <div className="p-2 rounded-lg bg-primary/10">
                     <GraduationCap className="h-5 w-5 text-primary" />
                   </div>
-                  تسجيل طالب جديد
+                  {t("registerNewStudent")}
                 </DialogTitle>
                 <DialogDescription>
-                  أدخل بيانات الانخراط الكاملة للطالب الجديد
+                  {t("registerNewStudentDesc")}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit(onCreateSubmit)}>
@@ -444,24 +443,24 @@ export default function StudentsPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <FileText className="h-4 w-4" />
-                        المعلومات الشخصية
+                        {t("personalInfo")}
                       </div>
                       <div className="space-y-4 rounded-xl border bg-card/50 p-4">
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="enrollmentNumber" className="flex items-center gap-2">
-                              رقم الانخراط
-                              <span className="text-xs text-muted-foreground font-normal">(تلقائي)</span>
+                              {t("enrollmentNumber")}
+                              <span className="text-xs text-muted-foreground font-normal">({t("automatic")})</span>
                             </Label>
                             <Input
                               id="enrollmentNumber"
-                              placeholder="سيتم إنشاؤه تلقائياً"
+                              placeholder={t("autoGenerated")}
                               autoFocus
                               {...register("enrollmentNumber")}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="cin">رقم ب. ت. و</Label>
+                            <Label htmlFor="cin">{t("cinNumber")}</Label>
                             <Controller
                               name="cin"
                               control={control}
@@ -504,25 +503,25 @@ export default function StudentsPage() {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="fatherName">اسم الأب</Label>
+                            <Label htmlFor="fatherName">{t("fatherName")}</Label>
                             <Input
                               id="fatherName"
                               {...register("fatherName")}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="gender">الجنس *</Label>
+                            <Label htmlFor="gender">{t("gender")} *</Label>
                             <Controller
                               name="gender"
                               control={control}
                               render={({ field }) => (
                                 <Select value={field.value} onValueChange={field.onChange}>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="اختر الجنس" />
+                                    <SelectValue placeholder={t("selectGender")} />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value={GENDER.MALE}>{GENDER_LABELS.MALE}</SelectItem>
-                                    <SelectItem value={GENDER.FEMALE}>{GENDER_LABELS.FEMALE}</SelectItem>
+                                    <SelectItem value={GENDER.MALE}>{tc('male')}</SelectItem>
+                                    <SelectItem value={GENDER.FEMALE}>{tc('female')}</SelectItem>
                                   </SelectContent>
                                 </Select>
                               )}
@@ -535,25 +534,25 @@ export default function StudentsPage() {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="profession">المهنة</Label>
+                            <Label htmlFor="profession">{t("profession")}</Label>
                             <Input
                               id="profession"
                               {...register("profession")}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="educationLevel">المستوى التعليمي</Label>
+                            <Label htmlFor="educationLevel">{t("educationLevelLabel")}</Label>
                             <Controller
                               name="educationLevel"
                               control={control}
                               render={({ field }) => (
                                 <Select value={field.value || ''} onValueChange={field.onChange}>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="اختر المستوى" />
+                                    <SelectValue placeholder={t("selectLevel")} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {EDUCATION_LEVELS.map(level => (
-                                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                                      <SelectItem key={level} value={level}>{tc(`educationLevels.${level}`)}</SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
@@ -564,7 +563,7 @@ export default function StudentsPage() {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="dateOfBirth">تاريخ الولادة</Label>
+                            <Label htmlFor="dateOfBirth">{t("dateOfBirth")}</Label>
                             <Controller
                               name="dateOfBirth"
                               control={control}
@@ -579,7 +578,7 @@ export default function StudentsPage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="placeOfBirth">مكان الولادة</Label>
+                            <Label htmlFor="placeOfBirth">{t("placeOfBirth")}</Label>
                             <Input
                               id="placeOfBirth"
                               {...register("placeOfBirth")}
@@ -588,7 +587,7 @@ export default function StudentsPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="address">العنوان</Label>
+                          <Label htmlFor="address">{t("address")}</Label>
                           <Input
                             id="address"
                             {...register("address")}
@@ -639,14 +638,14 @@ export default function StudentsPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <Users className="h-4 w-4" />
-                        اختيار مجال النشاط داخل الجمعية
+                        {t("activityAreasLabel")}
                       </div>
                       <div className="rounded-xl border bg-card/50 p-4">
                         <Controller
                           name="activityAreas"
                           control={control}
                           render={({ field }) => (
-                            <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label="مجالات النشاط">
+                            <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label={t("activityAreasLabel")}>
                               {Object.entries(ACTIVITY_AREAS).map(([key, value]) => (
                                 <div 
                                   key={key} 
@@ -668,7 +667,7 @@ export default function StudentsPage() {
                                     htmlFor={`activity-${key}`}
                                     className="text-sm cursor-pointer flex-1"
                                   >
-                                    {ACTIVITY_AREA_LABELS[key as keyof typeof ACTIVITY_AREA_LABELS]}
+                                    {tc(`activityAreas.${key}`)}
                                   </label>
                                 </div>
                               ))}
@@ -682,7 +681,7 @@ export default function StudentsPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <FileText className="h-4 w-4" />
-                        الإقرار <span className="text-destructive">*</span>
+                        {t("declarationLabel")} <span className="text-destructive">*</span>
                       </div>
                       <div className="rounded-xl border bg-card/50 p-4 space-y-4">
                         <p className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg leading-relaxed">
@@ -702,7 +701,7 @@ export default function StudentsPage() {
                                 htmlFor="declaration"
                                 className="text-sm font-medium cursor-pointer flex-1"
                               >
-                                أوافق على الإقرار أعلاه
+                                {t("declarationAccept")}
                               </label>
                             </div>
                           )}
@@ -717,20 +716,20 @@ export default function StudentsPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <Calendar className="h-4 w-4" />
-                        معلومات الإمضاء
+                        {t("signatureInfo")}
                       </div>
                       <div className="rounded-xl border bg-card/50 p-4">
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="signatureLocation">الممضى في</Label>
+                            <Label htmlFor="signatureLocation">{t("signedAt")}</Label>
                             <Input
                               id="signatureLocation"
-                              placeholder="المدينة"
+                              placeholder={t("cityPlaceholder")}
                               {...register("signatureLocation")}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="signatureDate">التاريخ</Label>
+                            <Label htmlFor="signatureDate">{t("dateLabel")}</Label>
                             <Controller
                               name="signatureDate"
                               control={control}
@@ -752,8 +751,8 @@ export default function StudentsPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <Upload className="h-4 w-4" />
-                        المرفقات المطلوبة
-                        <span className="text-xs text-muted-foreground font-normal">(اختياري)</span>
+                        {t("requiredAttachments")}
+                        <span className="text-xs text-muted-foreground font-normal">({t("optional")})</span>
                       </div>
                       <div className="rounded-xl border bg-card/50 p-4 space-y-4">
                         <Controller
@@ -777,7 +776,7 @@ export default function StudentsPage() {
                           control={control}
                           render={({ field }) => (
                             <FileUpload
-                              label="نسخة مصورة من بطاقة التعريف الوطنية (الجهة الأمامية)"
+                              label={t("cinFrontUploadLabel")}
                               value={field.value}
                               onChange={field.onChange}
                               uploadType="cin_front"
@@ -793,7 +792,7 @@ export default function StudentsPage() {
                           control={control}
                           render={({ field }) => (
                             <FileUpload
-                              label="نسخة مصورة من بطاقة التعريف الوطنية (الجهة الخلفية)"
+                              label={t("cinBackUploadLabel")}
                               value={field.value}
                               onChange={field.onChange}
                               uploadType="cin_back"
@@ -815,7 +814,7 @@ export default function StudentsPage() {
                       </div>
                       <Textarea
                         id="notes"
-                        placeholder="أي ملاحظات إضافية..."
+                        placeholder={t("notesPlaceholder")}
                         className="min-h-[80px] resize-none"
                         {...register("notes")}
                       />
@@ -838,7 +837,7 @@ export default function StudentsPage() {
                     {createMutation.isPending && (
                       <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                     )}
-                    تسجيل الطالب
+                    {t("registerStudent")}
                   </Button>
                 </DialogFooter>
                 {createMutation.error && (
@@ -943,22 +942,22 @@ export default function StudentsPage() {
               {search ? (
                 <>
                   <p className="font-medium">{tc("noResults")}</p>
-                  <p className="text-sm mt-1">جرب البحث بكلمات مختلفة</p>
+                  <p className="text-sm mt-1">{t("tryDifferentSearch")}</p>
                   <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>
-                    مسح البحث
+                    {t("clearSearch")}
                   </Button>
                 </>
               ) : activeTab !== "all" ? (
                 <>
-                  <p className="font-medium">لا يوجد طلاب في هذا التصنيف</p>
+                  <p className="font-medium">{t("noStudentsInCategory")}</p>
                   <Button variant="outline" className="mt-4" onClick={() => setActiveTab("all")}>
-                    عرض جميع الطلاب
+                    {t("showAllStudents")}
                   </Button>
                 </>
               ) : (
                 <>
                   <p className="font-medium">{t("noStudents")}</p>
-                  <p className="text-sm mt-1">ابدأ بإضافة طالب جديد</p>
+                  <p className="text-sm mt-1">{t("noStudentsDescription")}</p>
                   <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
                     <Plus className="h-4 w-4 ml-2" />
                     {t("addStudent")}
@@ -970,12 +969,12 @@ export default function StudentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>الطالب</TableHead>
+                  <TableHead>{t("student")}</TableHead>
                   <TableHead className="hidden md:table-cell">{t("gender")}</TableHead>
-                  <TableHead className="hidden md:table-cell">اسم الأب</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("fatherName")}</TableHead>
                   <TableHead className="hidden sm:table-cell">{tc("phone")}</TableHead>
                   <TableHead>{tc("status")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">تاريخ التسجيل</TableHead>
+                  <TableHead className="hidden lg:table-cell">{t("registrationDate")}</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -993,7 +992,7 @@ export default function StudentsPage() {
                           <span className="font-medium block">{getStudentDisplayName(student)}</span>
                           {student.cin && (
                             <span className="text-xs text-muted-foreground" dir="ltr">
-                              ب.ت.و: {student.cin}
+                              {t("cinShortLabel")}: {student.cin}
                             </span>
                           )}
                         </div>
@@ -1063,18 +1062,18 @@ export default function StudentsPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Download className="ml-2 h-4 w-4" />
-                            تحميل QR
+                            {t("downloadQR")}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {!student.hasPortalAccess ? (
                             <DropdownMenuItem onClick={() => openAccountDialog(student)}>
                               <UserCheck className="ml-2 h-4 w-4" />
-                              إنشاء حساب البوابة
+                              {t("createPortalAccount")}
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => resetStudentPassword(student._id)}>
                               <RefreshCw className="ml-2 h-4 w-4" />
-                              إعادة تعيين كلمة المرور
+                              {t("resetPassword")}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
@@ -1106,7 +1105,7 @@ export default function StudentsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم حذف هذا الطالب وجميع سجلات حضوره نهائياً. لا يمكن التراجع عن هذا الإجراء.
+              {t("deleteStudentWarning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1128,10 +1127,10 @@ export default function StudentsPage() {
       <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>إنشاء حساب البوابة</DialogTitle>
+            <DialogTitle>{t("createPortalAccount")}</DialogTitle>
             <DialogDescription>
               {accountStudent && (
-                <span>إنشاء حساب دخول لبوابة الطلاب :{accountStudent.firstName} {accountStudent.lastName}</span>
+                <span>{t("createPortalAccountDesc", { name: `${accountStudent.firstName} ${accountStudent.lastName}` })}</span>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -1139,19 +1138,19 @@ export default function StudentsPage() {
           {accountResult ? (
             <div className="space-y-4 py-2">
               <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 space-y-3">
-                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">تم إنشاء الحساب بنجاح</p>
+                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">{t("accountCreatedSuccess")}</p>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">معرّف الدخول:</span>
+                    <span className="text-muted-foreground">{t("loginIdentifier")}</span>
                     <span className="font-mono font-bold" dir="ltr">{accountResult.loginIdentifier}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">كلمة المرور المؤقتة:</span>
+                    <span className="text-muted-foreground">{t("tempPassword")}</span>
                     <span className="font-mono font-bold text-primary" dir="ltr">{accountResult.tempPassword}</span>
                   </div>
                 </div>
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  احفظ هذه البيانات - سيُطلب من الطالب تغيير كلمة المرور عند أول تسجيل دخول.
+                  {t("saveCredentialsWarning")}
                 </p>
               </div>
               <DialogFooter>
@@ -1163,22 +1162,22 @@ export default function StudentsPage() {
               {accountStudent?.email && (
                 <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 text-sm">
                   <p className="text-blue-800 dark:text-blue-300">
-                    سيتم استخدام بريد الطالب: <strong dir="ltr">{accountStudent.email}</strong>
+                    {t("willUseStudentEmail")} <strong dir="ltr">{accountStudent.email}</strong>
                   </p>
                 </div>
               )}
               {!accountStudent?.email && (
                 <>
                   <div className="space-y-2">
-                    <Label>اسم الولي (اختياري)</Label>
+                    <Label>{t("parentNameOptional")}</Label>
                     <Input
                       value={accountParentName}
                       onChange={(e) => setAccountParentName(e.target.value)}
-                      placeholder="اسم ولي الأمر"
+                      placeholder={t("parentNamePlaceholder")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>بريد الولي الإلكتروني</Label>
+                    <Label>{t("parentEmailLabel")}</Label>
                     <Input
                       type="email"
                       value={accountParentEmail}
@@ -1190,7 +1189,7 @@ export default function StudentsPage() {
                   </div>
                   {!accountParentEmail && (
                     <div className="space-y-2">
-                      <Label>أو رقم هاتف الولي</Label>
+                      <Label>{t("orParentPhone")}</Label>
                       <TunisiaPhoneInput
                         value={accountParentPhone}
                         onChange={setAccountParentPhone}
@@ -1199,7 +1198,7 @@ export default function StudentsPage() {
                   )}
                   {!accountParentEmail && !accountParentPhone && !accountStudent?.phone && (
                     <p className="text-xs text-destructive">
-                      يجب توفير بريد إلكتروني أو رقم هاتف على الأقل
+                      {t("emailOrPhoneRequired")}
                     </p>
                   )}
                 </>
@@ -1213,10 +1212,10 @@ export default function StudentsPage() {
                   {accountCreating ? (
                     <>
                       <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                      جاري الإنشاء...
+                      {t("creating")}
                     </>
                   ) : (
-                    "إنشاء الحساب"
+                    t("createAccount")
                   )}
                 </Button>
               </DialogFooter>
@@ -1229,7 +1228,7 @@ export default function StudentsPage() {
       <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
+            <DialogTitle>{t("resetPassword")}</DialogTitle>
           </DialogHeader>
           {resetPasswordResult && (
             <div className="space-y-4 py-2">
@@ -1237,16 +1236,16 @@ export default function StudentsPage() {
                 <p className="text-sm font-semibold">{resetPasswordResult.studentName}</p>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">معرّف الدخول:</span>
+                    <span className="text-muted-foreground">{t("loginIdentifier")}</span>
                     <span className="font-mono font-bold" dir="ltr">{resetPasswordResult.loginIdentifier}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">كلمة المرور الجديدة:</span>
+                    <span className="text-muted-foreground">{t("newPassword")}</span>
                     <span className="font-mono font-bold text-primary" dir="ltr">{resetPasswordResult.tempPassword}</span>
                   </div>
                 </div>
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  سيُطلب من الطالب تغيير كلمة المرور عند تسجيل الدخول التالي.
+                  {t("changePasswordOnNextLogin")}
                 </p>
               </div>
               <DialogFooter>

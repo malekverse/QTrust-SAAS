@@ -58,11 +58,11 @@ export default function StudentSessions() {
         setWeeklyCalendar(data.weeklyCalendar)
       } else {
         const errData = await res.json().catch(() => null)
-        setError(errData?.message || "حدث خطأ أثناء تحميل البيانات")
+        setError(errData?.message || t("loadError"))
       }
     } catch (err) {
       console.error("Error:", err)
-      setError("حدث خطأ في الاتصال بالخادم")
+      setError(t("connectionError"))
     } finally {
       setLoading(false)
     }
@@ -75,19 +75,19 @@ export default function StudentSessions() {
       case SESSION_STATUS.SCHEDULED:
         return (
           <Badge variant="outline" className="student-surface-sky-chip font-semibold">
-            قادمة
+            {t("statusScheduled")}
           </Badge>
         )
       case SESSION_STATUS.IN_PROGRESS:
         return (
           <Badge variant="outline" className="student-surface-emerald-chip font-semibold">
-            جارية
+            {t("statusInProgress")}
           </Badge>
         )
       case SESSION_STATUS.FINISHED:
-        return <Badge variant="outline" className="text-muted-foreground">انتهت</Badge>
+        return <Badge variant="outline" className="text-muted-foreground">{t("statusFinished")}</Badge>
       case SESSION_STATUS.CANCELLED:
-        return <Badge variant="destructive">ملغاة</Badge>
+        return <Badge variant="destructive">{t("statusCancelled")}</Badge>
       default:
         return null
     }
@@ -127,7 +127,7 @@ export default function StudentSessions() {
         <Calendar className="h-12 w-12 mx-auto text-muted-foreground/40" />
         <p className="text-muted-foreground">{error}</p>
         <Button variant="outline" onClick={() => { setLoading(true); fetchSessions() }}>
-          إعادة المحاولة
+          {t("retry")}
         </Button>
       </div>
     )
@@ -146,8 +146,8 @@ export default function StudentSessions() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 max-w-sm">
-          <TabsTrigger value="calendar">الجدول الأسبوعي</TabsTrigger>
-          <TabsTrigger value="list">قائمة الحلقات</TabsTrigger>
+          <TabsTrigger value="calendar">{t("weeklySchedule")}</TabsTrigger>
+          <TabsTrigger value="list">{t("circlesList")}</TabsTrigger>
         </TabsList>
 
         {/* Weekly Calendar View */}
@@ -173,7 +173,7 @@ export default function StudentSessions() {
                     </CardTitle>
                     {day.dayOfWeek === todayDayOfWeek && (
                       <Badge variant="outline" className="student-surface-emerald-chip text-xs font-semibold">
-                        اليوم
+                        {t("today")}
                       </Badge>
                     )}
                   </div>
@@ -217,7 +217,7 @@ export default function StudentSessions() {
                       {/* Upcoming occurrences */}
                       {s.upcomingOccurrences.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border/50">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">الحصص القادمة:</p>
+                          <p className="text-xs font-medium text-muted-foreground mb-2">{t("upcomingSessions")}:</p>
                           <div className="flex flex-wrap gap-2">
                             {s.upcomingOccurrences.map((occ) => {
                               const occDate = new Date(occ.date)

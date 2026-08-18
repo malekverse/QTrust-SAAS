@@ -14,7 +14,6 @@ import {
   Calendar,
   ArrowLeft
 } from "lucide-react"
-import { getDayName } from "@/lib/utils"
 import { DAYS_OF_WEEK } from "@/lib/constants"
 import Link from "next/link"
 
@@ -78,7 +77,7 @@ export default async function TeacherSessionsPage() {
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">{t("noSessions")}</p>
             <p className="text-muted-foreground">
-              تواصل مع الإدارة لإضافة حصص جديدة
+              {t("contactAdminForSessions")}
             </p>
           </CardContent>
         </Card>
@@ -89,7 +88,7 @@ export default async function TeacherSessionsPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  {day.label}
+                  {tc('days.' + String(day.value))}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -133,7 +132,7 @@ export default async function TeacherSessionsPage() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{t("description")}</span>
-            <Badge>{sessions.length} حصة</Badge>
+            <Badge>{t("totalSessionCount", { count: sessions.length })}</Badge>
           </div>
         </CardContent>
       </Card>

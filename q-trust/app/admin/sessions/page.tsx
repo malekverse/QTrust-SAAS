@@ -66,7 +66,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { sessionTemplateFormSchema, type SessionTemplateFormInput } from "@/lib/validations"
 import { DAYS_OF_WEEK, DEFAULT_QR_SETTINGS } from "@/lib/constants"
 import { DoorOpen } from "lucide-react"
-import { getDayName } from "@/lib/utils"
 import { DateInput } from "@/components/ui/date-input"
 import { useToast } from "@/components/ui/toast"
 import Link from "next/link"
@@ -157,6 +156,8 @@ function SessionCard({ session, onEdit, onDelete }: {
   onEdit: (session: SessionTemplate) => void
   onDelete: (id: string) => void 
 }) {
+  const t = useTranslations("admin.sessions")
+  const tc = useTranslations("common")
   const today = new Date().getDay()
   const isToday = session.dayOfWeek === today
   const now = new Date()
@@ -180,17 +181,17 @@ function SessionCard({ session, onEdit, onDelete }: {
                 <h3 className="font-semibold">{session.name}</h3>
                 {isOngoing && (
                   <Badge variant="default" className="bg-emerald-500 text-xs animate-pulse">
-                    جارية الآن
+                    {t("ongoingNow")}
                   </Badge>
                 )}
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {session.teacherId?.fullName || "غير محدد"}
+                {session.teacherId?.fullName || t("unassigned")}
               </p>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <Badge variant="outline" className="font-normal">
                   <Calendar className="h-3 w-3 ml-1" />
-                  {getDayName(session.dayOfWeek)}
+                  {tc('days.' + String(session.dayOfWeek))}
                 </Badge>
                 <span className="text-sm font-medium text-primary" dir="ltr">
                   {session.startTime} - {session.endTime}
@@ -210,7 +211,7 @@ function SessionCard({ session, onEdit, onDelete }: {
           
           <div className="flex items-center gap-2">
             <Badge variant={session.isActive ? "success" : "destructive"} className="font-normal">
-              {session.isActive ? "فعالة" : "معطلة"}
+              {session.isActive ? tc("active") : tc("inactive")}
             </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -222,12 +223,12 @@ function SessionCard({ session, onEdit, onDelete }: {
                 <DropdownMenuItem asChild>
                   <Link href={`/admin/sessions/${session._id}`}>
                     <Users className="ml-2 h-4 w-4" />
-                    إدارة الطلاب
+                    {t("manageStudents")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(session)}>
                   <Pencil className="ml-2 h-4 w-4" />
-                  تعديل
+                  {tc("edit")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
@@ -235,7 +236,7 @@ function SessionCard({ session, onEdit, onDelete }: {
                   onClick={() => onDelete(session._id)}
                 >
                   <Trash2 className="ml-2 h-4 w-4" />
-                  حذف
+                  {tc("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -248,7 +249,7 @@ function SessionCard({ session, onEdit, onDelete }: {
             <Link href={`/admin/sessions/${session._id}`}>
               <span className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                إدارة الطلاب المسجلين
+                {t("manageEnrolledStudents")}
               </span>
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -301,10 +302,10 @@ export default function SessionsPage() {
       queryClient.invalidateQueries({ queryKey: ["sessions"] })
       setIsCreateOpen(false)
       reset()
-      success("تم الإضافة بنجاح", `تم إنشاء الحصة "${data.name}"`)
+      success(t("createSuccess"), t("createSuccessMsg", { name: data.name }))
     },
     onError: (err: Error) => {
-      error("فشل الإضافة", err.message || "حدث خطأ أثناء إضافة الحصة")
+      error(t("createError"), err.message || t("createErrorMsg"))
     },
   })
 
@@ -316,10 +317,10 @@ export default function SessionsPage() {
       setIsEditOpen(false)
       setEditingSession(null)
       resetEdit()
-      success("تم التحديث", "تم تحديث بيانات الحصة بنجاح")
+      success(t("updateSuccess"), t("updateSuccessMsg"))
     },
     onError: (err: Error) => {
-      error("فشل التحديث", err.message || "حدث خطأ أثناء تحديث الحصة")
+      error(t("updateError"), err.message || t("updateErrorMsg"))
     },
   })
 
@@ -328,10 +329,10 @@ export default function SessionsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] })
       setDeleteId(null)
-      success("تم الحذف", "تم حذف الحصة بنجاح")
+      success(t("deleteSuccess"), t("deleteSuccessMsg"))
     },
     onError: (err: Error) => {
-      error("فشل الحذف", err.message || "حدث خطأ أثناء حذف الحصة")
+      error(t("deleteError"), err.message || t("deleteErrorMsg"))
     },
   })
 
@@ -464,7 +465,7 @@ export default function SessionsPage() {
               <DialogHeader>
                 <DialogTitle>{t("addSession")}</DialogTitle>
                 <DialogDescription>
-                  أنشئ قالب حصة أسبوعية جديد
+                  {t("createDescription")}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit(onCreateSubmit)}>
@@ -473,7 +474,7 @@ export default function SessionsPage() {
                     <Label htmlFor="name">{t("sessionName")} *</Label>
                     <Input
                       id="name"
-                      placeholder="حصة الحفظ المسائية - المستوى 1"
+                      placeholder={t("sessionNamePlaceholder")}
                       {...register("name")}
                     />
                     {errors.name && (
@@ -489,7 +490,7 @@ export default function SessionsPage() {
                       render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value}>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر المعلم" />
+                            <SelectValue placeholder={t("selectTeacher")} />
                           </SelectTrigger>
                           <SelectContent>
                             {teachers?.map((teacher) => (
@@ -507,19 +508,19 @@ export default function SessionsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>القاعة</Label>
+                    <Label>{t("roomLabel")}</Label>
                     <Controller
                       name="roomId"
                       control={control}
                       render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر القاعة (اختياري)" />
+                            <SelectValue placeholder={t("selectRoomOptional")} />
                           </SelectTrigger>
                           <SelectContent>
                             {activeRooms.map((room: RoomOption) => (
                               <SelectItem key={room._id} value={room._id}>
-                                {room.name} ({room.capacity} مقعد)
+                                {room.name} ({room.capacity} {t("seat")})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -544,7 +545,7 @@ export default function SessionsPage() {
                           <SelectContent>
                             {DAYS_OF_WEEK.map((day) => (
                               <SelectItem key={day.value} value={day.value.toString()}>
-                                {day.label}
+                                {tc('days.' + String(day.value))}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -605,7 +606,7 @@ export default function SessionsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="qrOpenOffsetBeforeMin">فتح QR قبل (دقيقة)</Label>
+                      <Label htmlFor="qrOpenOffsetBeforeMin">{t("qrOpenBefore")}</Label>
                       <Input
                         id="qrOpenOffsetBeforeMin"
                         type="number"
@@ -615,7 +616,7 @@ export default function SessionsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="qrCloseOffsetAfterMin">إغلاق QR بعد (دقيقة)</Label>
+                      <Label htmlFor="qrCloseOffsetAfterMin">{t("qrCloseAfter")}</Label>
                       <Input
                         id="qrCloseOffsetAfterMin"
                         type="number"
@@ -627,10 +628,10 @@ export default function SessionsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="description">وصف الحصة</Label>
+                    <Label htmlFor="description">{t("sessionDescriptionLabel")}</Label>
                     <Textarea
                       id="description"
-                      placeholder="وصف اختياري للحصة..."
+                      placeholder={t("sessionDescriptionPlaceholder")}
                       {...register("description")}
                     />
                   </div>
@@ -681,7 +682,7 @@ export default function SessionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.active}</p>
-              <p className="text-xs text-muted-foreground">حصة فعالة</p>
+              <p className="text-xs text-muted-foreground">{t("activeSessions")}</p>
             </div>
           </CardContent>
         </Card>
@@ -692,7 +693,7 @@ export default function SessionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.inactive}</p>
-              <p className="text-xs text-muted-foreground">حصة معطلة</p>
+              <p className="text-xs text-muted-foreground">{t("inactiveSessions")}</p>
             </div>
           </CardContent>
         </Card>
@@ -705,7 +706,7 @@ export default function SessionsPage() {
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="البحث عن حصة أو معلم..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pr-10"
@@ -713,16 +714,16 @@ export default function SessionsPage() {
             </div>
             <Select value={selectedDay} onValueChange={setSelectedDay}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="اختر اليوم" />
+                <SelectValue placeholder={t("selectDay")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">جميع الأيام</SelectItem>
+                <SelectItem value="all">{t("allDays")}</SelectItem>
                 {DAYS_OF_WEEK.map((day) => (
                   <SelectItem key={day.value} value={day.value.toString()}>
                     <div className="flex items-center gap-2">
-                      {day.label}
+                      {tc('days.' + String(day.value))}
                       {day.value === today && (
-                        <Badge variant="secondary" className="text-xs">اليوم</Badge>
+                        <Badge variant="secondary" className="text-xs">{t("today")}</Badge>
                       )}
                     </div>
                   </SelectItem>
@@ -757,20 +758,20 @@ export default function SessionsPage() {
             <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
             {search || selectedDay !== "all" ? (
               <>
-                <p className="font-medium">لا توجد نتائج</p>
-                <p className="text-sm mt-1">جرب تغيير معايير البحث</p>
+                <p className="font-medium">{tc("noResults")}</p>
+                <p className="text-sm mt-1">{t("tryDifferentSearch")}</p>
                 <Button 
                   variant="outline" 
                   className="mt-4" 
                   onClick={() => { setSearch(""); setSelectedDay("all") }}
                 >
-                  مسح الفلاتر
+                  {t("clearFilters")}
                 </Button>
               </>
             ) : (
               <>
                 <p className="font-medium">{t("noSessions")}</p>
-                <p className="text-sm mt-1">ابدأ بإضافة حصة جديدة</p>
+                <p className="text-sm mt-1">{t("startAddSession")}</p>
                 <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
                   <Plus className="h-4 w-4 ml-2" />
                   {t("addSession")}
@@ -795,7 +796,7 @@ export default function SessionsPage() {
       {/* Results Count */}
       {!isLoading && filteredSessions.length > 0 && (
         <p className="text-sm text-muted-foreground text-center">
-          عرض {filteredSessions.length} من {stats.total} حصة
+          {t("showingCount", { count: filteredSessions.length, total: stats.total })}
         </p>
       )}
 
@@ -812,7 +813,7 @@ export default function SessionsPage() {
             <DialogHeader>
               <DialogTitle>{tc("edit")}</DialogTitle>
               <DialogDescription>
-                تعديل بيانات الحصة
+                {t("editDescription")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmitEdit(onEditSubmit)}>
@@ -821,7 +822,7 @@ export default function SessionsPage() {
                   <Label htmlFor="edit-name">{t("sessionName")} *</Label>
                   <Input
                     id="edit-name"
-                    placeholder="حصة الحفظ المسائية"
+                    placeholder={t("editSessionNamePlaceholder")}
                     {...registerEdit("name")}
                   />
                   {errorsEdit.name && (
@@ -837,7 +838,7 @@ export default function SessionsPage() {
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر المعلم" />
+                          <SelectValue placeholder={t("selectTeacher")} />
                         </SelectTrigger>
                         <SelectContent>
                           {teachers?.map((teacher) => (
@@ -852,19 +853,19 @@ export default function SessionsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>القاعة</Label>
+                  <Label>{t("roomLabel")}</Label>
                   <Controller
                     name="roomId"
                     control={controlEdit}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر القاعة (اختياري)" />
+                          <SelectValue placeholder={t("selectRoomOptional")} />
                         </SelectTrigger>
                         <SelectContent>
                           {activeRooms.map((room: RoomOption) => (
                             <SelectItem key={room._id} value={room._id}>
-                              {room.name} ({room.capacity} مقعد)
+                              {room.name} ({room.capacity} {t("seat")})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -884,12 +885,12 @@ export default function SessionsPage() {
                         value={field.value?.toString()}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر اليوم" />
+                          <SelectValue placeholder={t("selectDay")} />
                         </SelectTrigger>
                         <SelectContent>
                           {DAYS_OF_WEEK.map((day) => (
                             <SelectItem key={day.value} value={day.value.toString()}>
-                              {day.label}
+                              {tc('days.' + String(day.value))}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -938,7 +939,7 @@ export default function SessionsPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-qrOpenOffsetBeforeMin">فتح QR قبل (دقيقة)</Label>
+                    <Label htmlFor="edit-qrOpenOffsetBeforeMin">{t("qrOpenBefore")}</Label>
                     <Input
                       id="edit-qrOpenOffsetBeforeMin"
                       type="number"
@@ -948,7 +949,7 @@ export default function SessionsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-qrCloseOffsetAfterMin">إغلاق QR بعد (دقيقة)</Label>
+                    <Label htmlFor="edit-qrCloseOffsetAfterMin">{t("qrCloseAfter")}</Label>
                     <Input
                       id="edit-qrCloseOffsetAfterMin"
                       type="number"
@@ -960,10 +961,10 @@ export default function SessionsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">وصف الحصة</Label>
+                  <Label htmlFor="edit-description">{t("sessionDescriptionLabel")}</Label>
                   <Textarea
                     id="edit-description"
-                    placeholder="وصف اختياري للحصة..."
+                    placeholder={t("sessionDescriptionPlaceholder")}
                     {...registerEdit("description")}
                   />
                 </div>
@@ -1000,7 +1001,7 @@ export default function SessionsPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
               <AlertDialogDescription>
-                سيتم حذف هذه الحصة نهائياً. لا يمكن التراجع عن هذا الإجراء.
+                {t("deleteConfirmMsg")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

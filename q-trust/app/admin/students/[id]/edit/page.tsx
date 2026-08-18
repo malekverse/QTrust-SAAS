@@ -22,13 +22,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ArrowRight, Save, Loader2, FileText } from "lucide-react"
-import { 
-  GENDER, 
-  GENDER_LABELS, 
-  ACTIVITY_AREAS, 
-  ACTIVITY_AREA_LABELS, 
+import {
+  GENDER,
+  ACTIVITY_AREAS,
   EDUCATION_LEVELS,
-  DECLARATION_TEXT 
+  DECLARATION_TEXT
 } from "@/lib/constants"
 import { TunisiaPhoneInput } from "@/components/ui/tunisia-phone-input"
 import { CINInput } from "@/components/ui/cin-input"
@@ -347,8 +345,8 @@ export default function EditStudentPage({
                             <SelectValue placeholder={t("selectGender")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={GENDER.MALE}>{GENDER_LABELS.MALE}</SelectItem>
-                            <SelectItem value={GENDER.FEMALE}>{GENDER_LABELS.FEMALE}</SelectItem>
+                            <SelectItem value={GENDER.MALE}>{tc('male')}</SelectItem>
+                            <SelectItem value={GENDER.FEMALE}>{tc('female')}</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -379,7 +377,7 @@ export default function EditStudentPage({
                           </SelectTrigger>
                           <SelectContent>
                             {EDUCATION_LEVELS.map(level => (
-                              <SelectItem key={level} value={level}>{level}</SelectItem>
+                              <SelectItem key={level} value={level}>{tc('educationLevels.' + level)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -491,7 +489,7 @@ export default function EditStudentPage({
                             }}
                           />
                           <span className="text-sm">
-                            {ACTIVITY_AREA_LABELS[key as keyof typeof ACTIVITY_AREA_LABELS]}
+                            {tc('activityAreas.' + key)}
                           </span>
                         </label>
                       ))}

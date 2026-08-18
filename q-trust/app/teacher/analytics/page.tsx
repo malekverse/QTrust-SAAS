@@ -165,7 +165,7 @@ export default async function TeacherAnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{analytics.totalOccurrences}</p>
-              <p className="text-xs text-muted-foreground">حصة منعقدة</p>
+              <p className="text-xs text-muted-foreground">{t("sessionsHeld")}</p>
             </div>
           </CardContent>
         </Card>
@@ -187,7 +187,7 @@ export default async function TeacherAnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{analytics.lateCount}</p>
-              <p className="text-xs text-muted-foreground">حالات تأخر</p>
+              <p className="text-xs text-muted-foreground">{t("lateInstances")}</p>
             </div>
           </CardContent>
         </Card>
@@ -219,7 +219,7 @@ export default async function TeacherAnalyticsPage() {
                     <div>
                       <p className="font-medium">{stat.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {stat.studentCount} {tc("student")} • {stat.totalOccurrences} حصة
+                        {stat.studentCount} {tc("student")} • {stat.totalOccurrences} {t("sessionUnit")}
                       </p>
                     </div>
                     <Badge 

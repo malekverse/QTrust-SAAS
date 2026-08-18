@@ -152,10 +152,10 @@ export default function TeachersPage() {
       setIsCreateOpen(false)
       reset()
       setShowPassword(false)
-      success("تم الإضافة بنجاح", `تم إنشاء حساب المعلم ${data.fullName}`)
+      success(tc("success"), t("teacherCreated", { name: data.fullName }))
     },
     onError: (err: Error) => {
-      error("فشل الإضافة", err.message || "حدث خطأ أثناء إضافة المعلم")
+      error(t("createFailed"), err.message || t("createError"))
     },
   })
 
@@ -164,10 +164,10 @@ export default function TeachersPage() {
       updateTeacher(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teachers"] })
-      success("تم التحديث", "تم تحديث بيانات المعلم بنجاح")
+      success(t("updated"), t("updatedSuccess"))
     },
     onError: (err: Error) => {
-      error("فشل التحديث", err.message || "حدث خطأ أثناء تحديث المعلم")
+      error(t("updateError"), err.message || t("updateError"))
     },
   })
 
@@ -176,10 +176,10 @@ export default function TeachersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teachers"] })
       setDeleteId(null)
-      success("تم الحذف", "تم حذف المعلم بنجاح")
+      success(t("deleted"), t("deletedSuccess"))
     },
     onError: (err: Error) => {
-      error("فشل الحذف", err.message || "حدث خطأ أثناء حذف المعلم")
+      error(t("deleteError"), err.message || t("deleteError"))
     },
   })
 
@@ -260,9 +260,9 @@ export default function TeachersPage() {
               </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>إضافة معلم جديد</DialogTitle>
+                <DialogTitle>{t("addTeacherTitle")}</DialogTitle>
                 <DialogDescription>
-                  أدخل بيانات المعلم الجديد لإنشاء حساب له
+                  {t("addTeacherDescription")}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit(onCreateSubmit)}>
@@ -271,7 +271,7 @@ export default function TeachersPage() {
                     <Label htmlFor="fullName">{t("fullName")} *</Label>
                     <Input
                       id="fullName"
-                      placeholder="محمد أحمد"
+                      placeholder={t("fullNamePlaceholder")}
                       {...register("fullName")}
                     />
                     {errors.fullName && (
@@ -324,7 +324,7 @@ export default function TeachersPage() {
                       <p className="text-sm text-destructive">{errors.password.message}</p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      سيتم إرسال كلمة المرور للمعلم ليقوم بتغييرها عند أول تسجيل دخول
+                      {t("passwordHint")}
                     </p>
                   </div>
                 </div>
@@ -372,7 +372,7 @@ export default function TeachersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">إجمالي المعلمين</p>
+              <p className="text-xs text-muted-foreground">{t("totalTeachers")}</p>
             </div>
           </CardContent>
         </Card>
@@ -386,7 +386,7 @@ export default function TeachersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.active}</p>
-              <p className="text-xs text-muted-foreground">معلم نشط</p>
+              <p className="text-xs text-muted-foreground">{t("activeTeachers")}</p>
             </div>
           </CardContent>
         </Card>
@@ -451,22 +451,22 @@ export default function TeachersPage() {
               {search ? (
                 <>
                   <p className="font-medium">{tc("noResults")}</p>
-                  <p className="text-sm mt-1">جرب البحث بكلمات مختلفة</p>
+                  <p className="text-sm mt-1">{t("tryDifferentSearch")}</p>
                   <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>
-                    مسح البحث
+                    {t("clearSearch")}
                   </Button>
                 </>
               ) : activeTab !== "all" ? (
                 <>
-                  <p className="font-medium">لا يوجد معلمون في هذا التصنيف</p>
+                  <p className="font-medium">{t("noTeachersInCategory")}</p>
                   <Button variant="outline" className="mt-4" onClick={() => setActiveTab("all")}>
-                    عرض جميع المعلمين
+                    {t("showAllTeachers")}
                   </Button>
                 </>
               ) : (
                 <>
                   <p className="font-medium">{t("noTeachers")}</p>
-                  <p className="text-sm mt-1">ابدأ بإضافة معلم جديد</p>
+                  <p className="text-sm mt-1">{t("startByAdding")}</p>
                   <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
                     <Plus className="h-4 w-4 ml-2" />
                     {t("addTeacher")}
@@ -478,10 +478,10 @@ export default function TeachersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>المعلم</TableHead>
+                  <TableHead>{t("teacherCol")}</TableHead>
                   <TableHead className="hidden sm:table-cell">{t("email")}</TableHead>
                   <TableHead>{tc("status")}</TableHead>
-                  <TableHead className="hidden md:table-cell">تاريخ الإضافة</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("dateAdded")}</TableHead>
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -519,12 +519,12 @@ export default function TeachersPage() {
                           variant={teacher.isActive ? "success" : "destructive"}
                           className="font-normal"
                         >
-                          {teacher.isActive ? tc("active") : "معطل"}
+                          {teacher.isActive ? tc("active") : t("statusDisabled")}
                         </Badge>
                         {teacher.isEmailVerified && (
                           <Badge variant="outline" className="text-xs font-normal">
                             <Shield className="h-3 w-3 ml-1" />
-                            موثق
+                            {t("verified")}
                           </Badge>
                         )}
                       </div>
@@ -567,12 +567,12 @@ export default function TeachersPage() {
                               {teacher.isActive ? (
                                 <>
                                   <UserX className="ml-2 h-4 w-4" />
-                                  تعطيل الحساب
+                                  {t("disableAccount")}
                                 </>
                               ) : (
                                 <>
                                   <UserCheck className="ml-2 h-4 w-4" />
-                                  تفعيل الحساب
+                                  {t("enableAccount")}
                                 </>
                               )}
                             </DropdownMenuItem>
@@ -603,7 +603,7 @@ export default function TeachersPage() {
       {/* Results Count */}
       {!isLoading && filteredTeachers.length > 0 && (
         <p className="text-sm text-muted-foreground text-center">
-          عرض {filteredTeachers.length} من {stats.total} معلم
+          {t("showingCount", { shown: filteredTeachers.length, total: stats.total })}
         </p>
       )}
 
@@ -618,7 +618,7 @@ export default function TeachersPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>{tc("deleteConfirm")}</AlertDialogTitle>
               <AlertDialogDescription>
-                سيتم حذف هذا المعلم نهائياً مع جميع الحصص المرتبطة به. لا يمكن التراجع عن هذا الإجراء.
+                {t("deleteConfirmDescription")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

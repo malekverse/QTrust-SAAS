@@ -21,7 +21,6 @@ import {
   FileImage,
   FileIcon,
 } from "lucide-react"
-import { DOCUMENT_CATEGORY_LABELS } from "@/lib/constants"
 
 interface DocumentData {
   _id: string
@@ -73,6 +72,7 @@ function getFileIcon(fileType: string): React.ReactNode {
 export default function StudentDocuments() {
   const t = useTranslations("student.documents")
   const tc = useTranslations("common")
+  const td = useTranslations("admin.documents")
   const [documents, setDocuments] = useState<DocumentData[]>([])
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
@@ -97,11 +97,11 @@ export default function StudentDocuments() {
         setCategoryCounts(data.categoryCounts)
       } else {
         const errData = await res.json().catch(() => null)
-        setError(errData?.message || "حدث خطأ أثناء تحميل البيانات")
+        setError(errData?.message || t("loadError"))
       }
     } catch (err) {
       console.error("Error:", err)
-      setError("حدث خطأ في الاتصال بالخادم")
+      setError(t("connectionError"))
     } finally {
       setLoading(false)
     }
@@ -156,7 +156,7 @@ export default function StudentDocuments() {
         <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/40" />
         <p className="text-muted-foreground">{error}</p>
         <Button variant="outline" onClick={() => { setLoading(true); fetchDocuments() }}>
-          إعادة المحاولة
+          {t("retry")}
         </Button>
       </div>
     )
@@ -194,7 +194,7 @@ export default function StudentDocuments() {
         >
           {tc("all")} ({Object.values(categoryCounts).reduce((a, b) => a + b, 0)})
         </Button>
-        {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => {
+        {(['QURAN_STUDY', 'TAJWEED', 'MEMORIZATION_GUIDE', 'EXAM_MATERIAL', 'GENERAL', 'COMPETITION', 'OTHER'] as const).map((key) => {
           const count = categoryCounts[key] || 0
           if (count === 0 && activeCategory !== key) return null
           return (
@@ -205,7 +205,7 @@ export default function StudentDocuments() {
               onClick={() => setActiveCategory(key)}
               className="text-xs"
             >
-              {label} ({count})
+              {td(`categories.${key}`)} ({count})
             </Button>
           )
         })}
@@ -244,7 +244,7 @@ export default function StudentDocuments() {
                     )}
                     <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
                       <Badge variant="outline" className="text-[10px]">
-                        {DOCUMENT_CATEGORY_LABELS[doc.category] || doc.category}
+                        {td(`categories.${doc.category}`)}
                       </Badge>
                       {doc.fileSize && (
                         <span>{formatFileSize(doc.fileSize)}</span>

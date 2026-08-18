@@ -50,7 +50,6 @@ import {
   Eye,
   DoorOpen
 } from "lucide-react"
-import { getDayName } from "@/lib/utils"
 import { useToast } from "@/components/ui/toast"
 import { useTranslations } from "next-intl"
 
@@ -152,16 +151,16 @@ export default function SessionDetailPage({
       queryClient.invalidateQueries({ queryKey: ["session", id] })
       if (data.conflicts?.length > 0) {
         setConflicts(data.conflicts)
-        warning("تنبيه", `تم إضافة بعض الطلاب مع وجود ${data.conflicts.length} تعارض`)
+        warning(t("conflictWarning"), t("addStudentsConflictMsg", { count: data.conflicts.length }))
       } else {
         setIsAddOpen(false)
         setSelectedStudents([])
         setCapacityWarning(null)
-        success("تم الإضافة", `تم إضافة الطلاب للحصة`)
+        success(t("addSuccess"), t("addStudentsSuccessMsg"))
       }
     },
     onError: (err: Error) => {
-      showError("فشل الإضافة", err.message || "حدث خطأ أثناء إضافة الطلاب")
+      showError(t("addError"), err.message || t("addStudentsErrorMsg"))
     },
   })
 
@@ -170,10 +169,10 @@ export default function SessionDetailPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session", id] })
       setRemoveStudentId(null)
-      success("تم الإزالة", "تم إزالة الطالب من الحصة")
+      success(t("removeSuccess"), t("removeSuccessMsg"))
     },
     onError: (err: Error) => {
-      showError("فشل الإزالة", err.message || "حدث خطأ أثناء إزالة الطالب")
+      showError(t("removeError"), err.message || t("removeErrorMsg"))
     },
   })
 
@@ -243,7 +242,7 @@ export default function SessionDetailPage({
           <CardContent className="p-6 text-center">
             <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-destructive" />
             <p className="text-destructive font-medium">{tc("serverError")}</p>
-            <p className="text-sm text-muted-foreground mt-1">يرجى المحاولة مرة أخرى</p>
+            <p className="text-sm text-muted-foreground mt-1">{t("tryAgain")}</p>
             <Button className="mt-4" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 ml-2" />
               {tc("refresh")}
@@ -265,7 +264,7 @@ export default function SessionDetailPage({
         </Button>
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            الحصة غير موجودة
+            {t("sessionNotFound")}
           </CardContent>
         </Card>
       </div>
@@ -296,7 +295,7 @@ export default function SessionDetailPage({
           <Button variant="outline" asChild>
             <Link href="/admin/attendance">
               <ClipboardCheck className="h-4 w-4 ml-2" />
-              إدارة الحضور
+              {t("manageAttendance")}
             </Link>
           </Button>
         </div>
@@ -305,12 +304,12 @@ export default function SessionDetailPage({
       {/* Header */}
       <PageHeader
         title={session.name}
-        description={`${getDayName(session.dayOfWeek)} • ${session.startTime} - ${session.endTime}`}
+        description={`${tc('days.' + String(session.dayOfWeek))} • ${session.startTime} - ${session.endTime}`}
       >
         <div className="flex items-center gap-2">
           {isOngoing && (
             <Badge variant="default" className="bg-emerald-500 animate-pulse">
-              جارية الآن
+              {t("ongoingNow")}
             </Badge>
           )}
           <Badge variant={session.isActive ? "success" : "destructive"}>
@@ -386,7 +385,7 @@ export default function SessionDetailPage({
               </div>
               <div className="text-left">
                 <div className="text-sm font-medium mb-1">
-                  {stats.total}/{session.roomId.capacity} مقعد
+                  {stats.total}/{session.roomId.capacity} {t("seat")}
                 </div>
                 <div className="h-2 w-24 bg-muted rounded-full overflow-hidden">
                   {(() => {
@@ -416,7 +415,7 @@ export default function SessionDetailPage({
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="بحث في الطلاب..."
+                  placeholder={t("searchStudents")}
                   value={studentSearch}
                   onChange={(e) => setStudentSearch(e.target.value)}
                   className="pr-10 h-9"
@@ -442,7 +441,7 @@ export default function SessionDetailPage({
               <DialogHeader>
                 <DialogTitle>{t("enrollStudents")}</DialogTitle>
                 <DialogDescription>
-                  اختر الطلاب الذين تريد إضافتهم لهذه الحصة ({availableStudents.length} متاح)
+                  {t("enrollDescription", { count: availableStudents.length })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -450,7 +449,7 @@ export default function SessionDetailPage({
                 <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                   <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 mb-2">
                     <AlertTriangle className="h-4 w-4" />
-                    <span className="font-medium">تعارضات في المواعيد</span>
+                    <span className="font-medium">{t("scheduleConflicts")}</span>
                   </div>
                   <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
                     {conflicts.map((c, i) => (
@@ -463,7 +462,7 @@ export default function SessionDetailPage({
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="البحث عن طالب..."
+                  placeholder={t("searchStudent")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pr-10"
@@ -472,9 +471,9 @@ export default function SessionDetailPage({
 
               {selectedStudents.length > 0 && (
                 <div className="flex items-center justify-between p-2 rounded-lg bg-primary/10">
-                  <span className="text-sm font-medium">تم اختيار {selectedStudents.length} طالب</span>
+                  <span className="text-sm font-medium">{t("selectedCount", { count: selectedStudents.length })}</span>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedStudents([])}>
-                    إلغاء التحديد
+                    {t("deselectAll")}
                   </Button>
                 </div>
               )}
@@ -484,7 +483,7 @@ export default function SessionDetailPage({
                   {filteredAvailableStudents.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>{search ? tc("noResults") : "لا يوجد طلاب متاحون"}</p>
+                      <p>{search ? tc("noResults") : t("noAvailableStudents")}</p>
                     </div>
                   ) : (
                     filteredAvailableStudents.map((student) => (
@@ -516,7 +515,7 @@ export default function SessionDetailPage({
                           <p className="font-medium text-sm">{student.fullName}</p>
                           {student.parentName && (
                             <p className="text-xs text-muted-foreground">
-                              ولي الأمر: {student.parentName}
+                              {t("parentLabel")} {student.parentName}
                             </p>
                           )}
                         </div>
@@ -540,7 +539,7 @@ export default function SessionDetailPage({
                   {addMutation.isPending && (
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   )}
-                  إضافة ({selectedStudents.length})
+                  {t("addCount", { count: selectedStudents.length })}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -550,8 +549,8 @@ export default function SessionDetailPage({
           {session.students.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Users className="h-16 w-16 mx-auto mb-4 opacity-30" />
-              <p className="font-medium text-lg">لم يتم تسجيل أي طالب في هذه الحصة بعد</p>
-              <p className="text-sm mt-1">ابدأ بإضافة طلاب للحصة</p>
+              <p className="font-medium text-lg">{t("noStudentsYet")}</p>
+              <p className="text-sm mt-1">{t("startAddStudents")}</p>
               <Button className="mt-4" onClick={() => setIsAddOpen(true)}>
                 <Plus className="h-4 w-4 ml-2" />
                 {tc("add")}
@@ -634,7 +633,7 @@ export default function SessionDetailPage({
           {/* Results count */}
           {session.students.length > 0 && filteredSessionStudents.length > 0 && (
             <p className="text-sm text-muted-foreground text-center mt-4">
-              عرض {filteredSessionStudents.length} من {session.students.length} طالب
+              {t("showingStudentCount", { count: filteredSessionStudents.length, total: session.students.length })}
             </p>
           )}
         </CardContent>
@@ -646,13 +645,13 @@ export default function SessionDetailPage({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              القاعة ممتلئة
+              {t("roomFull")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {capacityWarning?.message || "تم تجاوز سعة القاعة"}
+              {capacityWarning?.message || t("capacityExceeded")}
               <br />
               <span className="font-medium">
-                المقاعد المتاحة: {capacityWarning?.availableSlots || 0} من {capacityWarning?.capacity || 0}
+                {t("availableSeats", { available: capacityWarning?.availableSlots || 0, total: capacityWarning?.capacity || 0 })}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -665,7 +664,7 @@ export default function SessionDetailPage({
                 addMutation.mutate({ studentIds: selectedStudents, force: true })
               }}
             >
-              إضافة رغم ذلك
+              {t("addAnyway")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -675,9 +674,9 @@ export default function SessionDetailPage({
       <AlertDialog open={!!removeStudentId} onOpenChange={() => setRemoveStudentId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>إزالة الطالب من الحصة</AlertDialogTitle>
+            <AlertDialogTitle>{t("removeStudentTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من إزالة هذا الطالب من الحصة؟ يمكنك إعادة إضافته لاحقاً.
+              {t("removeStudentConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

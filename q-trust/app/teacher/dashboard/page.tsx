@@ -16,7 +16,6 @@ import SessionTemplate from "@/models/SessionTemplate"
 import StudentSession from "@/models/StudentSession"
 import SessionOccurrence from "@/models/SessionOccurrence"
 import Attendance from "@/models/Attendance"
-import { getDayName } from "@/lib/utils"
 import { SESSION_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
 import Link from "next/link"
 
@@ -74,7 +73,7 @@ async function TeacherStats({ teacherId }: { teacherId: string }) {
       <StatCard
         title={t("todaySessions")}
         value={sessionCount}
-        subtitle="حصة أسبوعية"
+        subtitle={t("weeklySession")}
         icon={Calendar}
       />
       <StatCard
@@ -274,6 +273,7 @@ export default async function TeacherDashboardPage() {
   if (!session) redirect("/auth/login")
 
   const t = await getTranslations("teacher.dashboard")
+  const tc = await getTranslations("common")
 
   const teacherId = session.user.id
 
@@ -285,7 +285,7 @@ export default async function TeacherDashboardPage() {
       {/* Page Header */}
       <PageHeader
         title={t("title")}
-        description="نظرة عامة على حصصك وطلابك"
+        description={t("overviewDescription")}
       />
 
       {/* Stats Grid */}
@@ -299,7 +299,7 @@ export default async function TeacherDashboardPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-semibold">{t("todaySessions")}</CardTitle>
-          <Badge variant="outline">{getDayName(new Date().getDay())}</Badge>
+          <Badge variant="outline">{tc('days.' + String(new Date().getDay()))}</Badge>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<SessionsLoading />}>

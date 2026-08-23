@@ -2,29 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import dbConnect from '@/lib/db'
 import { requireSuperAdmin, TenantAuthError } from '@/lib/tenant'
-import { hashPassword, generateTempPassword } from '@/lib/auth'
 import Tenant from '@/models/Tenant'
 import User from '@/models/User'
 import Student from '@/models/Student'
-import Settings, { DEFAULT_ENROLLMENT_SETTINGS } from '@/models/Settings'
-import Invoice from '@/models/Invoice'
-import {
-  ROLES,
-  PLANS,
-  PLAN_LIMITS,
-  TENANT_STATUS,
-  PAYMENT_METHODS,
-  INVOICE_TYPES,
-  INVOICE_STATUS,
-} from '@/lib/constants'
+import { PLANS, ROLES } from '@/lib/constants'
 import { parsePagination, buildPaginatedResponse } from '@/lib/pagination'
+import { logPlatformAudit } from '@/models/PlatformAuditLog'
+import { getClientIp } from '@/lib/rate-limit'
+import { provisionTenant, ProvisionError, normalizeTunisiaPhone } from '@/lib/provisioning'
 
 // Force model registration for serverless
 void Tenant
 void User
 void Student
-void Settings
-void Invoice
 
 const createTenantSchema = z.object({
   name: z.string().min(2, 'اسم المؤسسة مطلوب').max(200),
@@ -36,37 +26,64 @@ const createTenantSchema = z.object({
   plan: z.enum([PLANS.STARTER, PLANS.STANDARD, PLANS.PREMIUM]),
   adminFullName: z.string().min(2, 'اسم المدير مطلوب').max(100),
   adminEmail: z.string().email('البريد الإلكتروني غير صالح'),
-  adminPhone: z
-    .string()
-    .regex(/^\+216\d{8}$/, 'رقم الهاتف يجب أن يكون بصيغة +216XXXXXXXX')
-    .optional()
-    .or(z.literal('')),
+  adminPhone: z.string().max(30).optional().or(z.literal('')),
   setupFeeAmountTND: z.coerce.number().min(0).default(0),
   annualFeeAmountTND: z.coerce.number().min(0).default(0),
+  // Optional lead being converted. On success the lead is atomically claimed
+  // as CONVERTED with convertedTenantId set; a second submit gets a 409.
+  leadId: z.string().optional(),
 })
 
-// GET /api/super-admin/tenants?page=&limit= — list tenants (paginated, super-admin only)
+// GET /api/super-admin/tenants?page=&limit=&search= — list tenants.
 export async function GET(request: NextRequest) {
   try {
     await requireSuperAdmin()
     await dbConnect()
 
+    const url = new URL(request.url)
+    const search = url.searchParams.get('search')?.trim()
     const pg = parsePagination(request, { limit: 25 })
 
+    const filter: Record<string, unknown> = {}
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const rx = new RegExp(escaped, 'i')
+      filter.$or = [{ name: rx }, { slug: rx }, { 'contact.email': rx }]
+    }
+    // Hide half-provisioned tenants from the list.
+    filter.provisioningState = { $ne: 'PROVISIONING' }
+
     const [tenants, total] = await Promise.all([
-      Tenant.find({}).sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
-      Tenant.countDocuments({}),
+      Tenant.find(filter).sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
+      Tenant.countDocuments(filter),
     ])
 
-    const withStats = await Promise.all(
-      tenants.map(async (t: any) => {
-        const [studentCount, admin] = await Promise.all([
-          Student.countDocuments({ tenantId: t._id, isActive: true }),
-          User.findOne({ tenantId: t._id, role: ROLES.ADMIN }).select('email').lean(),
-        ])
-        return { ...t, studentCount, adminEmail: (admin as any)?.email ?? null }
-      })
+    // Fold student counts and admin emails in via two aggregations rather
+    // than per-tenant N+1 queries.
+    const tenantIds = tenants.map((t: any) => t._id)
+    const [studentCounts, adminEmails] = await Promise.all([
+      Student.aggregate([
+        { $match: { tenantId: { $in: tenantIds }, isActive: true } },
+        { $group: { _id: '$tenantId', count: { $sum: 1 } } },
+      ]),
+      User.aggregate([
+        { $match: { tenantId: { $in: tenantIds }, role: ROLES.ADMIN } },
+        { $sort: { createdAt: 1 } },
+        { $group: { _id: '$tenantId', email: { $first: '$email' } } },
+      ]),
+    ])
+    const studentMap = new Map<string, number>(
+      studentCounts.map((s: any) => [String(s._id), s.count])
     )
+    const emailMap = new Map<string, string>(
+      adminEmails.map((a: any) => [String(a._id), a.email])
+    )
+
+    const withStats = tenants.map((t: any) => ({
+      ...t,
+      studentCount: studentMap.get(String(t._id)) ?? 0,
+      adminEmail: emailMap.get(String(t._id)) ?? null,
+    }))
 
     return NextResponse.json(buildPaginatedResponse(withStats, total, pg))
   } catch (e) {
@@ -78,10 +95,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/super-admin/tenants — provision a new tenant + its first admin
+// POST /api/super-admin/tenants — provision a new tenant (and its first admin).
+// Optionally converts a lead (`leadId`) in the same atomic step.
 export async function POST(request: NextRequest) {
   try {
-    const su = await requireSuperAdmin()
+    const actor = await requireSuperAdmin()
 
     const body = await request.json()
     const parsed = createTenantSchema.safeParse(body)
@@ -90,88 +108,75 @@ export async function POST(request: NextRequest) {
     }
     const d = parsed.data
 
+    // Normalize the operator-typed phone (accepts 8 digits or +216XXXXXXXX).
+    let adminPhone: string | undefined
+    try {
+      adminPhone = normalizeTunisiaPhone(d.adminPhone)
+    } catch (e) {
+      if (e instanceof ProvisionError) {
+        return NextResponse.json({ message: e.message }, { status: e.status })
+      }
+      throw e
+    }
+
     await dbConnect()
 
-    if (await Tenant.findOne({ slug: d.slug }).select('_id').lean()) {
-      return NextResponse.json({ message: 'المعرّف مستخدم بالفعل' }, { status: 409 })
-    }
-
-    const limits = PLAN_LIMITS[d.plan]
-    const now = new Date()
-    const periodEnd = new Date(now)
-    periodEnd.setFullYear(periodEnd.getFullYear() + 1)
-
-    const tenant = await Tenant.create({
-      name: d.name,
-      slug: d.slug,
-      plan: d.plan,
-      status: TENANT_STATUS.TRIAL,
-      maxStudents: limits.maxStudents,
-      aiQuotaMonthly: limits.aiQuotaMonthly,
-      isDemo: false,
-      branding: { displayName: d.name, locale: 'ar' },
-      contact: { email: d.adminEmail.toLowerCase(), phone: d.adminPhone || undefined },
-      billing: {
+    const result = await provisionTenant(
+      {
+        name: d.name,
+        slug: d.slug,
+        plan: d.plan,
+        adminFullName: d.adminFullName,
+        adminEmail: d.adminEmail,
+        adminPhone,
         setupFeeAmountTND: d.setupFeeAmountTND,
         annualFeeAmountTND: d.annualFeeAmountTND,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        paymentMethod: PAYMENT_METHODS.BANK_TRANSFER,
+        leadId: d.leadId,
       },
+      { id: actor.id, email: actor.email || 'unknown' }
+    )
+
+    await logPlatformAudit({
+      actorUserId: actor.id,
+      actorEmail: actor.email || 'unknown',
+      action: 'TENANT_PROVISIONED',
+      targetType: 'Tenant',
+      targetId: result.tenant._id,
+      tenantId: result.tenant._id,
+      metadata: {
+        name: result.tenant.name,
+        slug: result.tenant.slug,
+        plan: result.tenant.plan,
+        leadId: d.leadId,
+        leadClaimed: result.leadClaimed,
+      },
+      ip: getClientIp(request),
+      userAgent: request.headers.get('user-agent') || undefined,
     })
 
-    const tempPassword = generateTempPassword()
-    const passwordHash = await hashPassword(tempPassword)
-    const admin = await User.create({
-      tenantId: tenant._id,
-      fullName: d.adminFullName,
-      email: d.adminEmail.toLowerCase(),
-      phone: d.adminPhone || undefined,
-      role: ROLES.ADMIN,
-      passwordHash,
-      isEmailVerified: false,
-      isActive: true,
-      mustChangePassword: true,
-    })
-
-    // Seed the tenant's own enrollment-numbering settings.
-    await Settings.create({
-      tenantId: tenant._id,
-      key: 'enrollment',
-      value: DEFAULT_ENROLLMENT_SETTINGS as unknown as Record<string, unknown>,
-      description: 'إعدادات ترقيم الانخراط',
-      updatedBy: admin._id,
-    })
-
-    // Auto-create the opening invoices (setup due now, renewal due in a year).
-    const invoices: Record<string, unknown>[] = []
-    if (d.setupFeeAmountTND > 0) {
-      invoices.push({
-        tenantId: tenant._id,
-        type: INVOICE_TYPES.SETUP,
-        amountTND: d.setupFeeAmountTND,
-        status: INVOICE_STATUS.PENDING,
-        dueDate: now,
-        createdBy: su.id,
+    if (result.leadClaimed && d.leadId) {
+      await logPlatformAudit({
+        actorUserId: actor.id,
+        actorEmail: actor.email || 'unknown',
+        action: 'LEAD_CONVERTED',
+        targetType: 'Lead',
+        targetId: d.leadId,
+        tenantId: result.tenant._id,
+        ip: getClientIp(request),
+        userAgent: request.headers.get('user-agent') || undefined,
       })
     }
-    if (d.annualFeeAmountTND > 0) {
-      invoices.push({
-        tenantId: tenant._id,
-        type: INVOICE_TYPES.ANNUAL_RENEWAL,
-        amountTND: d.annualFeeAmountTND,
-        status: INVOICE_STATUS.PENDING,
-        dueDate: periodEnd,
-        createdBy: su.id,
-      })
-    }
-    if (invoices.length) await Invoice.insertMany(invoices)
 
     return NextResponse.json(
       {
-        tenant: { _id: tenant._id, name: tenant.name, slug: tenant.slug, plan: tenant.plan },
-        admin: { email: admin.email, tempPassword },
-        loginUrl: `/t/${tenant.slug}`,
+        tenant: {
+          _id: result.tenant._id,
+          name: result.tenant.name,
+          slug: result.tenant.slug,
+          plan: result.tenant.plan,
+        },
+        admin: { email: result.admin.email, tempPassword: result.admin.tempPassword },
+        loginUrl: `/t/${result.tenant.slug}`,
       },
       { status: 201 }
     )
@@ -179,8 +184,14 @@ export async function POST(request: NextRequest) {
     if (e instanceof TenantAuthError) {
       return NextResponse.json({ message: e.message }, { status: e.status })
     }
+    if (e instanceof ProvisionError) {
+      return NextResponse.json({ message: e.message }, { status: e.status })
+    }
     if (e?.code === 11000) {
-      return NextResponse.json({ message: 'المعرّف أو البريد مستخدم بالفعل' }, { status: 409 })
+      return NextResponse.json(
+        { message: 'المعرّف أو البريد مستخدم بالفعل' },
+        { status: 409 }
+      )
     }
     console.error('Create tenant error:', e)
     return NextResponse.json({ message: 'حدث خطأ أثناء إنشاء المؤسسة' }, { status: 500 })

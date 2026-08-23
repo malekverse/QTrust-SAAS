@@ -119,12 +119,6 @@ export const authConfig: NextAuthConfig = {
             throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة')
           }
 
-          // Record the sign-in. Fire-and-forget: a telemetry write must never
-          // fail an otherwise-valid login.
-          User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } }).catch(
-            () => {}
-          )
-
           // Load tenant context (absent for SUPER_ADMIN, which has no tenantId)
           let tenantId: string | undefined
           let tenantSlug: string | undefined
@@ -133,8 +127,15 @@ export const authConfig: NextAuthConfig = {
           if (user.tenantId) {
             tenantId = user.tenantId.toString()
             const tenant = await Tenant.findById(user.tenantId)
-              .select('slug plan name status branding.displayName')
-              .lean<{ slug: string; plan: string; name: string; status: string; branding?: { displayName?: string } }>()
+              .select('slug plan name status branding.displayName provisioningState')
+              .lean<{ slug: string; plan: string; name: string; status: string; branding?: { displayName?: string }; provisioningState?: string }>()
+            // Block sign-in for a half-provisioned tenant: nothing but the
+            // Tenant + admin User rows exist yet, so the dashboard would
+            // load into a broken state. Once provisionTenant() flips the
+            // flag to 'READY' (its "commit" point), login unlocks.
+            if (tenant && tenant.provisioningState && tenant.provisioningState !== 'READY') {
+              throw new Error('المؤسسة قيد الإعداد. حاول لاحقاً')
+            }
             // Block sign-in for suspended/cancelled tenants.
             if (
               tenant &&
@@ -146,6 +147,13 @@ export const authConfig: NextAuthConfig = {
             tenantPlan = tenant?.plan
             tenantName = tenant?.branding?.displayName || tenant?.name
           }
+
+          // Record the sign-in. Fire-and-forget: a telemetry write must never
+          // fail an otherwise-valid login. Run after tenant-blocking checks
+          // so a rejected sign-in doesn't stamp lastLoginAt.
+          User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } }).catch(
+            () => {}
+          )
 
           return {
             id: user._id.toString(),

@@ -3,7 +3,12 @@
 import { useState } from "react"
 import { Loader2, CheckCircle2 } from "lucide-react"
 
-const STUDENT_RANGES = ["Moins de 50", "50 – 150", "150 – 300", "Plus de 300"]
+const STUDENT_RANGES: { value: string; label: string }[] = [
+  { value: "LT_50", label: "Moins de 50" },
+  { value: "R50_150", label: "50 – 150" },
+  { value: "R150_300", label: "150 – 300" },
+  { value: "GT_300", label: "Plus de 300" },
+]
 
 export function DemoForm() {
   const [form, setForm] = useState({
@@ -136,7 +141,7 @@ export function DemoForm() {
           >
             <option value="">Choisir…</option>
             {STUDENT_RANGES.map((r) => (
-              <option key={r} value={r}>{r}</option>
+              <option key={r.value} value={r.value}>{r.label}</option>
             ))}
           </select>
         </div>

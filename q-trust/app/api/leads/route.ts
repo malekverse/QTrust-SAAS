@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import dbConnect from '@/lib/db'
-import Lead from '@/models/Lead'
+import Lead, { LEAD_STATUS } from '@/models/Lead'
 import { requireSuperAdmin, TenantAuthError } from '@/lib/tenant'
 import { leadLimiter, enforceRateLimit, getClientIp } from '@/lib/rate-limit'
+import { parsePagination, buildPaginatedResponse } from '@/lib/pagination'
+
+void Lead
 
 const leadSchema = z.object({
   name: z.string().min(2, 'الاسم مطلوب').max(120),
@@ -11,6 +14,8 @@ const leadSchema = z.object({
   city: z.string().max(120).optional().or(z.literal('')),
   phone: z.string().min(8, 'رقم الهاتف مطلوب').max(30),
   email: z.string().email('البريد الإلكتروني غير صالح').max(200).optional().or(z.literal('')),
+  // Either a STUDENT_RANGES key ("LT_50") or, for backward compatibility with
+  // pre-2026-08 clients that had a stale bundle, a legacy free-text label.
   studentCount: z.string().max(30).optional().or(z.literal('')),
   message: z.string().max(2000).optional().or(z.literal('')),
   locale: z.string().max(5).optional(),
@@ -54,13 +59,41 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/leads — super-admin only: list demo requests.
-export async function GET() {
+// GET /api/leads?status=&search=&page=&limit= — super-admin only.
+// Paginated + filterable list, backing the /super-admin/leads page.
+export async function GET(request: NextRequest) {
   try {
     await requireSuperAdmin()
     await dbConnect()
-    const leads = await Lead.find({}).sort({ createdAt: -1 }).limit(200).lean()
-    return NextResponse.json(leads)
+
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    const search = url.searchParams.get('search')?.trim()
+    const pg = parsePagination(request, { limit: 25 })
+
+    const filter: Record<string, unknown> = {}
+    if (status && (Object.values(LEAD_STATUS) as string[]).includes(status)) {
+      filter.status = status
+    }
+    if (search) {
+      // Escape regex metacharacters; substring, case-insensitive.
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const rx = new RegExp(escaped, 'i')
+      filter.$or = [
+        { name: rx },
+        { associationName: rx },
+        { phone: rx },
+        { email: rx },
+        { city: rx },
+      ]
+    }
+
+    const [rows, total] = await Promise.all([
+      Lead.find(filter).sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
+      Lead.countDocuments(filter),
+    ])
+
+    return NextResponse.json(buildPaginatedResponse(rows, total, pg))
   } catch (e) {
     if (e instanceof TenantAuthError) {
       return NextResponse.json({ message: e.message }, { status: e.status })

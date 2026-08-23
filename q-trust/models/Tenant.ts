@@ -44,6 +44,12 @@ export interface ITenant extends Document {
     currentPeriodEnd?: Date
     paymentMethod: PaymentMethod
   }
+  // Multi-step provisioning gate. READY means the Tenant + its first admin +
+  // enrollment settings + opening invoices are all persisted. PROVISIONING is
+  // set on Tenant.create and only flipped to READY at the end; login and
+  // requireTenantSession reject anything not READY, so a half-created tenant
+  // is invisible instead of a soft brick.
+  provisioningState: 'PROVISIONING' | 'READY'
   createdAt: Date
   updatedAt: Date
 }
@@ -96,6 +102,14 @@ const TenantSchema = new Schema<ITenant>(
         enum: Object.values(PAYMENT_METHODS),
         default: PAYMENT_METHODS.BANK_TRANSFER,
       },
+    },
+    // Defaults to READY so every pre-existing tenant continues to work
+    // unchanged; provisionTenant() writes 'PROVISIONING' on Tenant.create and
+    // flips to 'READY' after the last dependent write succeeds.
+    provisioningState: {
+      type: String,
+      enum: ['PROVISIONING', 'READY'],
+      default: 'READY',
     },
   },
   { timestamps: true }

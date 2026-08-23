@@ -38,6 +38,29 @@ export const TENANT_STATUS = {
   CANCELLED: 'CANCELLED',
 } as const
 
+// Stable, translatable "student count" ranges submitted by the public demo
+// form and displayed in the super-admin console. Prior to this the form
+// stored a localized display string ("أقل من 50"), which cannot be
+// compared/filtered/mapped-to-a-plan; the new leads submit the stable key,
+// and the console reads either. Labels live under `leads.studentRange.*` in
+// messages/*.json.
+export const STUDENT_RANGES = {
+  LT_50: 'LT_50',
+  R50_150: 'R50_150',
+  R150_300: 'R150_300',
+  GT_300: 'GT_300',
+} as const
+export type StudentRange = typeof STUDENT_RANGES[keyof typeof STUDENT_RANGES]
+
+// Which plan we suggest at conversion time when the lead selected a range.
+// A suggestion only — the operator can override.
+export const STUDENT_RANGE_SUGGESTED_PLAN: Record<StudentRange, Plan> = {
+  LT_50: PLANS.STARTER,
+  R50_150: PLANS.STANDARD,
+  R150_300: PLANS.STANDARD,
+  GT_300: PLANS.PREMIUM,
+}
+
 export type TenantStatus = typeof TENANT_STATUS[keyof typeof TENANT_STATUS]
 
 // Tenant billing payment methods (local Tunisian market: virement / chèque / cash)

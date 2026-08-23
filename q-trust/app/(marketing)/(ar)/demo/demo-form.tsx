@@ -3,7 +3,15 @@
 import { useState } from "react"
 import { Loader2, CheckCircle2 } from "lucide-react"
 
-const STUDENT_RANGES = ["أقل من 50", "50 – 150", "150 – 300", "أكثر من 300"]
+// Stable submission keys (see STUDENT_RANGES in lib/constants.ts) with their
+// Arabic display labels. Storing the key lets the super-admin console
+// compare, filter, and suggest a plan; the label is display-only.
+const STUDENT_RANGES: { value: string; label: string }[] = [
+  { value: "LT_50", label: "أقل من 50" },
+  { value: "R50_150", label: "50 – 150" },
+  { value: "R150_300", label: "150 – 300" },
+  { value: "GT_300", label: "أكثر من 300" },
+]
 
 export function DemoForm() {
   const [form, setForm] = useState({
@@ -138,7 +146,7 @@ export function DemoForm() {
           >
             <option value="">اختر…</option>
             {STUDENT_RANGES.map((r) => (
-              <option key={r} value={r}>{r}</option>
+              <option key={r.value} value={r.value}>{r.label}</option>
             ))}
           </select>
         </div>

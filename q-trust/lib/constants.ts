@@ -168,9 +168,6 @@ export const EDUCATION_LEVELS = [
   'أخرى'
 ] as const
 
-// Declaration text (fixed, not editable)
-export const DECLARATION_TEXT = 'وأؤكد على صحة المعلومات المذكورة أعلاه، وألتزم باحترام النظام الأساسي للجمعية ونظامها الداخلي والقوانين الجاري بها العمل الخاصة بالجمعيات.'
-
 // Attendance status constants
 export const ATTENDANCE_STATUS = {
   PRESENT: 'PRESENT',
@@ -446,24 +443,12 @@ export const MESSAGING_PROVIDER = {
 } as const
 export type MessagingProvider = typeof MESSAGING_PROVIDER[keyof typeof MESSAGING_PROVIDER]
 
-export const MESSAGING_PROVIDER_LABELS: Record<string, string> = {
-  DISABLED: 'معطّل',
-  WHATSAPP_CLOUD: 'واتساب (WhatsApp Cloud API)',
-  TWILIO_SMS: 'رسائل SMS (Twilio)',
-}
-
 export const MESSAGE_STATUS = {
   SENT: 'SENT',
   FAILED: 'FAILED',
   SKIPPED: 'SKIPPED', // provider not configured — recorded but not sent
 } as const
 export type MessageStatus = typeof MESSAGE_STATUS[keyof typeof MESSAGE_STATUS]
-
-export const MESSAGE_STATUS_LABELS: Record<string, string> = {
-  SENT: 'أُرسلت',
-  FAILED: 'فشلت',
-  SKIPPED: 'لم تُرسل (غير مُفعّل)',
-}
 
 export const MESSAGE_TYPE = {
   PAYMENT_REMINDER: 'PAYMENT_REMINDER',
@@ -472,13 +457,6 @@ export const MESSAGE_TYPE = {
   GENERAL: 'GENERAL',
 } as const
 export type MessageType = typeof MESSAGE_TYPE[keyof typeof MESSAGE_TYPE]
-
-export const MESSAGE_TYPE_LABELS: Record<string, string> = {
-  PAYMENT_REMINDER: 'تذكير بالدفع',
-  ABSENCE_ALERT: 'تنبيه غياب',
-  ADMISSION_RESULT: 'نتيجة التسجيل',
-  GENERAL: 'عام',
-}
 
 // In-app notifications
 export const NOTIFICATION_TYPE = {

@@ -225,7 +225,7 @@ export default function ImportStudentsPage() {
             notes: student.notes,
             activityAreas: [],
             declarationAccepted: true, // Auto-accept for import
-            signatureLocation: 'استيراد',
+            signatureLocation: t("importSignatureLocation"),
             signatureDate: new Date().toISOString().split('T')[0],
           })
         })

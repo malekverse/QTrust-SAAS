@@ -166,7 +166,7 @@ export default async function StudentDetailPage({
         .slice(0, 2)
         .toUpperCase()
     }
-    return "؟"
+    return tc("unknownInitial")
   }
 
   const displayName = student.firstName && student.lastName 

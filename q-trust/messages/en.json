@@ -122,6 +122,7 @@
     "greetingMorning": "May God bless your morning and your work",
     "greetingAfternoon": "May God bless your work today",
     "greetingEvening": "May God make your evening one of goodness and blessings",
+    "unknownInitial": "?",
     "greetingStudentDua": "May God bless your memorization and knowledge",
     "goodMorning": "Good morning",
     "goodAfternoon": "Good afternoon",
@@ -273,7 +274,9 @@
       "noActivity": "No recent activity",
       "upcomingSessions": "Upcoming Sessions",
       "noUpcoming": "No sessions scheduled today",
-      "noData": "No data available"
+      "noData": "No data available",
+      "quranVerse": "﴿ وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ ﴾",
+      "quranCitation": "Surah Al-Qamar — Verse 17"
     },
     "students": {
       "title": "Student Management",
@@ -310,6 +313,7 @@
       "hifz": "Memorization",
       "attachments": "Attachments",
       "personalPhoto": "ID Photo",
+      "importSignatureLocation": "Import",
       "importStudents": "Import Students",
       "exportStudents": "Export Students",
       "qrCards": "QR Cards",
@@ -365,6 +369,7 @@
       "address": "Address",
       "selectActivityArea": "Select activity area within the association",
       "declarationLabel": "Declaration",
+      "declarationText": "I confirm the accuracy of the information provided above, and I commit to respecting the association's bylaws, internal regulations, and applicable laws governing associations.",
       "declarationAccept": "I accept the declaration above",
       "signatureInfo": "Signature Information",
       "signedAt": "Signed at",
@@ -698,7 +703,41 @@
       "failed": "Failed to send",
       "noMessages": "No messages",
       "whatsapp": "WhatsApp",
-      "sms": "SMS"
+      "sms": "SMS",
+      "infoBanner": "Set up the messaging service to automatically send payment reminders and absence alerts to parents.",
+      "reminders": "Automatic Reminders",
+      "paymentReminders": "Payment Reminders",
+      "paymentRemindersDescription": "Automatically send reminders to parents when payment dates approach",
+      "messagingProvider": "Messaging Provider",
+      "provider": "Provider",
+      "settingsUpdated": "Messaging settings saved successfully",
+      "lockedTitle": "Messaging service unavailable",
+      "lockedDescription": "Your current plan does not support messaging. Contact the platform administrator to upgrade.",
+      "saved": "saved",
+      "leaveBlankToKeep": "Leave blank to keep current value",
+      "senderNumber": "Sender Number",
+      "phoneNumberId": "Phone Number ID",
+      "accessToken": "Access Token",
+      "accountSid": "Account SID",
+      "authToken": "Auth Token",
+      "enums": {
+        "provider": {
+          "DISABLED": "Disabled",
+          "WHATSAPP_CLOUD": "WhatsApp (Cloud API)",
+          "TWILIO_SMS": "SMS (Twilio)"
+        },
+        "messageStatus": {
+          "SENT": "Sent",
+          "FAILED": "Failed",
+          "SKIPPED": "Not sent (disabled)"
+        },
+        "messageType": {
+          "PAYMENT_REMINDER": "Payment reminder",
+          "ABSENCE_ALERT": "Absence alert",
+          "ADMISSION_RESULT": "Admission result",
+          "GENERAL": "General"
+        }
+      }
     },
     "settings": {
       "title": "Settings",

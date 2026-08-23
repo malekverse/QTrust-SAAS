@@ -84,7 +84,6 @@ import {
   GENDER,
   ACTIVITY_AREAS,
   EDUCATION_LEVELS,
-  DECLARATION_TEXT
 } from "@/lib/constants"
 
 // Type for student form
@@ -685,7 +684,7 @@ export default function StudentsPage() {
                       </div>
                       <div className="rounded-xl border bg-card/50 p-4 space-y-4">
                         <p className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg leading-relaxed">
-                          {DECLARATION_TEXT}
+                          {t("declarationText")}
                         </p>
                         <Controller
                           name="declarationAccepted"

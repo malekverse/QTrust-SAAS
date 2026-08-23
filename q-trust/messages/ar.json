@@ -122,6 +122,7 @@
     "greetingMorning": "نسأل الله أن يبارك في صباحكم وعملكم",
     "greetingAfternoon": "نسأل الله أن يبارك في عملكم اليوم",
     "greetingEvening": "جعل الله مساءكم خيراً وبركة",
+    "unknownInitial": "؟",
     "greetingStudentDua": "نسأل الله أن يبارك في حفظك وعلمك",
     "goodMorning": "صباح الخير",
     "goodAfternoon": "مساء الخير",
@@ -273,7 +274,9 @@
       "noActivity": "لا يوجد نشاط حديث",
       "upcomingSessions": "الحصص القادمة",
       "noUpcoming": "لا توجد حصص قادمة اليوم",
-      "noData": "لا توجد بيانات متاحة"
+      "noData": "لا توجد بيانات متاحة",
+      "quranVerse": "﴿ وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ ﴾",
+      "quranCitation": "سورة القمر - الآية 17"
     },
     "students": {
       "title": "إدارة الطلاب",
@@ -310,6 +313,7 @@
       "hifz": "التحفيظ",
       "attachments": "المرفقات",
       "personalPhoto": "صورة شمسية",
+      "importSignatureLocation": "استيراد",
       "importStudents": "استيراد الطلاب",
       "exportStudents": "تصدير الطلاب",
       "qrCards": "بطاقات QR",
@@ -365,6 +369,7 @@
       "address": "العنوان",
       "selectActivityArea": "اختيار مجال النشاط داخل الجمعية",
       "declarationLabel": "الإقرار",
+      "declarationText": "وأؤكد على صحة المعلومات المذكورة أعلاه، وألتزم باحترام النظام الأساسي للجمعية ونظامها الداخلي والقوانين الجاري بها العمل الخاصة بالجمعيات.",
       "declarationAccept": "أوافق على الإقرار أعلاه",
       "signatureInfo": "معلومات الإمضاء",
       "signedAt": "الممضى في",
@@ -698,7 +703,41 @@
       "failed": "فشل الإرسال",
       "noMessages": "لا توجد رسائل",
       "whatsapp": "واتساب",
-      "sms": "رسالة نصية"
+      "sms": "رسالة نصية",
+      "infoBanner": "يمكنك إعداد خدمة الرسائل لإرسال تذكيرات الدفع وإشعارات الغياب تلقائيًا للأولياء.",
+      "reminders": "التذكيرات التلقائية",
+      "paymentReminders": "تذكيرات الدفع",
+      "paymentRemindersDescription": "إرسال تذكيرات تلقائية للأولياء عند اقتراب مواعيد الدفع",
+      "messagingProvider": "مزوّد الرسائل",
+      "provider": "المزوّد",
+      "settingsUpdated": "تم حفظ إعدادات الرسائل بنجاح",
+      "lockedTitle": "خدمة الرسائل غير متاحة",
+      "lockedDescription": "الباقة الحالية لا تدعم خدمة الرسائل. تواصل مع إدارة المنصة للترقية.",
+      "saved": "محفوظ",
+      "leaveBlankToKeep": "اتركه فارغًا للاحتفاظ بالقيمة الحالية",
+      "senderNumber": "رقم المرسل",
+      "phoneNumberId": "معرّف رقم الهاتف",
+      "accessToken": "رمز الوصول",
+      "accountSid": "معرّف الحساب",
+      "authToken": "رمز المصادقة",
+      "enums": {
+        "provider": {
+          "DISABLED": "معطّل",
+          "WHATSAPP_CLOUD": "واتساب (WhatsApp Cloud API)",
+          "TWILIO_SMS": "رسائل SMS (Twilio)"
+        },
+        "messageStatus": {
+          "SENT": "أُرسلت",
+          "FAILED": "فشلت",
+          "SKIPPED": "لم تُرسل (غير مُفعّل)"
+        },
+        "messageType": {
+          "PAYMENT_REMINDER": "تذكير بالدفع",
+          "ABSENCE_ALERT": "تنبيه غياب",
+          "ADMISSION_RESULT": "نتيجة التسجيل",
+          "GENERAL": "عام"
+        }
+      }
     },
     "settings": {
       "title": "الإعدادات",

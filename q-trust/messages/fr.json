@@ -122,6 +122,7 @@
     "greetingMorning": "Que Dieu bénisse votre matinée et votre travail",
     "greetingAfternoon": "Que Dieu bénisse votre travail aujourd'hui",
     "greetingEvening": "Que Dieu fasse de votre soirée un moment de bonté et de bénédiction",
+    "unknownInitial": "?",
     "greetingStudentDua": "Que Dieu bénisse ta mémorisation et ton savoir",
     "goodMorning": "Bonjour",
     "goodAfternoon": "Bon après-midi",
@@ -273,7 +274,9 @@
       "noActivity": "Aucune activité récente",
       "upcomingSessions": "Prochaines sessions",
       "noUpcoming": "Pas de sessions prévues aujourd'hui",
-      "noData": "Aucune donnée disponible"
+      "noData": "Aucune donnée disponible",
+      "quranVerse": "﴿ وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ ﴾",
+      "quranCitation": "Sourate Al-Qamar — Verset 17"
     },
     "students": {
       "title": "Gestion des élèves",
@@ -310,6 +313,7 @@
       "hifz": "Mémorisation",
       "attachments": "Pièces jointes",
       "personalPhoto": "Photo d'identité",
+      "importSignatureLocation": "Importation",
       "importStudents": "Importer des élèves",
       "exportStudents": "Exporter les élèves",
       "qrCards": "Cartes QR",
@@ -365,6 +369,7 @@
       "address": "Adresse",
       "selectActivityArea": "Choisir le domaine d'activité au sein de l'association",
       "declarationLabel": "Déclaration",
+      "declarationText": "Je confirme l'exactitude des informations fournies ci-dessus et je m'engage à respecter les statuts de l'association, son règlement intérieur et les lois en vigueur régissant les associations.",
       "declarationAccept": "J'accepte la déclaration ci-dessus",
       "signatureInfo": "Informations de signature",
       "signedAt": "Signé à",
@@ -698,7 +703,41 @@
       "failed": "Échec de l'envoi",
       "noMessages": "Aucun message",
       "whatsapp": "WhatsApp",
-      "sms": "SMS"
+      "sms": "SMS",
+      "infoBanner": "Configurez le service de messagerie pour envoyer automatiquement des rappels de paiement et des alertes d'absence aux parents.",
+      "reminders": "Rappels automatiques",
+      "paymentReminders": "Rappels de paiement",
+      "paymentRemindersDescription": "Envoyer automatiquement des rappels aux parents à l'approche des dates de paiement",
+      "messagingProvider": "Fournisseur de messagerie",
+      "provider": "Fournisseur",
+      "settingsUpdated": "Paramètres de messagerie enregistrés avec succès",
+      "lockedTitle": "Service de messagerie indisponible",
+      "lockedDescription": "Votre forfait actuel ne prend pas en charge la messagerie. Contactez l'administrateur de la plateforme pour une mise à niveau.",
+      "saved": "enregistré",
+      "leaveBlankToKeep": "Laisser vide pour conserver la valeur actuelle",
+      "senderNumber": "Numéro de l'expéditeur",
+      "phoneNumberId": "ID du numéro de téléphone",
+      "accessToken": "Jeton d'accès",
+      "accountSid": "Identifiant du compte",
+      "authToken": "Jeton d'authentification",
+      "enums": {
+        "provider": {
+          "DISABLED": "Désactivé",
+          "WHATSAPP_CLOUD": "WhatsApp (Cloud API)",
+          "TWILIO_SMS": "SMS (Twilio)"
+        },
+        "messageStatus": {
+          "SENT": "Envoyé",
+          "FAILED": "Échoué",
+          "SKIPPED": "Non envoyé (désactivé)"
+        },
+        "messageType": {
+          "PAYMENT_REMINDER": "Rappel de paiement",
+          "ABSENCE_ALERT": "Alerte d'absence",
+          "ADMISSION_RESULT": "Résultat d'admission",
+          "GENERAL": "Général"
+        }
+      }
     },
     "settings": {
       "title": "Paramètres",

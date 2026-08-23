@@ -20,10 +20,7 @@ import {
 import { MessageCircle, Loader2, Save, Info, CheckCircle, XCircle, MinusCircle } from "lucide-react"
 import {
   MESSAGING_PROVIDER,
-  MESSAGING_PROVIDER_LABELS,
   MESSAGE_STATUS,
-  MESSAGE_STATUS_LABELS,
-  MESSAGE_TYPE_LABELS,
 } from "@/lib/constants"
 import { useToast } from "@/components/ui/toast"
 import { useTranslations } from "next-intl"
@@ -58,6 +55,9 @@ async function fetchLogs(): Promise<MessageLogItem[]> {
 
 export default function MessagingPage() {
   const t = useTranslations("admin.messaging")
+  const tProvider = useTranslations("admin.messaging.enums.provider")
+  const tMsgStatus = useTranslations("admin.messaging.enums.messageStatus")
+  const tMsgType = useTranslations("admin.messaging.enums.messageType")
   const tc = useTranslations("common")
   const queryClient = useQueryClient()
   const { success, error: toastError } = useToast()
@@ -194,8 +194,8 @@ export default function MessagingPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(MESSAGING_PROVIDER_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                {Object.values(MESSAGING_PROVIDER).map((k) => (
+                  <SelectItem key={k} value={k}>{tProvider(k)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -204,11 +204,11 @@ export default function MessagingPage() {
           {provider === MESSAGING_PROVIDER.WHATSAPP_CLOUD && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Phone Number ID</Label>
+                <Label>{t("phoneNumberId")}</Label>
                 <Input value={waPhoneId} onChange={(e) => setWaPhoneId(e.target.value)} dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>Access Token {cfg?.whatsapp.accessTokenSet && <span className="text-xs text-emerald-600">({t("saved")})</span>}</Label>
+                <Label>{t("accessToken")} {cfg?.whatsapp.accessTokenSet && <span className="text-xs text-emerald-600">({t("saved")})</span>}</Label>
                 <Input
                   type="password"
                   value={waToken}
@@ -223,11 +223,11 @@ export default function MessagingPage() {
           {provider === MESSAGING_PROVIDER.TWILIO_SMS && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Account SID</Label>
+                <Label>{t("accountSid")}</Label>
                 <Input value={twSid} onChange={(e) => setTwSid(e.target.value)} dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>Auth Token {cfg?.twilio.authTokenSet && <span className="text-xs text-emerald-600">({t("saved")})</span>}</Label>
+                <Label>{t("authToken")} {cfg?.twilio.authTokenSet && <span className="text-xs text-emerald-600">({t("saved")})</span>}</Label>
                 <Input
                   type="password"
                   value={twToken}
@@ -265,7 +265,7 @@ export default function MessagingPage() {
                   <div className="mt-0.5">{statusIcon(log.status)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="text-[10px]">{MESSAGE_TYPE_LABELS[log.type] || log.type}</Badge>
+                      <Badge variant="outline" className="text-[10px]">{tMsgType(log.type)}</Badge>
                       <span className="text-xs text-muted-foreground" dir="ltr">{log.to}</span>
                       <Badge
                         variant="outline"
@@ -277,7 +277,7 @@ export default function MessagingPage() {
                             : "border-muted-foreground/30 text-muted-foreground"
                         }`}
                       >
-                        {MESSAGE_STATUS_LABELS[log.status] || log.status}
+                        {tMsgStatus(log.status)}
                       </Badge>
                     </div>
                     <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{log.body}</p>

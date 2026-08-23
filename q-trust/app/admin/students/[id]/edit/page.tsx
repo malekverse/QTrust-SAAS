@@ -26,7 +26,6 @@ import {
   GENDER,
   ACTIVITY_AREAS,
   EDUCATION_LEVELS,
-  DECLARATION_TEXT
 } from "@/lib/constants"
 import { TunisiaPhoneInput } from "@/components/ui/tunisia-phone-input"
 import { CINInput } from "@/components/ui/cin-input"
@@ -507,7 +506,7 @@ export default function EditStudentPage({
               </div>
               <div className="rounded-xl border bg-card/50 p-4 space-y-4">
                 <p className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg leading-relaxed">
-                  {DECLARATION_TEXT}
+                  {t("declarationText")}
                 </p>
                 <Controller
                   name="declarationAccepted"

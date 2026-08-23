@@ -1000,10 +1000,10 @@ export default async function AdminDashboardPage() {
       {/* Quran Quote */}
       <Card className="bg-gradient-to-l from-primary/5 to-transparent border-primary/20">
         <CardContent className="p-6 text-center">
-          <p className="text-xl font-arabic text-primary mb-2">
-            ﴿ وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ ﴾
+          <p className="text-xl font-arabic text-primary mb-2" dir="rtl">
+            {t("quranVerse")}
           </p>
-          <p className="text-sm text-muted-foreground">سورة القمر - الآية 17</p>
+          <p className="text-sm text-muted-foreground">{t("quranCitation")}</p>
         </CardContent>
       </Card>
     </div>

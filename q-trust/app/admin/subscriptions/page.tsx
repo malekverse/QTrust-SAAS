@@ -236,7 +236,7 @@ export default function SubscriptionsPage() {
     if (student.firstName && student.lastName) {
       return `${student.firstName[0]}${student.lastName[0]}`.toUpperCase()
     }
-    return student.displayName?.slice(0, 2).toUpperCase() || "؟"
+    return student.displayName?.slice(0, 2).toUpperCase() || tc("unknownInitial")
   }
 
   const handleQuickToggle = (student: StudentPayment) => {

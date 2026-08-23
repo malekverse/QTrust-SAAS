@@ -21,8 +21,13 @@ function readConfig() {
   const host = process.env.SMTP_HOST?.trim()
   const port = Number(process.env.SMTP_PORT || 587)
   const user = process.env.SMTP_USER?.trim()
-  const pass = process.env.SMTP_PASS
-  const from = process.env.EMAIL_FROM?.trim() || (user ? `Q-Trust <${user}>` : undefined)
+  // Accept both SMTP_PASS and SMTP_PASSWORD — the two conventions in the
+  // wild are 50/50 and it's a silent misconfig otherwise.
+  const pass = process.env.SMTP_PASS ?? process.env.SMTP_PASSWORD
+  const from =
+    process.env.EMAIL_FROM?.trim() ||
+    process.env.SMTP_FROM?.trim() ||
+    (user ? `Q-Trust <${user}>` : undefined)
   const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465
   return { host, port, user, pass, from, secure }
 }

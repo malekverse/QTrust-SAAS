@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
-import { ShieldCheck, Building2, Inbox, Receipt } from "lucide-react"
+import { ShieldCheck, Building2, Inbox, Receipt, LayoutDashboard } from "lucide-react"
 import { SignOutButton } from "./sign-out-button"
 import { getTranslations } from "next-intl/server"
 
@@ -47,6 +47,13 @@ export default async function SuperAdminLayout({
 
       <nav className="border-b bg-card/50">
         <div className="mx-auto max-w-6xl px-4 h-12 flex items-center gap-1">
+          <Link
+            href="/super-admin"
+            className="px-3 py-2 text-sm rounded-md hover:bg-muted flex items-center gap-2 transition-colors"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            {t("dashboard")}
+          </Link>
           <Link
             href="/super-admin/tenants"
             className="px-3 py-2 text-sm rounded-md hover:bg-muted flex items-center gap-2 transition-colors"

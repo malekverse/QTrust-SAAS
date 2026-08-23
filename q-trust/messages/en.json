@@ -1098,7 +1098,8 @@
       "tenants": "Organizations",
       "billing": "Billing",
       "leads": "Demo Requests",
-      "signOut": "Sign Out"
+      "signOut": "Sign Out",
+      "dashboard": "Dashboard"
     },
     "tenants": {
       "title": "Organization Management",
@@ -1318,6 +1319,48 @@
     "impersonation": {
       "bannerBody": "Impersonating {name} — {email}",
       "exitButton": "Exit"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of tenants, billing and activity",
+      "kpiTenants": "Tenants",
+      "kpiTenantsSub": "Paying {paying} · Trial {trial} · Suspended {suspended}",
+      "kpiStudents": "Students",
+      "kpiStudentsSub": "Total across all tenants",
+      "kpiMrr": "MRR",
+      "kpiMrrSub": "ARR: {arr} TND",
+      "kpiOutstanding": "Outstanding AR",
+      "kpiOutstandingSub": "{count} pending / overdue invoice(s)",
+      "kpiCollected": "Collected this month",
+      "kpiCollectedSub": "Invoices paid since the 1st",
+      "kpiLeads": "New leads",
+      "kpiLeadsSub": "All leads: {total}",
+      "kpiAiTokens": "AI usage (tokens)",
+      "kpiAiTokensSub": "{calls} calls · ~{tnd} TND",
+      "kpiAiCalls": "AI calls",
+      "kpiAiCallsSub": "Calls this month",
+      "leadsAwaitingTitle": "Leads awaiting contact",
+      "leadsAwaitingSubtitle": "New for over 2 days — call them",
+      "leadsAwaitingEmpty": "No old new leads",
+      "leadsAwaitingViewAll": "All new leads",
+      "overdueTitle": "Overdue invoices",
+      "overdueSubtitle": "Past due date",
+      "overdueEmpty": "No overdue invoices",
+      "overdueViewAll": "All invoices",
+      "overdueDue": "Due {date}",
+      "renewalsTitle": "Renewals within 30 days",
+      "renewalsSubtitle": "Call the customer before the period ends",
+      "renewalsEmpty": "No upcoming renewals",
+      "renewalsViewAll": "All tenants",
+      "inactiveTitle": "Inactive tenants",
+      "inactiveSubtitle": "Admin has not signed in for 30+ days",
+      "inactiveEmpty": "No inactive tenants",
+      "inactiveViewAll": "All tenants",
+      "inactiveLastLogin": "Last login {date}",
+      "inactiveNeverLoggedIn": "Admin has never signed in",
+      "activityTitle": "Recent activity",
+      "activitySubtitle": "Latest platform-operator actions",
+      "activityEmpty": "No activity yet"
     }
   },
   "scanner": {

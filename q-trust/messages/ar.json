@@ -1098,7 +1098,8 @@
       "tenants": "المؤسسات",
       "billing": "الفوترة",
       "leads": "طلبات العروض",
-      "signOut": "خروج"
+      "signOut": "خروج",
+      "dashboard": "لوحة القيادة"
     },
     "tenants": {
       "title": "إدارة المؤسسات",
@@ -1318,6 +1319,48 @@
     "impersonation": {
       "bannerBody": "أنت في جلسة انتحال هوية بصفة {name} — {email}",
       "exitButton": "الخروج"
+    },
+    "dashboard": {
+      "title": "لوحة القيادة",
+      "subtitle": "نظرة عامة على المؤسسات والفوترة والنشاط",
+      "kpiTenants": "المؤسسات",
+      "kpiTenantsSub": "مدفوع {paying} · تجريبي {trial} · معلّق {suspended}",
+      "kpiStudents": "الطلاب",
+      "kpiStudentsSub": "إجمالي عبر جميع المؤسسات",
+      "kpiMrr": "الإيراد الشهري (MRR)",
+      "kpiMrrSub": "سنوي: {arr} د.ت",
+      "kpiOutstanding": "مستحق التحصيل",
+      "kpiOutstandingSub": "{count} فاتورة قيد الانتظار / متأخّرة",
+      "kpiCollected": "محصّل هذا الشهر",
+      "kpiCollectedSub": "الفواتير المدفوعة منذ بداية الشهر",
+      "kpiLeads": "طلبات جديدة",
+      "kpiLeadsSub": "إجمالي كل الطلبات: {total}",
+      "kpiAiTokens": "استهلاك AI (رموز)",
+      "kpiAiTokensSub": "{calls} استدعاء · ~{tnd} د.ت",
+      "kpiAiCalls": "استدعاءات AI",
+      "kpiAiCallsSub": "المكالمات هذا الشهر",
+      "leadsAwaitingTitle": "طلبات تنتظر المتابعة",
+      "leadsAwaitingSubtitle": "جديدة منذ أكثر من يومين — اتصل بها",
+      "leadsAwaitingEmpty": "لا توجد طلبات جديدة قديمة",
+      "leadsAwaitingViewAll": "كل الطلبات الجديدة",
+      "overdueTitle": "فواتير متأخّرة",
+      "overdueSubtitle": "تجاوزت تاريخ الاستحقاق",
+      "overdueEmpty": "لا توجد فواتير متأخّرة",
+      "overdueViewAll": "كل الفواتير",
+      "overdueDue": "استحق في {date}",
+      "renewalsTitle": "تجديدات في 30 يوماً",
+      "renewalsSubtitle": "اتصل بالعميل قبل انتهاء الفترة",
+      "renewalsEmpty": "لا توجد تجديدات قريبة",
+      "renewalsViewAll": "كل المؤسسات",
+      "inactiveTitle": "مؤسسات خاملة",
+      "inactiveSubtitle": "لم يدخل المدير منذ 30 يوماً أو أكثر",
+      "inactiveEmpty": "لا توجد مؤسسات خاملة",
+      "inactiveViewAll": "كل المؤسسات",
+      "inactiveLastLogin": "آخر دخول {date}",
+      "inactiveNeverLoggedIn": "لم يدخل المدير أبداً",
+      "activityTitle": "آخر النشاط",
+      "activitySubtitle": "أحدث عمليات مدراء المنصة",
+      "activityEmpty": "لا يوجد نشاط بعد"
     }
   },
   "scanner": {

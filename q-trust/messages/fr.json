@@ -1098,7 +1098,8 @@
       "tenants": "Établissements",
       "billing": "Facturation",
       "leads": "Demandes de démo",
-      "signOut": "Déconnexion"
+      "signOut": "Déconnexion",
+      "dashboard": "Tableau de bord"
     },
     "tenants": {
       "title": "Gestion des établissements",
@@ -1318,6 +1319,48 @@
     "impersonation": {
       "bannerBody": "Session d'usurpation active : {name} — {email}",
       "exitButton": "Quitter"
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "subtitle": "Vue d'ensemble des clients, de la facturation et de l'activité",
+      "kpiTenants": "Clients",
+      "kpiTenantsSub": "Payants {paying} · Essai {trial} · Suspendus {suspended}",
+      "kpiStudents": "Élèves",
+      "kpiStudentsSub": "Total tous clients confondus",
+      "kpiMrr": "Revenu mensuel (MRR)",
+      "kpiMrrSub": "Annuel : {arr} DT",
+      "kpiOutstanding": "À encaisser",
+      "kpiOutstandingSub": "{count} facture(s) en attente / en retard",
+      "kpiCollected": "Encaissé ce mois",
+      "kpiCollectedSub": "Factures payées depuis le 1er du mois",
+      "kpiLeads": "Nouvelles demandes",
+      "kpiLeadsSub": "Total demandes : {total}",
+      "kpiAiTokens": "Consommation IA (tokens)",
+      "kpiAiTokensSub": "{calls} appels · ~{tnd} DT",
+      "kpiAiCalls": "Appels IA",
+      "kpiAiCallsSub": "Appels ce mois",
+      "leadsAwaitingTitle": "Demandes en attente",
+      "leadsAwaitingSubtitle": "Nouvelles depuis plus de 2 jours — à rappeler",
+      "leadsAwaitingEmpty": "Aucune demande à relancer",
+      "leadsAwaitingViewAll": "Toutes les demandes",
+      "overdueTitle": "Factures en retard",
+      "overdueSubtitle": "Date d'échéance dépassée",
+      "overdueEmpty": "Aucune facture en retard",
+      "overdueViewAll": "Toutes les factures",
+      "overdueDue": "Échue le {date}",
+      "renewalsTitle": "Renouvellements sous 30 jours",
+      "renewalsSubtitle": "Appelez avant la fin de la période",
+      "renewalsEmpty": "Aucun renouvellement proche",
+      "renewalsViewAll": "Tous les clients",
+      "inactiveTitle": "Clients inactifs",
+      "inactiveSubtitle": "Administrateur sans connexion depuis plus de 30 jours",
+      "inactiveEmpty": "Aucun client inactif",
+      "inactiveViewAll": "Tous les clients",
+      "inactiveLastLogin": "Dernière connexion {date}",
+      "inactiveNeverLoggedIn": "Jamais connecté",
+      "activityTitle": "Activité récente",
+      "activitySubtitle": "Dernières actions des administrateurs de la plateforme",
+      "activityEmpty": "Aucune activité pour le moment"
     }
   },
   "scanner": {

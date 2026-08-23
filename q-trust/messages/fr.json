@@ -1099,7 +1099,9 @@
       "billing": "Facturation",
       "leads": "Demandes de démo",
       "signOut": "Déconnexion",
-      "dashboard": "Tableau de bord"
+      "dashboard": "Tableau de bord",
+      "audit": "Journal",
+      "operators": "Administrateurs"
     },
     "tenants": {
       "title": "Gestion des établissements",
@@ -1449,6 +1451,100 @@
       "activityTitle": "Activité récente",
       "activitySubtitle": "Dernières actions des administrateurs de la plateforme",
       "activityEmpty": "Aucune activité pour le moment"
+    },
+    "enums": {
+      "plan": {
+        "STARTER": "Débutant",
+        "STANDARD": "Standard",
+        "PREMIUM": "Premium"
+      },
+      "tenantStatus": {
+        "TRIAL": "Essai",
+        "ACTIVE": "Actif",
+        "PAST_DUE": "Paiement en retard",
+        "SUSPENDED": "Suspendu",
+        "CANCELLED": "Résilié"
+      },
+      "paymentMethod": {
+        "BANK_TRANSFER": "Virement bancaire",
+        "CHECK": "Chèque",
+        "CASH": "Espèces",
+        "CARD": "Carte"
+      },
+      "invoiceType": {
+        "SETUP": "Frais de mise en place",
+        "ANNUAL_RENEWAL": "Renouvellement annuel",
+        "ADDON": "Service additionnel"
+      },
+      "invoiceStatus": {
+        "PENDING": "En attente",
+        "PAID": "Payée",
+        "OVERDUE": "En retard",
+        "CANCELLED": "Annulée"
+      }
+    },
+    "audit": {
+      "pageTitle": "Journal des opérations plateforme",
+      "pageSubtitle": "{count} opération(s) enregistrée(s)",
+      "filterAllActions": "Toutes les opérations",
+      "actorPlaceholder": "Rechercher par e-mail de l'acteur…",
+      "timelineTitle": "Plus récent en premier",
+      "noResults": "Aucun résultat",
+      "sweepSummary": "En retard {overdue} · Renouvellements {renewals} · Essais {trials}",
+      "actions": {
+        "TENANT_PROVISIONED": "Client créé",
+        "TENANT_UPDATED": "Client modifié",
+        "TENANT_PLAN_CHANGED": "Formule modifiée",
+        "TENANT_STATUS_CHANGED": "Statut modifié",
+        "TENANT_DELETED": "Client supprimé",
+        "TENANT_LIMITS_CHANGED": "Limites modifiées",
+        "ADMIN_ACCESS_REISSUED": "Réémission du lien d'activation",
+        "ADMIN_ACCESS_REVEALED": "Lien d'activation dévoilé",
+        "ADMIN_ACCESS_EMAILED": "Lien envoyé par e-mail",
+        "ADMIN_PASSWORD_RESET": "Mot de passe réinitialisé",
+        "IMPERSONATION_STARTED": "Usurpation démarrée",
+        "IMPERSONATION_ENDED": "Usurpation terminée",
+        "LEAD_CONVERTED": "Demande convertie",
+        "LEAD_DELETED": "Demande supprimée",
+        "INVOICE_CREATED": "Facture créée",
+        "INVOICE_PAID": "Facture payée",
+        "INVOICE_CANCELLED": "Facture annulée",
+        "BILLING_SWEEP_RUN": "Facturation automatique",
+        "SUPER_ADMIN_CREATED": "Administrateur plateforme créé"
+      }
+    },
+    "operators": {
+      "pageTitle": "Administrateurs plateforme",
+      "pageSubtitle": "Gérer les comptes ayant les droits plateforme complets",
+      "addOperator": "Ajouter un administrateur",
+      "addOperatorTitle": "Ajouter un nouvel administrateur plateforme",
+      "addOperatorDescription": "Un compte est créé et un lien d'activation valable 72h est généré.",
+      "addOperatorSuccess": "Compte créé — copiez et transmettez le lien.",
+      "listTitle": "Liste des administrateurs",
+      "noOperators": "Aucun administrateur plateforme pour l'instant",
+      "fullName": "Nom complet",
+      "email": "E-mail",
+      "linkCopied": "Copié",
+      "operatorAdded": "Ajouté",
+      "operatorAddedBody": "Envoyez le lien d'activation à {email}.",
+      "active": "Actif",
+      "inactive": "Désactivé",
+      "pendingActivation": "En attente",
+      "neverLoggedIn": "Jamais connecté",
+      "statusUpdated": "Statut mis à jour",
+      "nameCol": "Nom",
+      "statusCol": "Statut",
+      "lastLoginCol": "Dernière connexion",
+      "actionsCol": "Actions",
+      "deactivateTitle": "Désactiver le compte ?",
+      "deactivateBody": "{email} ne pourra plus se connecter tant que vous ne réactivez pas le compte.",
+      "reactivateTitle": "Réactiver le compte ?",
+      "reactivateBody": "{email} pourra se connecter à nouveau.",
+      "resetPasswordTitle": "Réinitialiser le mot de passe ?",
+      "resetPasswordBody": "Le lien précédent de {email} sera invalidé et un nouveau sera généré.",
+      "passwordReset": "Nouveau lien émis",
+      "passwordResetBody": "Copiez-le et transmettez-le.",
+      "resetRevealPrefix": "Nouveau lien pour"
     }
   },
   "scanner": {

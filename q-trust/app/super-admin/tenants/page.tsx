@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Building2 } from "lucide-react"
-import { PLAN_LABELS, TENANT_STATUS_LABELS } from "@/lib/constants"
 import { getEffectiveLimits } from "@/lib/entitlements"
 import { getTranslations } from "next-intl/server"
 
@@ -15,6 +14,8 @@ export default async function TenantsPage() {
   await requireSuperAdmin()
   await dbConnect()
   const t = await getTranslations("superAdmin")
+  const tPlan = await getTranslations("superAdmin.enums.plan")
+  const tStatus = await getTranslations("superAdmin.enums.tenantStatus")
 
   const tenants = await Tenant.find({}).sort({ createdAt: -1 }).lean()
   const rows = await Promise.all(
@@ -74,9 +75,9 @@ export default async function TenantsPage() {
                     )}
                   </td>
                   <td className="p-3 text-muted-foreground" dir="ltr">{tn.slug}</td>
-                  <td className="p-3">{PLAN_LABELS[tn.plan] ?? tn.plan}</td>
+                  <td className="p-3">{tPlan(tn.plan)}</td>
                   <td className="p-3">
-                    <Badge variant="outline">{TENANT_STATUS_LABELS[tn.status] ?? tn.status}</Badge>
+                    <Badge variant="outline">{tStatus(tn.status)}</Badge>
                   </td>
                   <td className="p-3">
                     {tn.studentCount}

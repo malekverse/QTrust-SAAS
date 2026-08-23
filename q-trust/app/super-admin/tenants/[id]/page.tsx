@@ -10,11 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Users } from "lucide-react"
-import {
-  TENANT_STATUS_LABELS,
-  PAYMENT_METHOD_LABELS,
-  INVOICE_TYPE_LABELS,
-} from "@/lib/constants"
 import { PlanStatusForm, InvoicePaymentControl } from "./tenant-actions"
 import { getEffectiveLimits } from "@/lib/entitlements"
 import { AccessCard } from "./access-card"
@@ -45,6 +40,9 @@ export default async function TenantDetailPage({
 
   await dbConnect()
   const t = await getTranslations("superAdmin")
+  const tStatus = await getTranslations("superAdmin.enums.tenantStatus")
+  const tMethod = await getTranslations("superAdmin.enums.paymentMethod")
+  const tInvType = await getTranslations("superAdmin.enums.invoiceType")
 
   const tenant: any = await Tenant.findById(id).lean()
   if (!tenant) notFound()
@@ -66,7 +64,7 @@ export default async function TenantDetailPage({
           <h1 className="text-2xl font-bold truncate">{tenant.name}</h1>
           <p className="text-sm text-muted-foreground" dir="ltr">/t/{tenant.slug}</p>
         </div>
-        <Badge variant="outline">{TENANT_STATUS_LABELS[tenant.status] ?? tenant.status}</Badge>
+        <Badge variant="outline">{tStatus(tenant.status)}</Badge>
         <EditProfileDialog
           tenant={{
             _id: tenant._id.toString(),
@@ -156,7 +154,10 @@ export default async function TenantDetailPage({
             <Field label={t("tenants.orgPhone")} value={tenant.contact?.phone ? <span dir="ltr">{tenant.contact.phone}</span> : "—"} />
             <Field label={t("tenants.setupFeeLabel")} value={`${tenant.billing?.setupFeeAmountTND ?? 0} ${t("billing.currency")}`} />
             <Field label={t("tenants.annualFeeLabel")} value={`${tenant.billing?.annualFeeAmountTND ?? 0} ${t("billing.currency")}`} />
-            <Field label={t("tenants.paymentMethod")} value={PAYMENT_METHOD_LABELS[tenant.billing?.paymentMethod] ?? "—"} />
+            <Field
+              label={t("tenants.paymentMethod")}
+              value={tenant.billing?.paymentMethod ? tMethod(tenant.billing.paymentMethod) : "—"}
+            />
             <Field label={t("tenants.setupPayment")} value={tenant.billing?.setupFeePaid ? t("billing.paid") : t("billing.pending")} />
           </CardContent>
         </Card>
@@ -176,7 +177,7 @@ export default async function TenantDetailPage({
                     className="flex items-start justify-between gap-2 border-b pb-2 last:border-0"
                   >
                     <div>
-                      <p className="text-sm font-medium">{INVOICE_TYPE_LABELS[inv.type] ?? inv.type}</p>
+                      <p className="text-sm font-medium">{tInvType(inv.type)}</p>
                       <p className="text-xs text-muted-foreground">{t("tenants.dueLabel")} {fmtDate(inv.dueDate)}</p>
                     </div>
                     <InvoicePaymentControl

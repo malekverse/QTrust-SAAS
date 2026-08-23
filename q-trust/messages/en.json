@@ -1099,7 +1099,9 @@
       "billing": "Billing",
       "leads": "Demo Requests",
       "signOut": "Sign Out",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "audit": "Audit",
+      "operators": "Admins"
     },
     "tenants": {
       "title": "Organization Management",
@@ -1449,6 +1451,100 @@
       "activityTitle": "Recent activity",
       "activitySubtitle": "Latest platform-operator actions",
       "activityEmpty": "No activity yet"
+    },
+    "enums": {
+      "plan": {
+        "STARTER": "Starter",
+        "STANDARD": "Standard",
+        "PREMIUM": "Premium"
+      },
+      "tenantStatus": {
+        "TRIAL": "Trial",
+        "ACTIVE": "Active",
+        "PAST_DUE": "Past due",
+        "SUSPENDED": "Suspended",
+        "CANCELLED": "Cancelled"
+      },
+      "paymentMethod": {
+        "BANK_TRANSFER": "Bank transfer",
+        "CHECK": "Check",
+        "CASH": "Cash",
+        "CARD": "Card"
+      },
+      "invoiceType": {
+        "SETUP": "Setup fee",
+        "ANNUAL_RENEWAL": "Annual renewal",
+        "ADDON": "Add-on"
+      },
+      "invoiceStatus": {
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "OVERDUE": "Overdue",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "audit": {
+      "pageTitle": "Platform audit log",
+      "pageSubtitle": "{count} recorded event(s)",
+      "filterAllActions": "All actions",
+      "actorPlaceholder": "Search by actor email…",
+      "timelineTitle": "Most recent first",
+      "noResults": "No matching results",
+      "sweepSummary": "Overdue {overdue} · Renewals {renewals} · Trials {trials}",
+      "actions": {
+        "TENANT_PROVISIONED": "Tenant created",
+        "TENANT_UPDATED": "Tenant updated",
+        "TENANT_PLAN_CHANGED": "Plan changed",
+        "TENANT_STATUS_CHANGED": "Status changed",
+        "TENANT_DELETED": "Tenant deleted",
+        "TENANT_LIMITS_CHANGED": "Limits changed",
+        "ADMIN_ACCESS_REISSUED": "Activation link re-issued",
+        "ADMIN_ACCESS_REVEALED": "Activation link revealed",
+        "ADMIN_ACCESS_EMAILED": "Activation link emailed",
+        "ADMIN_PASSWORD_RESET": "Password reset",
+        "IMPERSONATION_STARTED": "Impersonation started",
+        "IMPERSONATION_ENDED": "Impersonation ended",
+        "LEAD_CONVERTED": "Lead converted",
+        "LEAD_DELETED": "Lead deleted",
+        "INVOICE_CREATED": "Invoice created",
+        "INVOICE_PAID": "Invoice paid",
+        "INVOICE_CANCELLED": "Invoice cancelled",
+        "BILLING_SWEEP_RUN": "Billing sweep run",
+        "SUPER_ADMIN_CREATED": "Platform admin created"
+      }
+    },
+    "operators": {
+      "pageTitle": "Platform admins",
+      "pageSubtitle": "Manage accounts with full platform-operator privileges",
+      "addOperator": "Add platform admin",
+      "addOperatorTitle": "Add a new platform admin",
+      "addOperatorDescription": "An account is created with a 72h activation link.",
+      "addOperatorSuccess": "Account created — copy and hand over the link.",
+      "listTitle": "Platform admins",
+      "noOperators": "No platform admins yet",
+      "fullName": "Full name",
+      "email": "Email",
+      "linkCopied": "Copied",
+      "operatorAdded": "Added",
+      "operatorAddedBody": "Send the activation link to {email}.",
+      "active": "Active",
+      "inactive": "Disabled",
+      "pendingActivation": "Pending activation",
+      "neverLoggedIn": "Never signed in",
+      "statusUpdated": "Status updated",
+      "nameCol": "Name",
+      "statusCol": "Status",
+      "lastLoginCol": "Last login",
+      "actionsCol": "Actions",
+      "deactivateTitle": "Deactivate account?",
+      "deactivateBody": "{email} will not be able to sign in until you reactivate the account.",
+      "reactivateTitle": "Reactivate account?",
+      "reactivateBody": "{email} will be able to sign in again.",
+      "resetPasswordTitle": "Reset password?",
+      "resetPasswordBody": "Invalidates any previous link for {email} and issues a new one.",
+      "passwordReset": "New link issued",
+      "passwordResetBody": "Copy it and hand it over.",
+      "resetRevealPrefix": "New link for"
     }
   },
   "scanner": {

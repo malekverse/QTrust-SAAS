@@ -29,10 +29,7 @@ import {
 } from "lucide-react"
 import {
   INVOICE_STATUS,
-  INVOICE_TYPE_LABELS,
-  INVOICE_STATUS_LABELS,
   PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
 } from "@/lib/constants"
 
 type Invoice = {
@@ -82,6 +79,8 @@ function statusBadgeCls(s: string) {
 export default function BillingPage() {
   const qc = useQueryClient()
   const t = useTranslations("superAdmin.billing")
+  const tType = useTranslations("superAdmin.enums.invoiceType")
+  const tStatus = useTranslations("superAdmin.enums.invoiceStatus")
   const tc = useTranslations("common")
   const { success, error: showError } = useToast()
 
@@ -242,10 +241,10 @@ export default function BillingPage() {
 
   const tabs: { key: string; label: string; count?: number }[] = [
     { key: "all", label: tc("all") ?? "الكل" },
-    { key: INVOICE_STATUS.PENDING, label: INVOICE_STATUS_LABELS.PENDING, count: pending?.count },
-    { key: INVOICE_STATUS.OVERDUE, label: INVOICE_STATUS_LABELS.OVERDUE, count: overdue?.count },
-    { key: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS.PAID },
-    { key: INVOICE_STATUS.CANCELLED, label: INVOICE_STATUS_LABELS.CANCELLED },
+    { key: INVOICE_STATUS.PENDING, label: tStatus("PENDING"), count: pending?.count },
+    { key: INVOICE_STATUS.OVERDUE, label: tStatus("OVERDUE"), count: overdue?.count },
+    { key: INVOICE_STATUS.PAID, label: tStatus("PAID") },
+    { key: INVOICE_STATUS.CANCELLED, label: tStatus("CANCELLED") },
   ]
 
   return (
@@ -427,7 +426,7 @@ export default function BillingPage() {
                           {inv.tenant?.name ?? "—"}
                         </Link>
                       </td>
-                      <td className="p-3">{INVOICE_TYPE_LABELS[inv.type] ?? inv.type}</td>
+                      <td className="p-3">{tType(inv.type)}</td>
                       <td className="p-3 font-semibold whitespace-nowrap">
                         {fmtTND(inv.amountTND)} {t("currency")}
                       </td>
@@ -439,7 +438,7 @@ export default function BillingPage() {
                           variant="outline"
                           className={`text-xs ${statusBadgeCls(inv.status)}`}
                         >
-                          {INVOICE_STATUS_LABELS[inv.status] ?? inv.status}
+                          {tStatus(inv.status)}
                         </Badge>
                       </td>
                       <td className="p-3">
@@ -528,6 +527,7 @@ function InlineAction({
   isBusy: boolean
 }) {
   const t = useTranslations("superAdmin.billing")
+  const tMethod = useTranslations("superAdmin.enums.paymentMethod")
   const [open, setOpen] = useState(false)
   const [method, setMethod] = useState<string>(PAYMENT_METHODS.BANK_TRANSFER)
   const [ref, setRef] = useState("")
@@ -564,7 +564,7 @@ function InlineAction({
       >
         {Object.values(PAYMENT_METHODS).map((m) => (
           <option key={m} value={m}>
-            {PAYMENT_METHOD_LABELS[m] ?? m}
+            {tMethod(m)}
           </option>
         ))}
       </select>

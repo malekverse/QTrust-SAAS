@@ -1099,7 +1099,9 @@
       "billing": "الفوترة",
       "leads": "طلبات العروض",
       "signOut": "خروج",
-      "dashboard": "لوحة القيادة"
+      "dashboard": "لوحة القيادة",
+      "audit": "السجل",
+      "operators": "مدراء المنصة"
     },
     "tenants": {
       "title": "إدارة المؤسسات",
@@ -1449,6 +1451,100 @@
       "activityTitle": "آخر النشاط",
       "activitySubtitle": "أحدث عمليات مدراء المنصة",
       "activityEmpty": "لا يوجد نشاط بعد"
+    },
+    "enums": {
+      "plan": {
+        "STARTER": "مبتدئ",
+        "STANDARD": "احترافي",
+        "PREMIUM": "متقدم"
+      },
+      "tenantStatus": {
+        "TRIAL": "تجريبي",
+        "ACTIVE": "نشط",
+        "PAST_DUE": "متأخر السداد",
+        "SUSPENDED": "معلّق",
+        "CANCELLED": "ملغى"
+      },
+      "paymentMethod": {
+        "BANK_TRANSFER": "تحويل بنكي",
+        "CHECK": "شيك",
+        "CASH": "نقداً",
+        "CARD": "بطاقة"
+      },
+      "invoiceType": {
+        "SETUP": "رسوم التركيب والإعداد",
+        "ANNUAL_RENEWAL": "تجديد سنوي",
+        "ADDON": "خدمة إضافية"
+      },
+      "invoiceStatus": {
+        "PENDING": "قيد الانتظار",
+        "PAID": "مدفوع",
+        "OVERDUE": "متأخر",
+        "CANCELLED": "ملغى"
+      }
+    },
+    "audit": {
+      "pageTitle": "سجل عمليات المنصة",
+      "pageSubtitle": "{count} عملية مسجّلة",
+      "filterAllActions": "كل العمليات",
+      "actorPlaceholder": "بحث بالبريد الإلكتروني للفاعل…",
+      "timelineTitle": "الأحدث أولاً",
+      "noResults": "لا توجد نتائج مطابقة",
+      "sweepSummary": "متأخّرة {overdue} · تجديدات {renewals} · تجارب {trials}",
+      "actions": {
+        "TENANT_PROVISIONED": "إنشاء مؤسسة",
+        "TENANT_UPDATED": "تعديل مؤسسة",
+        "TENANT_PLAN_CHANGED": "تغيير باقة",
+        "TENANT_STATUS_CHANGED": "تغيير حالة",
+        "TENANT_DELETED": "حذف مؤسسة",
+        "TENANT_LIMITS_CHANGED": "تعديل الحدود",
+        "ADMIN_ACCESS_REISSUED": "إعادة إصدار رابط تفعيل",
+        "ADMIN_ACCESS_REVEALED": "كشف رابط التفعيل",
+        "ADMIN_ACCESS_EMAILED": "إرسال رابط بالبريد",
+        "ADMIN_PASSWORD_RESET": "إعادة تعيين كلمة مرور",
+        "IMPERSONATION_STARTED": "بدء انتحال هوية",
+        "IMPERSONATION_ENDED": "إنهاء انتحال هوية",
+        "LEAD_CONVERTED": "تحويل طلب إلى مؤسسة",
+        "LEAD_DELETED": "حذف طلب",
+        "INVOICE_CREATED": "إنشاء فاتورة",
+        "INVOICE_PAID": "تسديد فاتورة",
+        "INVOICE_CANCELLED": "إلغاء فاتورة",
+        "BILLING_SWEEP_RUN": "تشغيل الفوترة الآلية",
+        "SUPER_ADMIN_CREATED": "إنشاء مدير منصة"
+      }
+    },
+    "operators": {
+      "pageTitle": "مدراء المنصة",
+      "pageSubtitle": "إدارة الحسابات ذات صلاحيات المنصة الكاملة",
+      "addOperator": "إضافة مدير منصة",
+      "addOperatorTitle": "إضافة مدير منصة جديد",
+      "addOperatorDescription": "سيُنشأ حساب مدير جديد ويُصدر رابط تفعيل صالح 72 ساعة.",
+      "addOperatorSuccess": "تم إنشاء الحساب — انسخ الرابط وسلّمه.",
+      "listTitle": "قائمة المدراء",
+      "noOperators": "لا يوجد مدراء منصة بعد",
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "linkCopied": "تم النسخ",
+      "operatorAdded": "تمت الإضافة",
+      "operatorAddedBody": "أرسل رابط التفعيل إلى {email}.",
+      "active": "مفعّل",
+      "inactive": "موقوف",
+      "pendingActivation": "بانتظار التفعيل",
+      "neverLoggedIn": "لم يدخل بعد",
+      "statusUpdated": "تم تحديث الحالة",
+      "nameCol": "الاسم",
+      "statusCol": "الحالة",
+      "lastLoginCol": "آخر دخول",
+      "actionsCol": "الإجراءات",
+      "deactivateTitle": "إيقاف الحساب؟",
+      "deactivateBody": "لن يستطيع {email} الدخول حتى تعيد التفعيل.",
+      "reactivateTitle": "إعادة تفعيل الحساب؟",
+      "reactivateBody": "سيستطيع {email} الدخول مجدّداً.",
+      "resetPasswordTitle": "إعادة تعيين كلمة المرور؟",
+      "resetPasswordBody": "سيتم إبطال أي رابط سابق لـ {email} وإصدار رابط جديد.",
+      "passwordReset": "تم الإصدار",
+      "passwordResetBody": "انسخ الرابط وسلّمه.",
+      "resetRevealPrefix": "رابط جديد لـ"
     }
   },
   "scanner": {

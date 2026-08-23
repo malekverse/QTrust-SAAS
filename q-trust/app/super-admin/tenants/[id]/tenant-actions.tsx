@@ -12,10 +12,6 @@ import {
   TENANT_STATUS,
   PAYMENT_METHODS,
   INVOICE_STATUS,
-  PLAN_LABELS,
-  TENANT_STATUS_LABELS,
-  PAYMENT_METHOD_LABELS,
-  INVOICE_STATUS_LABELS,
 } from "@/lib/constants"
 import { useTranslations } from "next-intl"
 
@@ -43,6 +39,8 @@ export function PlanStatusForm({
 }) {
   const router = useRouter()
   const t = useTranslations("superAdmin.tenants")
+  const tPlan = useTranslations("superAdmin.enums.plan")
+  const tStatus = useTranslations("superAdmin.enums.tenantStatus")
   const tc = useTranslations("common")
   const [nextPlan, setNextPlan] = useState(plan)
   const [nextStatus, setNextStatus] = useState(status)
@@ -109,7 +107,7 @@ export function PlanStatusForm({
           <select value={nextPlan} onChange={(e) => setNextPlan(e.target.value)} className={selectCls}>
             {Object.values(PLANS).map((p) => (
               <option key={p} value={p}>
-                {PLAN_LABELS[p] ?? p}
+                {tPlan(p)}
               </option>
             ))}
           </select>
@@ -123,7 +121,7 @@ export function PlanStatusForm({
           >
             {Object.values(TENANT_STATUS).map((s) => (
               <option key={s} value={s}>
-                {TENANT_STATUS_LABELS[s] ?? s}
+                {tStatus(s)}
               </option>
             ))}
           </select>
@@ -168,6 +166,8 @@ export function InvoicePaymentControl({
 }) {
   const router = useRouter()
   const t = useTranslations("superAdmin.tenants")
+  const tInvStatus = useTranslations("superAdmin.enums.invoiceStatus")
+  const tMethod = useTranslations("superAdmin.enums.paymentMethod")
   const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [method, setMethod] = useState<string>(PAYMENT_METHODS.BANK_TRANSFER)
@@ -204,7 +204,7 @@ export function InvoicePaymentControl({
     <div className="text-left">
       <p className="text-sm font-semibold">{amountTND} {t("currency")}</p>
       <Badge variant={isPaid ? "default" : "outline"} className="text-xs">
-        {INVOICE_STATUS_LABELS[status] ?? status}
+        {tInvStatus(status)}
       </Badge>
 
       {isPaid ? (
@@ -232,7 +232,7 @@ export function InvoicePaymentControl({
           <select value={method} onChange={(e) => setMethod(e.target.value)} className={selectCls}>
             {Object.values(PAYMENT_METHODS).map((m) => (
               <option key={m} value={m}>
-                {PAYMENT_METHOD_LABELS[m] ?? m}
+                {tMethod(m)}
               </option>
             ))}
           </select>

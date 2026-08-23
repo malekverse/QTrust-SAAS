@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, ArrowRight, CheckCircle2, Copy, Info, Check, X, Building2 } from "lucide-react"
-import { PLANS, PLAN_LABELS, STUDENT_RANGES, STUDENT_RANGE_SUGGESTED_PLAN } from "@/lib/constants"
+import { PLANS, STUDENT_RANGES, STUDENT_RANGE_SUGGESTED_PLAN } from "@/lib/constants"
 import { useTranslations } from "next-intl"
 
 type ProvisionResult = {
@@ -73,6 +73,7 @@ function NewTenantPage() {
   const leadId = searchParams.get("leadId") ?? undefined
 
   const t = useTranslations("superAdmin")
+  const tPlan = useTranslations("superAdmin.enums.plan")
   const tc = useTranslations("common")
 
   // Fetch the lead server-side (via API) when leadId is present; the query
@@ -342,7 +343,7 @@ function NewTenantPage() {
               >
                 {Object.values(PLANS).map((p) => (
                   <option key={p} value={p}>
-                    {PLAN_LABELS[p] ?? p}
+                    {tPlan(p)}
                   </option>
                 ))}
               </select>

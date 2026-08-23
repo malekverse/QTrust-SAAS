@@ -27,7 +27,7 @@ import {
   UserX,
   Activity,
 } from "lucide-react"
-import { ROLES, TENANT_STATUS, TENANT_STATUS_LABELS } from "@/lib/constants"
+import { ROLES, TENANT_STATUS } from "@/lib/constants"
 
 void Tenant
 void Student
@@ -378,6 +378,7 @@ async function NeedsAttentionOverdue({ t }: { t: Awaited<ReturnType<typeof getTr
 
 async function NeedsAttentionRenewals({ t }: { t: Awaited<ReturnType<typeof getTranslations>> }) {
   await dbConnect()
+  const tStatus = await getTranslations("superAdmin.enums.tenantStatus")
   const now = new Date()
   const in30d = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
   const renewals = await Tenant.find({
@@ -407,7 +408,7 @@ async function NeedsAttentionRenewals({ t }: { t: Awaited<ReturnType<typeof getT
         key: String(r._id),
         href: `/super-admin/tenants/${String(r._id)}`,
         primary: r.name,
-        secondary: TENANT_STATUS_LABELS[r.status] ?? r.status,
+        secondary: tStatus(r.status),
         meta: fmtDate(r.billing?.currentPeriodEnd),
       }))}
     />

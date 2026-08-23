@@ -62,3 +62,5 @@ export { default as ActivationToken, generateActivationToken, hashToken, DEFAULT
 export type { IActivationToken } from './ActivationToken'
 export { default as EmailLog, EMAIL_TEMPLATES } from './EmailLog'
 export type { IEmailLog, EmailLogStatus, EmailTemplateKey } from './EmailLog'
+export { default as PlatformCounter } from './PlatformCounter'
+export type { IPlatformCounter } from './PlatformCounter'

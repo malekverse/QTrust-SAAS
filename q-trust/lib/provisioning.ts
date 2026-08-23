@@ -12,6 +12,7 @@ import ActivationToken, {
   generateActivationToken,
 } from '@/models/ActivationToken'
 import { hashPassword } from '@/lib/auth'
+import { generateInvoiceNumber } from '@/lib/invoice-numbering'
 import {
   ROLES,
   PLANS,
@@ -242,6 +243,7 @@ export async function provisionTenant(
             amountTND: setupFee,
             status: INVOICE_STATUS.PENDING,
             dueDate: now,
+            invoiceNumber: await generateInvoiceNumber(now),
             createdBy: actor.id,
           })
         }
@@ -252,6 +254,10 @@ export async function provisionTenant(
             amountTND: annualFee,
             status: INVOICE_STATUS.PENDING,
             dueDate: periodEnd,
+            invoiceNumber: await generateInvoiceNumber(now),
+            // The first-period renewal is scoped to the initial billing
+            // year — the cron uses this key to avoid double-generating.
+            periodKey: `${periodEnd.getUTCFullYear()}-${String(periodEnd.getUTCMonth() + 1).padStart(2, '0')}`,
             createdBy: actor.id,
           })
         }
@@ -378,6 +384,7 @@ export async function provisionTenant(
         amountTND: setupFee,
         status: INVOICE_STATUS.PENDING,
         dueDate: now,
+        invoiceNumber: await generateInvoiceNumber(now),
         createdBy: actor.id,
       })
     }
@@ -388,6 +395,8 @@ export async function provisionTenant(
         amountTND: annualFee,
         status: INVOICE_STATUS.PENDING,
         dueDate: periodEnd,
+        invoiceNumber: await generateInvoiceNumber(now),
+        periodKey: `${periodEnd.getUTCFullYear()}-${String(periodEnd.getUTCMonth() + 1).padStart(2, '0')}`,
         createdBy: actor.id,
       })
     }

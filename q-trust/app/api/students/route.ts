@@ -101,19 +101,26 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    // Enforce the tenant's plan seat limit before creating.
-    const tenant = await Tenant.findById(tenantId).select("maxStudents").lean<{ maxStudents: number }>()
+    // Enforce the tenant's effective seat limit (plan defaults OR per-tenant
+    // override on Tenant.limits.maxStudents; null = unlimited).
+    const tenant = await Tenant.findById(tenantId)
+      .select("plan limits")
+      .lean<{ plan: string; limits?: { maxStudents?: number | null } }>()
     if (!tenant) {
       return NextResponse.json({ message: "المؤسسة غير موجودة" }, { status: 403 })
     }
-    const activeCount = await Student.countDocuments({ tenantId, isActive: true })
-    if (activeCount >= tenant.maxStudents) {
-      return NextResponse.json(
-        {
-          message: `لقد بلغت الحدّ الأقصى لعدد الطلاب في باقتك (${tenant.maxStudents} طالب). يرجى ترقية الاشتراك لإضافة المزيد.`,
-        },
-        { status: 403 }
-      )
+    const { getEffectiveLimits } = await import("@/lib/entitlements")
+    const { maxStudents } = getEffectiveLimits(tenant as any)
+    if (maxStudents !== null) {
+      const activeCount = await Student.countDocuments({ tenantId, isActive: true })
+      if (activeCount >= maxStudents) {
+        return NextResponse.json(
+          {
+            message: `لقد بلغت الحدّ الأقصى لعدد الطلاب في باقتك (${maxStudents} طالب). يرجى ترقية الاشتراك لإضافة المزيد.`,
+          },
+          { status: 403 }
+        )
+      }
     }
 
     // Generate unique QR UUID

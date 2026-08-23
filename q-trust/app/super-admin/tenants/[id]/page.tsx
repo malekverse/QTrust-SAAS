@@ -16,7 +16,10 @@ import {
   INVOICE_TYPE_LABELS,
 } from "@/lib/constants"
 import { PlanStatusForm, InvoicePaymentControl } from "./tenant-actions"
+import { getEffectiveLimits } from "@/lib/entitlements"
 import { AccessCard } from "./access-card"
+import { EditProfileDialog } from "./edit-profile-dialog"
+import { UsersPanel } from "./users-panel"
 import { getTranslations } from "next-intl/server"
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -53,18 +56,45 @@ export default async function TenantDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button asChild variant="ghost" size="icon">
           <Link href="/super-admin/tenants">
             <ArrowRight className="h-5 w-5" />
           </Link>
         </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">{tenant.name}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold truncate">{tenant.name}</h1>
           <p className="text-sm text-muted-foreground" dir="ltr">/t/{tenant.slug}</p>
         </div>
         <Badge variant="outline">{TENANT_STATUS_LABELS[tenant.status] ?? tenant.status}</Badge>
+        <EditProfileDialog
+          tenant={{
+            _id: tenant._id.toString(),
+            contact: tenant.contact,
+            branding: tenant.branding,
+            billing: tenant.billing,
+            limits: tenant.limits,
+          }}
+        />
       </div>
+
+      {(tenant.status === "SUSPENDED" || tenant.status === "CANCELLED") && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <p className="font-medium text-amber-800 dark:text-amber-200">
+            {tenant.status === "SUSPENDED" ? t("tenants.suspensionBanner") : t("tenants.cancellationBanner")}
+          </p>
+          {tenant.suspensionReason && (
+            <p className="mt-1 text-amber-800/80 dark:text-amber-200/80">
+              {t("tenants.suspensionReasonLabel")}: {tenant.suspensionReason}
+            </p>
+          )}
+          {tenant.suspendedAt && (
+            <p className="mt-0.5 text-xs text-amber-800/60 dark:text-amber-200/60">
+              {fmtDate(tenant.suspendedAt)}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -78,17 +108,37 @@ export default async function TenantDetailPage({
               status={tenant.status}
             />
             <div className="grid grid-cols-2 gap-4 border-t pt-4">
-              <Field
-                label={t("tenants.studentCountLabel")}
-                value={
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3.5 w-3.5" />
-                    {studentCount}
-                    {tenant.maxStudents <= 100000 ? ` / ${tenant.maxStudents}` : ""}
-                  </span>
-                }
-              />
-              <Field label={t("tenants.aiQuota")} value={tenant.aiQuotaMonthly} />
+              {(() => {
+                const eff = getEffectiveLimits(tenant)
+                const seatLabel = eff.maxStudents === null ? "∞" : String(eff.maxStudents)
+                return (
+                  <>
+                    <Field
+                      label={t("tenants.studentCountLabel")}
+                      value={
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5" />
+                          {studentCount} / {seatLabel}
+                          {tenant.limits?.maxStudents !== undefined && tenant.limits?.maxStudents !== null && (
+                            <span className="text-xs text-amber-600 mr-1">({t("tenants.limitOverride")})</span>
+                          )}
+                        </span>
+                      }
+                    />
+                    <Field
+                      label={t("tenants.aiQuota")}
+                      value={
+                        <span>
+                          {eff.aiQuotaMonthly}
+                          {tenant.limits?.aiQuotaMonthly !== undefined && (
+                            <span className="text-xs text-amber-600 mr-1">({t("tenants.limitOverride")})</span>
+                          )}
+                        </span>
+                      }
+                    />
+                  </>
+                )
+              })()}
               <Field label={t("tenants.periodStart")} value={fmtDate(tenant.billing?.currentPeriodStart)} />
               <Field label={t("tenants.periodEnd")} value={fmtDate(tenant.billing?.currentPeriodEnd)} />
             </div>
@@ -141,6 +191,8 @@ export default async function TenantDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <UsersPanel tenantId={tenant._id.toString()} />
     </div>
   )
 }

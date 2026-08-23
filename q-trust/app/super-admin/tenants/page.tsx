@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Building2 } from "lucide-react"
 import { PLAN_LABELS, TENANT_STATUS_LABELS } from "@/lib/constants"
+import { getEffectiveLimits } from "@/lib/entitlements"
 import { getTranslations } from "next-intl/server"
 
 export default async function TenantsPage() {
@@ -79,7 +80,10 @@ export default async function TenantsPage() {
                   </td>
                   <td className="p-3">
                     {tn.studentCount}
-                    {tn.maxStudents <= 100000 ? ` / ${tn.maxStudents}` : ""}
+                    {(() => {
+                      const { maxStudents } = getEffectiveLimits(tn)
+                      return maxStudents === null ? " / ∞" : ` / ${maxStudents}`
+                    })()}
                   </td>
                 </tr>
               ))}

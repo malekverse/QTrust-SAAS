@@ -4,8 +4,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Check, Undo2 } from "lucide-react"
+import { Loader2, Check, Undo2, AlertTriangle } from "lucide-react"
 import {
   PLANS,
   TENANT_STATUS,
@@ -22,6 +23,15 @@ const selectCls =
   "w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
 
 // ── Plan + status editor ────────────────────────────────────────────────
+//
+// Same inline form as before, plus:
+//   • Suspension reason textarea when the target status is SUSPENDED —
+//     the reason is persisted on the Tenant and shown to admins on the
+//     /suspended page (a future improvement), and audited alongside the
+//     status change.
+//   • "Downgrade override" recovery: if the API returns 409 because the
+//     tenant is over the new plan's seat cap, offer a Retry button that
+//     re-submits with force:true.
 export function PlanStatusForm({
   tenantId,
   plan,
@@ -36,25 +46,38 @@ export function PlanStatusForm({
   const tc = useTranslations("common")
   const [nextPlan, setNextPlan] = useState(plan)
   const [nextStatus, setNextStatus] = useState(status)
+  const [reason, setReason] = useState("")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [conflict, setConflict] = useState<{ activeCount: number; newCap: number } | null>(null)
 
   const dirty = nextPlan !== plan || nextStatus !== status
+  const needsReason = nextStatus === TENANT_STATUS.SUSPENDED
 
-  async function save() {
+  async function save(force = false) {
     setSaving(true)
     setError(null)
+    setConflict(null)
     try {
       const res = await fetch(`/api/super-admin/tenants/${tenantId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: nextPlan, status: nextStatus }),
+        body: JSON.stringify({
+          plan: nextPlan,
+          status: nextStatus,
+          suspensionReason: needsReason ? reason : undefined,
+          force,
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
+        if (res.status === 409 && typeof data.activeCount === "number") {
+          setConflict({ activeCount: data.activeCount, newCap: data.newCap })
+        }
         setError(data.message || t("saveFailed"))
         return
       }
+      setReason("")
       router.refresh()
     } catch {
       setError(t("connectionError"))
@@ -65,7 +88,21 @@ export function PlanStatusForm({
 
   return (
     <div className="space-y-3">
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-2 text-xs text-destructive">
+          <p>{error}</p>
+          {conflict && (
+            <button
+              type="button"
+              className="mt-2 underline"
+              onClick={() => save(true)}
+              disabled={saving}
+            >
+              {t("planDowngradeForce")}
+            </button>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-xs text-muted-foreground mb-1">{t("planLabel")}</p>
@@ -92,12 +129,27 @@ export function PlanStatusForm({
           </select>
         </div>
       </div>
+      {needsReason && nextStatus !== status && (
+        <div>
+          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+            {t("suspensionReasonLabel")}
+          </p>
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t("suspensionReasonPlaceholder")}
+            rows={2}
+            className="text-sm"
+          />
+        </div>
+      )}
       {nextPlan !== plan && (
         <p className="text-xs text-amber-600">
-          {t("planChangeWarning")}
+          {t("planChangeWarningSmart")}
         </p>
       )}
-      <Button size="sm" onClick={save} disabled={!dirty || saving} className="w-full">
+      <Button size="sm" onClick={() => save(false)} disabled={!dirty || saving} className="w-full">
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t("saveChanges")}
       </Button>
     </div>

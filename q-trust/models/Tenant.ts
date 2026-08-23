@@ -44,6 +44,21 @@ export interface ITenant extends Document {
     currentPeriodEnd?: Date
     paymentMethod: PaymentMethod
   }
+  // Per-field limit overrides. When set, they win over PLAN_LIMITS. Nullable
+  // per-field so an override on maxStudents doesn't freeze aiQuotaMonthly (or
+  // vice versa) when the operator later changes the plan. `null` on
+  // maxStudents means "unlimited". Read via getEffectiveLimits().
+  limits?: {
+    maxStudents?: number | null
+    aiQuotaMonthly?: number | null
+  }
+  // Suspension audit fields. Populated when the operator moves status →
+  // SUSPENDED (or CANCELLED). Cleared on reactivation so the tenant's page
+  // doesn't keep a stale reason around.
+  suspendedAt?: Date
+  suspendedBy?: mongoose.Types.ObjectId
+  suspensionReason?: string
+  cancelledAt?: Date
   // Multi-step provisioning gate. READY means the Tenant + its first admin +
   // enrollment settings + opening invoices are all persisted. PROVISIONING is
   // set on Tenant.create and only flipped to READY at the end; login and
@@ -103,6 +118,16 @@ const TenantSchema = new Schema<ITenant>(
         default: PAYMENT_METHODS.BANK_TRANSFER,
       },
     },
+    // See ITenant.limits — nullable per-field overrides. Absent → inherit
+    // the plan defaults from PLAN_LIMITS via getEffectiveLimits().
+    limits: {
+      maxStudents: { type: Schema.Types.Mixed },
+      aiQuotaMonthly: { type: Number },
+    },
+    suspendedAt: { type: Date },
+    suspendedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    suspensionReason: { type: String, trim: true, maxlength: 500 },
+    cancelledAt: { type: Date },
     // Defaults to READY so every pre-existing tenant continues to work
     // unchanged; provisionTenant() writes 'PROVISIONING' on Tenant.create and
     // flips to 'READY' after the last dependent write succeeds.

@@ -24,8 +24,13 @@ export async function ensureAiQuota(tenantId: string): Promise<AiQuotaState> {
   await dbConnect()
   const now = new Date()
   const tenant = await Tenant.findById(tenantId)
-    .select('aiQuotaMonthly aiUsageCurrentMonth aiUsageResetAt')
-    .lean<{ aiQuotaMonthly: number; aiUsageCurrentMonth: number; aiUsageResetAt?: Date }>()
+    .select('plan limits aiUsageCurrentMonth aiUsageResetAt')
+    .lean<{
+      plan: string
+      limits?: { maxStudents?: number | null; aiQuotaMonthly?: number }
+      aiUsageCurrentMonth: number
+      aiUsageResetAt?: Date
+    }>()
   if (!tenant) return { allowed: false, used: 0, quota: 0, resetAt: nextMonthStart(now) }
 
   let used = tenant.aiUsageCurrentMonth ?? 0
@@ -38,7 +43,10 @@ export async function ensureAiQuota(tenantId: string): Promise<AiQuotaState> {
     await Tenant.findByIdAndUpdate(tenantId, { aiUsageCurrentMonth: 0, aiUsageResetAt: resetAt })
   }
 
-  const quota = tenant.aiQuotaMonthly ?? 0
+  // Read the effective monthly cap so a per-tenant override wins over the
+  // plan default. (getEffectiveLimits is defined server-side.)
+  const { getEffectiveLimits } = await import('@/lib/entitlements')
+  const { aiQuotaMonthly: quota } = getEffectiveLimits(tenant as any)
   return { allowed: used < quota, used, quota, resetAt }
 }
 

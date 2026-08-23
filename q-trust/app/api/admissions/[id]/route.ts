@@ -60,19 +60,23 @@ export async function PATCH(
       }
 
       const tenant = await Tenant.findById(ctx.tenantId)
-        .select('maxStudents')
-        .lean<{ maxStudents: number }>()
+        .select('plan limits')
+        .lean<{ plan: string; limits?: { maxStudents?: number | null } }>()
       if (!tenant) {
         return NextResponse.json({ message: 'المؤسسة غير موجودة' }, { status: 403 })
       }
-      const activeCount = await Student.countDocuments({ tenantId: ctx.tenantId, isActive: true })
-      if (activeCount >= tenant.maxStudents) {
-        return NextResponse.json(
-          {
-            message: `لقد بلغت الحدّ الأقصى لعدد الطلاب في باقتك (${tenant.maxStudents} طالب). يرجى ترقية الاشتراك قبل قبول طلبات جديدة.`,
-          },
-          { status: 403 }
-        )
+      const { getEffectiveLimits } = await import('@/lib/entitlements')
+      const { maxStudents } = getEffectiveLimits(tenant as any)
+      if (maxStudents !== null) {
+        const activeCount = await Student.countDocuments({ tenantId: ctx.tenantId, isActive: true })
+        if (activeCount >= maxStudents) {
+          return NextResponse.json(
+            {
+              message: `لقد بلغت الحدّ الأقصى لعدد الطلاب في باقتك (${maxStudents} طالب). يرجى ترقية الاشتراك قبل قبول طلبات جديدة.`,
+            },
+            { status: 403 }
+          )
+        }
       }
 
       const enrollmentNumber = await generateEnrollmentNumber(ctx.tenantId)

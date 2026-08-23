@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import dbConnect from '@/lib/db'
-import Settings from '@/models/Settings'
 import { requireTier } from '@/lib/entitlements'
 import { TenantAuthError } from '@/lib/tenant'
 import { ROLES, PLANS, MESSAGING_PROVIDER } from '@/lib/constants'
-import { getMessagingConfig, MESSAGING_SETTINGS_KEY } from '@/lib/notifications/messaging'
+import { getMessagingConfig, saveMessagingConfig } from '@/lib/notifications/messaging'
 
 // GET — return config with secrets masked (booleans indicating "is set").
 export async function GET() {
@@ -92,11 +91,7 @@ export async function PUT(request: NextRequest) {
       },
     }
 
-    await Settings.findOneAndUpdate(
-      { tenantId: session.tenantId, key: MESSAGING_SETTINGS_KEY },
-      { $set: { value: merged, updatedBy: session.userId } },
-      { upsert: true, new: true }
-    )
+    await saveMessagingConfig(session.tenantId, merged, session.userId)
 
     return NextResponse.json({ ok: true })
   } catch (e) {

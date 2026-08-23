@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  // nodemailer relies on dynamic requires that Turbopack cannot statically
+  // trace; treat it as an external so it's imported at runtime from
+  // node_modules on the server, not bundled.
+  serverExternalPackages: ["nodemailer"],
   images: {
     remotePatterns: [
       {

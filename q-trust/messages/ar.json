@@ -1187,7 +1187,43 @@
       "slugInvalid": "المعرّف غير صالح.",
       "planSuggestedFromRange": "اقتراح مبني على عدد الطلاب المذكور في الطلب.",
       "openTenant": "فتح صفحة المؤسسة",
-      "phoneHint": "صيغة تونسية: +216XXXXXXXX (يقبل أيضاً 8 أرقام)."
+      "phoneHint": "صيغة تونسية: +216XXXXXXXX (يقبل أيضاً 8 أرقام).",
+      "adminAccess": "وصول المدير",
+      "activationLink": "رابط التفعيل",
+      "activationExpires": "صالح حتى {date}.",
+      "activationLinkNotice": "يستخدم مرة واحدة. عند فتحه سيقوم المدير بتعيين كلمة مروره الخاصة.",
+      "accessCardTitle": "وصول المدير",
+      "accessAdmin": "المدير",
+      "accessLastLogin": "آخر دخول",
+      "accessNeverLoggedIn": "لم يدخل بعد",
+      "accessExpiresAt": "صالح حتى {date}",
+      "accessLastSent": "أُرسل آخر مرة {date} ({count})",
+      "accessRevealTitle": "انسخ الرابط وسلّمه للمدير:",
+      "accessCopied": "تم النسخ",
+      "accessIssue": "إصدار رابط تفعيل",
+      "accessReissue": "إعادة إصدار الرابط",
+      "accessReissueTitle": "إعادة إصدار رابط التفعيل؟",
+      "accessReissueBody": "سيتم إبطال أي رابط سابق.",
+      "accessReissued": "تم إصدار رابط جديد",
+      "accessReissuedBody": "انسخه أو أرسله بالبريد.",
+      "accessSendByEmail": "إرسال بالبريد",
+      "accessSendTo": "إرسال إلى",
+      "accessSendHint": "يمكن استخدام بريد آخر (مثل بريد الجمعية العام).",
+      "accessSendNow": "إرسال الآن",
+      "accessEmailed": "تم الإرسال",
+      "accessEmailedTo": "أُرسل إلى {to}",
+      "accessEmailSkipped": "لم يُرسل البريد",
+      "accessEmailSkippedBody": "SMTP غير مُهيّأ. انسخ الرابط وأرسله يدوياً.",
+      "accessEmailFailed": "فشل الإرسال",
+      "accessNoAdmin": "لا يوجد مدير مرتبط بهذه المؤسسة.",
+      "accessStateActivated": "مفعّل",
+      "accessStateIssued": "رابط قائم",
+      "accessStateExpired": "منتهي",
+      "accessStateNone": "لا يوجد رابط",
+      "accessImpersonate": "الدخول كمدير",
+      "accessImpersonateTitle": "الدخول كمدير المؤسسة؟",
+      "accessImpersonateBody": "ستُفتح جلسة بصفة {name} ({email}). كل عملية أثناء الجلسة ستُسجَّل باسمك في السجل.",
+      "accessImpersonateStart": "ابدأ"
     },
     "billing": {
       "title": "الفوترة",
@@ -1278,6 +1314,10 @@
         "R150_300": "150 – 300",
         "GT_300": "أكثر من 300"
       }
+    },
+    "impersonation": {
+      "bannerBody": "أنت في جلسة انتحال هوية بصفة {name} — {email}",
+      "exitButton": "الخروج"
     }
   },
   "scanner": {

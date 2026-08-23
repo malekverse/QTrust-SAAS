@@ -20,6 +20,12 @@ declare module 'next-auth' {
     tenantSlug?: string
     tenantPlan?: string
     tenantName?: string
+    // Set when the current session was minted via the `impersonate` provider.
+    // The value is the super-admin user id that initiated the impersonation
+    // — every mutation while this is set should carry it in its audit
+    // trail so the actor is unambiguously the platform operator, not the
+    // tenant admin whose seat they borrowed.
+    impersonatedBy?: string
   }
 
   interface Session {
@@ -34,6 +40,7 @@ declare module 'next-auth' {
       tenantSlug?: string
       tenantPlan?: string
       tenantName?: string
+      impersonatedBy?: string
     }
   }
 
@@ -47,6 +54,7 @@ declare module 'next-auth' {
     tenantSlug?: string
     tenantPlan?: string
     tenantName?: string
+    impersonatedBy?: string
   }
 }
 
@@ -174,6 +182,87 @@ export const authConfig: NextAuthConfig = {
           throw new Error('حدث خطأ أثناء تسجيل الدخول')
         }
       }
+    }),
+    // Impersonation provider — the super-admin console POSTs a signed grant
+    // to /api/super-admin/tenants/[id]/impersonate, which returns an opaque
+    // string the client hands to signIn('impersonate', { grant }). The
+    // provider verifies the HMAC + expiry server-side (see lib/impersonation),
+    // then issues a session as the target user with `impersonatedBy` set.
+    //
+    // The same provider handles "exit impersonation": a `restore` grant
+    // targets the original super-admin and does not set `impersonatedBy`.
+    Credentials({
+      id: 'impersonate',
+      name: 'impersonate',
+      credentials: { grant: { label: 'Grant', type: 'text' } },
+      async authorize(credentials) {
+        try {
+          const { verifyGrant } = await import('./impersonation')
+          const grant = typeof credentials?.grant === 'string' ? credentials.grant : ''
+          const payload = verifyGrant(grant)
+          if (!payload) {
+            throw new Error('انتهت صلاحية إذن انتحال الهوية')
+          }
+          await dbConnect()
+          const target = await User.findById(payload.targetUserId)
+          if (!target || !target.isActive) {
+            throw new Error('حساب الهدف غير متاح')
+          }
+
+          // For an 'impersonate' grant: target must be an ADMIN (never
+          // impersonate a super-admin or a student). For 'restore': target
+          // must be a SUPER_ADMIN. Both branches close the door on abuse
+          // even if a grant somehow leaked.
+          if (payload.purpose === 'impersonate' && target.role !== ROLES.ADMIN) {
+            throw new Error('يُسمح فقط بانتحال حساب مدير المؤسسة')
+          }
+          if (payload.purpose === 'restore' && target.role !== ROLES.SUPER_ADMIN) {
+            throw new Error('لا يمكن استعادة الجلسة إلى غير مدير المنصة')
+          }
+
+          let tenantId: string | undefined
+          let tenantSlug: string | undefined
+          let tenantPlan: string | undefined
+          let tenantName: string | undefined
+          if (target.tenantId) {
+            tenantId = target.tenantId.toString()
+            const tenant = await Tenant.findById(target.tenantId)
+              .select('slug plan name status branding.displayName provisioningState')
+              .lean<{ slug: string; plan: string; name: string; status: string; branding?: { displayName?: string }; provisioningState?: string }>()
+            if (tenant && tenant.provisioningState && tenant.provisioningState !== 'READY') {
+              throw new Error('المؤسسة قيد الإعداد')
+            }
+            if (
+              tenant &&
+              (tenant.status === TENANT_STATUS.SUSPENDED || tenant.status === TENANT_STATUS.CANCELLED)
+            ) {
+              throw new Error('الحساب معلّق')
+            }
+            tenantSlug = tenant?.slug
+            tenantPlan = tenant?.plan
+            tenantName = tenant?.branding?.displayName || tenant?.name
+          }
+
+          return {
+            id: target._id.toString(),
+            email: target.email,
+            role: target.role,
+            fullName: target.fullName,
+            // Never force the operator through /auth/onboarding when
+            // impersonating: they are not the real user of this account.
+            mustChangePassword: false,
+            studentId: target.studentId?.toString(),
+            tenantId,
+            tenantSlug,
+            tenantPlan,
+            tenantName,
+            impersonatedBy: payload.purpose === 'impersonate' ? payload.superAdminUserId ?? undefined : undefined,
+          }
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error('تعذّر انتحال الهوية')
+        }
+      }
     })
   ],
   callbacks: {
@@ -188,6 +277,7 @@ export const authConfig: NextAuthConfig = {
         token.tenantSlug = user.tenantSlug
         token.tenantPlan = user.tenantPlan
         token.tenantName = user.tenantName
+        token.impersonatedBy = user.impersonatedBy
       }
       // Handle session update (e.g., after password change)
       if (trigger === 'update' && session) {
@@ -211,6 +301,7 @@ export const authConfig: NextAuthConfig = {
         session.user.tenantSlug = token.tenantSlug as string | undefined
         session.user.tenantPlan = token.tenantPlan as string | undefined
         session.user.tenantName = token.tenantName as string | undefined
+        session.user.impersonatedBy = token.impersonatedBy as string | undefined
       }
       return session
     },

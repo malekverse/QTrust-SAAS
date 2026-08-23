@@ -1187,7 +1187,43 @@
       "slugInvalid": "Identifiant invalide.",
       "planSuggestedFromRange": "Suggestion basée sur la taille indiquée dans la demande.",
       "openTenant": "Ouvrir la fiche client",
-      "phoneHint": "Format tunisien : +216XXXXXXXX (accepte 8 chiffres)."
+      "phoneHint": "Format tunisien : +216XXXXXXXX (accepte 8 chiffres).",
+      "adminAccess": "Accès administrateur",
+      "activationLink": "Lien d'activation",
+      "activationExpires": "Valable jusqu'au {date}.",
+      "activationLinkNotice": "À usage unique. L'administrateur choisira son propre mot de passe à l'ouverture.",
+      "accessCardTitle": "Accès administrateur",
+      "accessAdmin": "Administrateur",
+      "accessLastLogin": "Dernière connexion",
+      "accessNeverLoggedIn": "Jamais connecté",
+      "accessExpiresAt": "Valable jusqu'au {date}",
+      "accessLastSent": "Envoyé pour la dernière fois le {date} ({count})",
+      "accessRevealTitle": "Copiez le lien et transmettez-le à l'administrateur :",
+      "accessCopied": "Copié",
+      "accessIssue": "Émettre un lien",
+      "accessReissue": "Réémettre le lien",
+      "accessReissueTitle": "Réémettre le lien d'activation ?",
+      "accessReissueBody": "Tout lien précédent sera invalidé.",
+      "accessReissued": "Nouveau lien émis",
+      "accessReissuedBody": "Copiez-le ou envoyez-le par e-mail.",
+      "accessSendByEmail": "Envoyer par e-mail",
+      "accessSendTo": "Envoyer à",
+      "accessSendHint": "Vous pouvez utiliser une autre adresse (p.ex. l'adresse commune de l'association).",
+      "accessSendNow": "Envoyer maintenant",
+      "accessEmailed": "Envoyé",
+      "accessEmailedTo": "Envoyé à {to}",
+      "accessEmailSkipped": "E-mail non envoyé",
+      "accessEmailSkippedBody": "SMTP non configuré. Copiez le lien et envoyez-le manuellement.",
+      "accessEmailFailed": "Échec de l'envoi",
+      "accessNoAdmin": "Aucun administrateur associé à ce client.",
+      "accessStateActivated": "Activé",
+      "accessStateIssued": "Lien émis",
+      "accessStateExpired": "Expiré",
+      "accessStateNone": "Aucun lien",
+      "accessImpersonate": "Se connecter en tant qu'administrateur",
+      "accessImpersonateTitle": "Se connecter en tant qu'administrateur du client ?",
+      "accessImpersonateBody": "Une session sera ouverte en tant que {name} ({email}). Chaque action sera journalisée en votre nom.",
+      "accessImpersonateStart": "Commencer"
     },
     "billing": {
       "title": "Facturation",
@@ -1278,6 +1314,10 @@
         "R150_300": "150 – 300",
         "GT_300": "Plus de 300"
       }
+    },
+    "impersonation": {
+      "bannerBody": "Session d'usurpation active : {name} — {email}",
+      "exitButton": "Quitter"
     }
   },
   "scanner": {

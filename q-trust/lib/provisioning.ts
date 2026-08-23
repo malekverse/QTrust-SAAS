@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { randomBytes } from 'crypto'
 import dbConnect from '@/lib/db'
 import Tenant from '@/models/Tenant'
 import User from '@/models/User'
@@ -6,7 +7,11 @@ import Student from '@/models/Student'
 import Settings, { DEFAULT_ENROLLMENT_SETTINGS } from '@/models/Settings'
 import Invoice from '@/models/Invoice'
 import Lead, { LEAD_STATUS } from '@/models/Lead'
-import { hashPassword, generateTempPassword } from '@/lib/auth'
+import ActivationToken, {
+  DEFAULT_ACTIVATION_TTL_MS,
+  generateActivationToken,
+} from '@/models/ActivationToken'
+import { hashPassword } from '@/lib/auth'
 import {
   ROLES,
   PLANS,
@@ -25,6 +30,7 @@ void Student
 void Settings
 void Invoice
 void Lead
+void ActivationToken
 
 export interface ProvisionInput {
   name: string
@@ -59,7 +65,14 @@ export interface ProvisionResult {
   admin: {
     _id: mongoose.Types.ObjectId
     email: string
-    tempPassword: string
+  }
+  // One-time activation link — this is the "credential" the operator hands
+  // to the new admin. The plaintext token is only ever returned here (once,
+  // to the operator), never persisted, and never emailed back to the caller
+  // of this function.
+  activation: {
+    token: string
+    expiresAt: Date
   }
   invoiceIds: mongoose.Types.ObjectId[]
   leadClaimed: boolean
@@ -104,9 +117,12 @@ export async function deleteTenantCascade(tenantId: mongoose.Types.ObjectId | st
   const tid = new mongoose.Types.ObjectId(tenantId)
   await dbConnect()
   // Order chosen so a re-run after a mid-cascade failure keeps converging.
+  const users = await User.find({ tenantId: tid }).select('_id').lean<{ _id: mongoose.Types.ObjectId }[]>()
+  const userIds = users.map((u) => u._id)
   await Promise.all([
     Invoice.deleteMany({ tenantId: tid }),
     Settings.deleteMany({ tenantId: tid }),
+    userIds.length ? ActivationToken.deleteMany({ userId: { $in: userIds } }) : Promise.resolve(),
     User.deleteMany({ tenantId: tid }),
   ])
   await Tenant.deleteOne({ _id: tid })
@@ -146,8 +162,14 @@ export async function provisionTenant(
   const setupFee = input.setupFeeAmountTND ?? 0
   const annualFee = input.annualFeeAmountTND ?? 0
   const emailLower = input.adminEmail.toLowerCase()
-  const tempPassword = generateTempPassword()
-  const passwordHash = await hashPassword(tempPassword)
+
+  // Unknowable password: the admin can only sign in via the activation
+  // token below, then set their own password via /api/auth/onboarding.
+  // Nothing recoverable is ever at rest.
+  const unknowablePassword = randomBytes(48).toString('base64')
+  const passwordHash = await hashPassword(unknowablePassword)
+  const { token: activationToken, tokenHash: activationHash } = generateActivationToken()
+  const activationExpires = new Date(Date.now() + DEFAULT_ACTIVATION_TTL_MS)
 
   const useTx = await supportsTransactions()
 
@@ -237,6 +259,21 @@ export async function provisionTenant(
           ? await Invoice.insertMany(invoiceDocs, { session, ordered: true })
           : []
 
+        await ActivationToken.create(
+          [
+            {
+              userId: adminDoc._id,
+              tenantId: tenantDoc._id,
+              tokenHash: activationHash,
+              expiresAt: activationExpires,
+              issuedBy: new mongoose.Types.ObjectId(actor.id),
+              issuedAt: now,
+              purpose: 'activation',
+            },
+          ],
+          { session }
+        )
+
         // Claim the lead in the same transaction so a concurrent double-
         // submit gets a clean rollback rather than two tenants + a
         // half-updated lead.
@@ -270,7 +307,10 @@ export async function provisionTenant(
           admin: {
             _id: adminDoc._id,
             email: adminDoc.email,
-            tempPassword,
+          },
+          activation: {
+            token: activationToken,
+            expiresAt: activationExpires,
           },
           invoiceIds: invoices.map((i) => i._id as mongoose.Types.ObjectId),
           leadClaimed,
@@ -353,6 +393,16 @@ export async function provisionTenant(
     }
     const invoices = invoiceDocs.length ? await Invoice.insertMany(invoiceDocs, { ordered: true }) : []
 
+    await ActivationToken.create({
+      userId: adminDoc._id,
+      tenantId: tenantDoc._id,
+      tokenHash: activationHash,
+      expiresAt: activationExpires,
+      issuedBy: new mongoose.Types.ObjectId(actor.id),
+      issuedAt: now,
+      purpose: 'activation',
+    })
+
     let leadClaimed = false
     if (input.leadId && mongoose.Types.ObjectId.isValid(input.leadId)) {
       const claim = await Lead.findOneAndUpdate(
@@ -387,7 +437,10 @@ export async function provisionTenant(
       admin: {
         _id: adminDoc._id,
         email: adminDoc.email,
-        tempPassword,
+      },
+      activation: {
+        token: activationToken,
+        expiresAt: activationExpires,
       },
       invoiceIds: invoices.map((i) => i._id as mongoose.Types.ObjectId),
       leadClaimed,

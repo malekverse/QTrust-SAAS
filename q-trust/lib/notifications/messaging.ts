@@ -7,6 +7,7 @@ import {
   type MessagingProvider,
   type MessageType,
 } from '@/lib/constants'
+import { cryptoReady, decrypt, encrypt, isEncrypted } from '@/lib/crypto'
 
 void Settings
 void MessageLog
@@ -22,6 +23,37 @@ export interface MessagingConfig {
   twilio: { accountSid: string; authToken: string; fromNumber: string }
 }
 
+// AAD prefixes used when encrypting per-tenant provider secrets. Binding the
+// ciphertext to the tenant + field prevents row-swap attacks — a token
+// encrypted for tenant A can't be pasted into tenant B's Settings and
+// decrypted from there.
+function aadFor(tenantId: string, field: 'whatsapp.accessToken' | 'twilio.authToken'): string {
+  return `messaging:${field}:${tenantId}`
+}
+
+// Decrypt a stored token. Legacy rows carry plaintext; new rows carry the
+// `v1.…` wire format from lib/crypto. Anything we can't decrypt yields an
+// empty string (fail-closed: the operator reconfigures, we never accidentally
+// send with a corrupt/foreign secret).
+function readToken(stored: string | undefined, tenantId: string, field: 'whatsapp.accessToken' | 'twilio.authToken'): string {
+  if (!stored) return ''
+  if (!isEncrypted(stored)) return stored // legacy plaintext row
+  if (!cryptoReady()) return ''
+  return decrypt(stored, aadFor(tenantId, field)) ?? ''
+}
+
+// Encrypt a token for storage. If crypto isn't configured (dev without
+// CREDENTIALS_ENCRYPTION_KEY), fall through to plaintext — the runtime
+// warning is enough for dev, and prod fails fast at crypto module load.
+function writeToken(plaintext: string, tenantId: string, field: 'whatsapp.accessToken' | 'twilio.authToken'): string {
+  if (!plaintext) return ''
+  if (!cryptoReady()) {
+    console.warn('messaging: storing token in plaintext — CREDENTIALS_ENCRYPTION_KEY not set')
+    return plaintext
+  }
+  return encrypt(plaintext, aadFor(tenantId, field))
+}
+
 export async function getMessagingConfig(tenantId: string): Promise<MessagingConfig> {
   const doc = await Settings.findOne({ tenantId, key: MESSAGING_SETTINGS_KEY })
     .lean<{ value: Partial<MessagingConfig> }>()
@@ -31,14 +63,43 @@ export async function getMessagingConfig(tenantId: string): Promise<MessagingCon
     paymentRemindersEnabled: v.paymentRemindersEnabled === true,
     whatsapp: {
       phoneNumberId: v.whatsapp?.phoneNumberId || '',
-      accessToken: v.whatsapp?.accessToken || '',
+      accessToken: readToken(v.whatsapp?.accessToken, tenantId, 'whatsapp.accessToken'),
     },
     twilio: {
       accountSid: v.twilio?.accountSid || '',
-      authToken: v.twilio?.authToken || '',
+      authToken: readToken(v.twilio?.authToken, tenantId, 'twilio.authToken'),
       fromNumber: v.twilio?.fromNumber || '',
     },
   }
+}
+
+// Upsert a MessagingConfig for a tenant. Encrypts the two secret fields
+// before writing, so anything reading Settings.value directly (a DB dump,
+// an unrelated backup script) sees the wire-format ciphertext, not the
+// plaintext tokens. Callers pass the config in plaintext form.
+export async function saveMessagingConfig(
+  tenantId: string,
+  config: MessagingConfig,
+  updatedBy: string
+): Promise<void> {
+  const stored = {
+    provider: config.provider,
+    paymentRemindersEnabled: config.paymentRemindersEnabled,
+    whatsapp: {
+      phoneNumberId: config.whatsapp.phoneNumberId,
+      accessToken: writeToken(config.whatsapp.accessToken, tenantId, 'whatsapp.accessToken'),
+    },
+    twilio: {
+      accountSid: config.twilio.accountSid,
+      authToken: writeToken(config.twilio.authToken, tenantId, 'twilio.authToken'),
+      fromNumber: config.twilio.fromNumber,
+    },
+  }
+  await Settings.findOneAndUpdate(
+    { tenantId, key: MESSAGING_SETTINGS_KEY },
+    { $set: { value: stored, updatedBy } },
+    { upsert: true, returnDocument: 'after' }
+  )
 }
 
 // A config is "usable" only when a real provider is selected and its required

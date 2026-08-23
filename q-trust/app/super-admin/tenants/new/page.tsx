@@ -14,7 +14,8 @@ import { useTranslations } from "next-intl"
 
 type ProvisionResult = {
   tenant: { _id: string; name: string; slug: string; plan: string }
-  admin: { email: string; tempPassword: string }
+  admin: { email: string }
+  activation: { url: string; expiresAt: string }
   loginUrl: string
 }
 
@@ -205,34 +206,35 @@ function NewTenantPage() {
               <p className="font-semibold">{result.tenant.name}</p>
             </div>
             <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
-              <p className="text-sm font-medium">{t("tenants.adminCredentials")}</p>
+              <p className="text-sm font-medium">{t("tenants.adminAccess")}</p>
               <div>
                 <p className="text-xs text-muted-foreground">{tc("email")}</p>
                 <p className="font-mono text-sm" dir="ltr">{result.admin.email}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("tenants.tempPassword")}</p>
-                <div className="flex items-center gap-2">
-                  <code className="font-mono text-sm bg-background px-2 py-1 rounded border" dir="ltr">
-                    {result.admin.tempPassword}
+                <p className="text-xs text-muted-foreground">{t("tenants.activationLink")}</p>
+                <div className="flex items-start gap-2">
+                  <code className="font-mono text-xs bg-background px-2 py-1 rounded border break-all flex-1" dir="ltr">
+                    {result.activation.url}
                   </code>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
-                    onClick={() => navigator.clipboard?.writeText(result.admin.tempPassword)}
+                    className="h-7 w-7 shrink-0"
+                    onClick={() => navigator.clipboard?.writeText(result.activation.url)}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{t("tenants.loginUrlLabel")}</p>
-                <p className="font-mono text-sm text-primary" dir="ltr">{result.loginUrl}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("tenants.activationExpires", {
+                    date: new Date(result.activation.expiresAt).toLocaleString(),
+                  })}
+                </p>
               </div>
               <p className="text-xs text-amber-600">
-                {t("tenants.passwordChangeNotice")}
+                {t("tenants.activationLinkNotice")}
               </p>
             </div>
             <div className="flex gap-2">

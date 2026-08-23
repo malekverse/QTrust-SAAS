@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider"
 import { SessionProvider } from "@/components/providers/session-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { ToastProvider } from "@/components/ui/toast"
+import { ImpersonationBanner } from "@/components/impersonation-banner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -83,6 +84,7 @@ export default async function RootLayout({
                 disableTransitionOnChange
               >
                 <ToastProvider>
+                  <ImpersonationBanner />
                   {children}
                 </ToastProvider>
               </ThemeProvider>

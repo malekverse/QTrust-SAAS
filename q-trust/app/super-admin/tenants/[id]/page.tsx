@@ -4,7 +4,6 @@ import mongoose from "mongoose"
 import { requireSuperAdmin } from "@/lib/tenant"
 import dbConnect from "@/lib/db"
 import Tenant from "@/models/Tenant"
-import User from "@/models/User"
 import Student from "@/models/Student"
 import Invoice from "@/models/Invoice"
 import { Button } from "@/components/ui/button"
@@ -12,12 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Users } from "lucide-react"
 import {
-  ROLES,
   TENANT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
   INVOICE_TYPE_LABELS,
 } from "@/lib/constants"
 import { PlanStatusForm, InvoicePaymentControl } from "./tenant-actions"
+import { AccessCard } from "./access-card"
 import { getTranslations } from "next-intl/server"
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -47,12 +46,10 @@ export default async function TenantDetailPage({
   const tenant: any = await Tenant.findById(id).lean()
   if (!tenant) notFound()
 
-  const [admin, studentCount, invoices] = await Promise.all([
-    User.findOne({ tenantId: tenant._id, role: ROLES.ADMIN }).sort({ createdAt: 1 }).lean(),
+  const [studentCount, invoices] = await Promise.all([
     Student.countDocuments({ tenantId: tenant._id, isActive: true }),
     Invoice.find({ tenantId: tenant._id }).sort({ createdAt: -1 }).lean(),
   ])
-  const adminDoc = admin as any
 
   return (
     <div className="space-y-6">
@@ -98,20 +95,7 @@ export default async function TenantDetailPage({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("tenants.adminSection")}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <Field label={t("tenants.adminName")} value={adminDoc?.fullName} />
-            <Field label={t("tenants.adminEmail")} value={<span dir="ltr">{adminDoc?.email}</span>} />
-            <Field label={t("leads.phone")} value={adminDoc?.phone ? <span dir="ltr">{adminDoc.phone}</span> : "—"} />
-            <Field
-              label={t("tenants.passwordChangeLabel")}
-              value={adminDoc?.mustChangePassword ? t("tenants.passwordRequired") : t("tenants.passwordDone")}
-            />
-          </CardContent>
-        </Card>
+        <AccessCard tenantId={tenant._id.toString()} />
 
         <Card>
           <CardHeader>

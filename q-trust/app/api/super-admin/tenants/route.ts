@@ -167,6 +167,9 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin).replace(/\/$/, '')
+    const activationUrl = `${siteUrl}/t/${result.tenant.slug}/activate?token=${encodeURIComponent(result.activation.token)}`
+
     return NextResponse.json(
       {
         tenant: {
@@ -175,7 +178,11 @@ export async function POST(request: NextRequest) {
           slug: result.tenant.slug,
           plan: result.tenant.plan,
         },
-        admin: { email: result.admin.email, tempPassword: result.admin.tempPassword },
+        admin: { email: result.admin.email },
+        activation: {
+          url: activationUrl,
+          expiresAt: result.activation.expiresAt,
+        },
         loginUrl: `/t/${result.tenant.slug}`,
       },
       { status: 201 }

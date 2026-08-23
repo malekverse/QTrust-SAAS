@@ -1187,7 +1187,43 @@
       "slugInvalid": "Invalid slug.",
       "planSuggestedFromRange": "Suggested from the student count in the lead.",
       "openTenant": "Open tenant page",
-      "phoneHint": "Tunisian format: +216XXXXXXXX (also accepts 8 digits)."
+      "phoneHint": "Tunisian format: +216XXXXXXXX (also accepts 8 digits).",
+      "adminAccess": "Admin access",
+      "activationLink": "Activation link",
+      "activationExpires": "Valid until {date}.",
+      "activationLinkNotice": "Single-use. The admin sets their own password when they open it.",
+      "accessCardTitle": "Admin access",
+      "accessAdmin": "Admin",
+      "accessLastLogin": "Last login",
+      "accessNeverLoggedIn": "Never signed in",
+      "accessExpiresAt": "Valid until {date}",
+      "accessLastSent": "Last sent {date} ({count})",
+      "accessRevealTitle": "Copy the link and hand it to the admin:",
+      "accessCopied": "Copied",
+      "accessIssue": "Issue activation link",
+      "accessReissue": "Re-issue link",
+      "accessReissueTitle": "Re-issue activation link?",
+      "accessReissueBody": "Any previous link will be invalidated.",
+      "accessReissued": "New link issued",
+      "accessReissuedBody": "Copy it or email it.",
+      "accessSendByEmail": "Send by email",
+      "accessSendTo": "Send to",
+      "accessSendHint": "You can use a different address (e.g. the association's shared inbox).",
+      "accessSendNow": "Send now",
+      "accessEmailed": "Sent",
+      "accessEmailedTo": "Sent to {to}",
+      "accessEmailSkipped": "Email not sent",
+      "accessEmailSkippedBody": "SMTP not configured. Copy the link and send it manually.",
+      "accessEmailFailed": "Send failed",
+      "accessNoAdmin": "No admin linked to this tenant.",
+      "accessStateActivated": "Activated",
+      "accessStateIssued": "Link issued",
+      "accessStateExpired": "Expired",
+      "accessStateNone": "No link",
+      "accessImpersonate": "Sign in as admin",
+      "accessImpersonateTitle": "Sign in as the tenant admin?",
+      "accessImpersonateBody": "A session will open as {name} ({email}). Every action during this session is audited under your name.",
+      "accessImpersonateStart": "Start"
     },
     "billing": {
       "title": "Billing",
@@ -1278,6 +1314,10 @@
         "R150_300": "150 – 300",
         "GT_300": "Over 300"
       }
+    },
+    "impersonation": {
+      "bannerBody": "Impersonating {name} — {email}",
+      "exitButton": "Exit"
     }
   },
   "scanner": {

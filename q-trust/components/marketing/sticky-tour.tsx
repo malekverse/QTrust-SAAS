@@ -101,7 +101,7 @@ export function StickyTour({ beats }: { beats: Beat[] }) {
   }, [scrollYProgress, beats.length])
 
   return (
-    <div ref={wrapRef} style={{ height: `${beats.length * 60 + 15}vh` }}>
+    <div ref={wrapRef} style={{ height: `${beats.length * 80 + 20}vh` }}>
       <div className="mk-tour-sticky">
         <div className="w-full grid gap-10 lg:grid-cols-[1fr_1.7fr] lg:items-center">
           <div className="relative min-h-40">

@@ -21,6 +21,11 @@ export default async function SuperAdminLayout({
     redirect("/")
   }
 
+  // Force a first-login password change if the operator was provisioned with one.
+  if (session.user.mustChangePassword) {
+    redirect("/auth/onboarding")
+  }
+
   const t = await getTranslations("superAdmin.nav")
 
   return (

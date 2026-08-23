@@ -1,6 +1,7 @@
 import NextAuth, { type NextAuthConfig } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
+import { randomInt } from 'crypto'
 import dbConnect from './db'
 import User from '@/models/User'
 import Tenant from '@/models/Tenant'
@@ -117,6 +118,12 @@ export const authConfig: NextAuthConfig = {
           if (!isValid) {
             throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة')
           }
+
+          // Record the sign-in. Fire-and-forget: a telemetry write must never
+          // fail an otherwise-valid login.
+          User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } }).catch(
+            () => {}
+          )
 
           // Load tenant context (absent for SUPER_ADMIN, which has no tenantId)
           let tenantId: string | undefined
@@ -248,13 +255,24 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
-// Generate temporary password
+// Generate a temporary password.
+//
+// Uses a CSPRNG (crypto.randomInt) over an unambiguous Crockford-style base32
+// alphabet (no 0/O/1/I/L to keep it easy to dictate over the phone), grouped
+// into 4-char blocks — e.g. "xk4m-9rt2-hb7q". Twelve characters over a 32-symbol
+// alphabet is 60 bits of entropy with no fixed/guessable prefix, unlike the old
+// `Hifdh-${year}-${4 chars}` (~23 bits, known prefix, non-cryptographic RNG).
 export function generateTempPassword(): string {
-  const year = new Date().getFullYear()
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-  let suffix = ''
-  for (let i = 0; i < 4; i++) {
-    suffix += chars.charAt(Math.floor(Math.random() * chars.length))
+  const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789' // 31 symbols, no ambiguous chars
+  const groups = 3
+  const perGroup = 4
+  const parts: string[] = []
+  for (let g = 0; g < groups; g++) {
+    let block = ''
+    for (let i = 0; i < perGroup; i++) {
+      block += alphabet.charAt(randomInt(alphabet.length))
+    }
+    parts.push(block)
   }
-  return `Hifdh-${year}-${suffix}`
+  return parts.join('-')
 }

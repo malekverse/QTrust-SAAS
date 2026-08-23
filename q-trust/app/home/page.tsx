@@ -11,6 +11,13 @@ export default async function HomeRouter() {
     redirect("/auth/login")
   }
 
+  // First-login password change applies to every role (freshly-provisioned
+  // super-admins, tenant admins, teachers and students alike). The role
+  // layouts enforce this too, for deep links that bypass this router.
+  if (session.user.mustChangePassword) {
+    redirect("/auth/onboarding")
+  }
+
   if (session.user.role === ROLES.SUPER_ADMIN) {
     redirect("/super-admin/tenants")
   }
@@ -20,9 +27,6 @@ export default async function HomeRouter() {
   }
 
   if (session.user.role === ROLES.STUDENT) {
-    if (session.user.mustChangePassword) {
-      redirect("/auth/onboarding")
-    }
     redirect("/student/dashboard")
   }
 

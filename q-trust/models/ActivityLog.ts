@@ -88,8 +88,11 @@ export default ActivityLog
 export async function logActivity(
   type: ActivityType,
   description: string,
-  options?: {
-    tenantId?: mongoose.Types.ObjectId | string
+  // tenantId is required: the schema requires it and every read path is
+  // tenant-scoped. A platform-level (no-tenant) action belongs in
+  // PlatformAuditLog / logPlatformAudit, not here.
+  options: {
+    tenantId: mongoose.Types.ObjectId | string
     details?: string
     userId?: mongoose.Types.ObjectId | string
     studentId?: mongoose.Types.ObjectId | string
@@ -102,7 +105,7 @@ export async function logActivity(
     await ActivityLog.create({
       type,
       description,
-      tenantId: options?.tenantId ? new mongoose.Types.ObjectId(options.tenantId) : undefined,
+      tenantId: new mongoose.Types.ObjectId(options.tenantId),
       details: options?.details,
       userId: options?.userId ? new mongoose.Types.ObjectId(options.userId) : undefined,
       studentId: options?.studentId ? new mongoose.Types.ObjectId(options.studentId) : undefined,

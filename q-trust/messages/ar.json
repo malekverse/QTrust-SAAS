@@ -233,11 +233,11 @@
       "changePassword": "تغيير كلمة المرور",
       "changing": "جاري التغيير...",
       "passwordMismatch": "كلمتا المرور غير متطابقتين",
-      "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "passwordTooShort": "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
       "success": "تم تغيير كلمة المرور بنجاح",
       "greeting": "أهلاً {name}",
       "newPasswordPlaceholder": "أدخل كلمة مرور جديدة",
-      "passwordHint": "6 أحرف على الأقل",
+      "passwordHint": "8 أحرف على الأقل",
       "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
       "securityTip": "اختر كلمة مرور قوية وآمنة. لا تشاركها مع أي شخص."
     },

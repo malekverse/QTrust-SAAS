@@ -29,7 +29,7 @@ export default function OnboardingPage() {
     e.preventDefault()
     setError(null)
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       setError(t("passwordTooShort"))
       return
     }
@@ -42,7 +42,7 @@ export default function OnboardingPage() {
     setIsLoading(true)
 
     try {
-      const res = await fetch("/api/student/onboarding", {
+      const res = await fetch("/api/auth/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPassword })
@@ -57,8 +57,18 @@ export default function OnboardingPage() {
 
       // Update session to remove mustChangePassword flag
       await update({ mustChangePassword: false })
-      
-      router.push("/student/dashboard")
+
+      // Route to the right home for this user's role.
+      const role = session?.user?.role
+      const dashboard =
+        role === "SUPER_ADMIN"
+          ? "/super-admin/tenants"
+          : role === "ADMIN"
+            ? "/admin/dashboard"
+            : role === "TEACHER"
+              ? "/teacher/dashboard"
+              : "/student/dashboard"
+      router.push(dashboard)
       router.refresh()
     } catch {
       setError(tc("error"))

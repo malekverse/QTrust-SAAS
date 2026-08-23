@@ -233,11 +233,11 @@
       "changePassword": "Change Password",
       "changing": "Changing...",
       "passwordMismatch": "Passwords do not match",
-      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordTooShort": "Password must be at least 8 characters",
       "success": "Password changed successfully",
       "greeting": "Welcome {name}",
       "newPasswordPlaceholder": "Enter a new password",
-      "passwordHint": "At least 6 characters",
+      "passwordHint": "At least 8 characters",
       "confirmPasswordPlaceholder": "Re-enter your password",
       "securityTip": "Choose a strong and secure password. Do not share it with anyone."
     },

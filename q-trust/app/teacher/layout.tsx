@@ -26,6 +26,11 @@ export default async function TeacherLayout({
     redirect("/suspended")
   }
 
+  // Force a first-login password change (e.g. a teacher provisioned with a temp password).
+  if (session.user.mustChangePassword) {
+    redirect("/auth/onboarding")
+  }
+
   return <DashboardLayout role="teacher">{children}</DashboardLayout>
 }
 

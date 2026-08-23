@@ -233,11 +233,11 @@
       "changePassword": "Changer le mot de passe",
       "changing": "Modification en cours...",
       "passwordMismatch": "Les mots de passe ne correspondent pas",
-      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
       "success": "Mot de passe modifié avec succès",
       "greeting": "Bienvenue {name}",
       "newPasswordPlaceholder": "Entrez un nouveau mot de passe",
-      "passwordHint": "6 caractères minimum",
+      "passwordHint": "8 caractères minimum",
       "confirmPasswordPlaceholder": "Confirmez le mot de passe",
       "securityTip": "Choisissez un mot de passe fort et sécurisé. Ne le partagez avec personne."
     },

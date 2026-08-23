@@ -26,6 +26,11 @@ export default async function AdminLayout({
     redirect("/suspended")
   }
 
+  // Force a first-login password change (e.g. a freshly-provisioned tenant admin).
+  if (session.user.mustChangePassword) {
+    redirect("/auth/onboarding")
+  }
+
   return (
     <DashboardLayout role="admin">
       <AdminAIWrapper>{children}</AdminAIWrapper>

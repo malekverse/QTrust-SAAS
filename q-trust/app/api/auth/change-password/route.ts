@@ -15,13 +15,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const tenantId = session.user.tenantId
-    if (!tenantId) {
-      return NextResponse.json({ message: "لا يوجد سياق مؤسسة" }, { status: 403 })
-    }
-
     const body = await request.json()
-    
+
     const validationResult = changePasswordSchema.safeParse(body)
     if (!validationResult.success) {
       return NextResponse.json(
@@ -34,8 +29,12 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
 
-    // Get user with password
-    const user = await User.findOne({ _id: session.user.id, tenantId })
+    // Look up by id. Scope to the tenant when present; a SUPER_ADMIN has no
+    // tenantId and must still be able to change their own password.
+    const tenantId = session.user.tenantId
+    const user = await User.findOne(
+      tenantId ? { _id: session.user.id, tenantId } : { _id: session.user.id }
+    )
     if (!user) {
       return NextResponse.json(
         { message: "المستخدم غير موجود" },
@@ -55,8 +54,12 @@ export async function POST(request: NextRequest) {
     // Hash new password
     const newPasswordHash = await hashPassword(newPassword)
 
-    // Update password
+    // Update password. Also clear the first-login flag so a user who reaches
+    // this authenticated flow while still flagged doesn't get bounced back to
+    // onboarding. (Setting passwordHash also triggers the temp-credential purge
+    // hook on the User model.)
     user.passwordHash = newPasswordHash
+    user.mustChangePassword = false
     await user.save()
 
     return NextResponse.json({ message: "تم تغيير كلمة المرور بنجاح" })

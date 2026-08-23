@@ -13,6 +13,7 @@ export interface IUser extends Document {
   isActive: boolean
   mustChangePassword: boolean
   studentId?: mongoose.Types.ObjectId
+  lastLoginAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -76,6 +77,11 @@ const UserSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: 'Student',
       sparse: true
+    },
+    // Last successful sign-in. Stamped fire-and-forget in the NextAuth authorize
+    // callback; powers the operator console's activation/churn signals.
+    lastLoginAt: {
+      type: Date
     }
   },
   {

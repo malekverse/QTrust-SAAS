@@ -6,6 +6,19 @@ import { detectLocale } from './i18n/geo'
 const LOCALE_COOKIE = 'NEXT_LOCALE'
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
+// Marketing pages are locale-ROUTED, not cookie-driven: the Arabic tree lives
+// at these root paths, with mirrored trees under /fr and /en. The locale
+// cookie can't translate them, so the proxy redirects between the trees.
+const MARKETING_AR_PATHS = new Set([
+  '/', '/about', '/contact', '/demo', '/features', '/pricing', '/privacy', '/terms',
+])
+
+// Crawlers must be able to index every locale tree as-is — never geo-redirect
+// them, or the Arabic root pages would be invisible to (mostly US-based) bots.
+function isBot(userAgent: string | null): boolean {
+  return !!userAgent && /bot|crawl|spider|slurp|bingpreview|duckduck|baidu|yandex|facebookexternalhit|whatsapp|telegram|twitter|linkedin/i.test(userAgent)
+}
+
 // Next.js 16 renamed `middleware.ts` -> `proxy.ts`, which runs on the Node.js
 // runtime (the old Edge middleware is deprecated). This also fixes a crash on
 // Vercel: `next/server` bundles `ua-parser-js`, which references `__dirname` —
@@ -77,6 +90,27 @@ export default async function proxy(request: NextRequest) {
     return withLocale(NextResponse.next({ request: { headers } }))
   }
 
+  // Explicit language pick from the marketing locale switcher (?hl=ar|fr|en):
+  // persist it as the shared locale cookie and redirect to the clean URL.
+  // Ignored for router prefetches so hovering a switcher link can't silently
+  // change the visitor's saved language.
+  const hl = request.nextUrl.searchParams.get('hl')
+  const isPrefetch =
+    !!request.headers.get('next-router-prefetch') ||
+    request.headers.get('purpose') === 'prefetch' ||
+    request.headers.get('sec-purpose')?.includes('prefetch')
+  if (hl && locales.includes(hl as Locale) && !isPrefetch) {
+    const clean = request.nextUrl.clone()
+    clean.searchParams.delete('hl')
+    const res = NextResponse.redirect(clean)
+    res.cookies.set(LOCALE_COOKIE, hl, {
+      path: '/',
+      maxAge: LOCALE_COOKIE_MAX_AGE,
+      sameSite: 'lax',
+    })
+    return res
+  }
+
   // Get session token from cookie
   const sessionToken = request.cookies.get('authjs.session-token')?.value ||
                        request.cookies.get('__Secure-authjs.session-token')?.value
@@ -96,6 +130,20 @@ export default async function proxy(request: NextRequest) {
   // role dashboard via /home (which reads the session server-side).
   if (pathname === '/' && isAuthenticated) {
     return withLocale(NextResponse.redirect(new URL('/home', request.url)))
+  }
+
+  // Marketing pages: send visitors whose saved or detected language is French
+  // or English from the Arabic tree (root paths) to the matching /fr or /en
+  // tree. Arabic stays at the root. The ?hl= switcher above lets users move
+  // back to Arabic (it rewrites the cookie before this rule sees the request).
+  const effectiveLocale = hasLocale ? (rawLocale as Locale) : detectedLocale
+  if (
+    MARKETING_AR_PATHS.has(pathname) &&
+    (effectiveLocale === 'fr' || effectiveLocale === 'en') &&
+    !isBot(request.headers.get('user-agent'))
+  ) {
+    const target = pathname === '/' ? `/${effectiveLocale}` : `/${effectiveLocale}${pathname}`
+    return withLocale(NextResponse.redirect(new URL(target, request.url)))
   }
 
   return nextWithLocale()

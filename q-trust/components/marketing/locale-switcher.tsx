@@ -18,10 +18,13 @@ function stripLocale(path: string): string {
   return path || "/"
 }
 
+// `?hl=` tells the proxy this is an explicit language pick: it persists the
+// choice in the locale cookie (so it survives future visits and geo-detection
+// never overrides it) and redirects to the clean URL.
 function hrefFor(code: MarketingLocale, bare: string): string {
-  if (code === "ar") return bare
+  if (code === "ar") return `${bare}?hl=ar`
   const suffix = bare === "/" ? "" : bare
-  return `/${code}${suffix}`
+  return `/${code}${suffix}?hl=${code}`
 }
 
 export function LocaleSwitcher({
@@ -48,6 +51,7 @@ export function LocaleSwitcher({
           ) : (
             <Link
               href={hrefFor(l.code, bare)}
+              prefetch={false}
               hrefLang={l.code}
               aria-label={l.full}
               className="mk-nav-link text-xs font-semibold"

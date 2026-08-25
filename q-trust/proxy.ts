@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { locales, type Locale } from './i18n/config'
+import { detectLocale } from './i18n/geo'
+
+const LOCALE_COOKIE = 'NEXT_LOCALE'
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 // Next.js 16 renamed `middleware.ts` -> `proxy.ts`, which runs on the Node.js
 // runtime (the old Edge middleware is deprecated). This also fixes a crash on
@@ -30,6 +35,48 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // First visit (no locale cookie yet): pick the display language from the
+  // visitor's geo country (Vercel injects it as a header at the edge — no
+  // lookup, no latency), falling back to the browser's Accept-Language, then
+  // English. A manual choice via /api/locale sets the cookie and wins forever.
+  const rawLocale = request.cookies.get(LOCALE_COOKIE)?.value
+  const hasLocale = !!rawLocale && locales.includes(rawLocale as Locale)
+  const detectedLocale: Locale | null = hasLocale
+    ? null
+    : detectLocale({
+        country: request.headers.get('x-vercel-ip-country'),
+        region: request.headers.get('x-vercel-ip-country-region'),
+        acceptLanguage: request.headers.get('accept-language'),
+      })
+
+  // Persist the detected locale on whatever response we return.
+  const withLocale = (res: NextResponse) => {
+    if (detectedLocale) {
+      res.cookies.set(LOCALE_COOKIE, detectedLocale, {
+        path: '/',
+        maxAge: LOCALE_COOKIE_MAX_AGE,
+        sameSite: 'lax',
+      })
+    }
+    return res
+  }
+
+  // Pass-through that also injects the detected locale into THIS request's
+  // cookie header, so the very first server render already uses the right
+  // language (no flash of the default locale, no extra round-trip).
+  const nextWithLocale = () => {
+    if (!detectedLocale) return NextResponse.next()
+    const headers = new Headers(request.headers)
+    const cookie = headers.get('cookie')
+    headers.set(
+      'cookie',
+      cookie
+        ? `${cookie}; ${LOCALE_COOKIE}=${detectedLocale}`
+        : `${LOCALE_COOKIE}=${detectedLocale}`
+    )
+    return withLocale(NextResponse.next({ request: { headers } }))
+  }
+
   // Get session token from cookie
   const sessionToken = request.cookies.get('authjs.session-token')?.value ||
                        request.cookies.get('__Secure-authjs.session-token')?.value
@@ -40,7 +87,7 @@ export default async function proxy(request: NextRequest) {
   if (!isAuthenticated && !isPublicRoute && pathname !== '/') {
     const loginUrl = new URL('/auth/login', request.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
+    return withLocale(NextResponse.redirect(loginUrl))
   }
 
   // For authenticated users, we'll let server components handle role-based access
@@ -48,10 +95,10 @@ export default async function proxy(request: NextRequest) {
   // Root `/` is the public marketing landing page. Signed-in users go to their
   // role dashboard via /home (which reads the session server-side).
   if (pathname === '/' && isAuthenticated) {
-    return NextResponse.redirect(new URL('/home', request.url))
+    return withLocale(NextResponse.redirect(new URL('/home', request.url)))
   }
 
-  return NextResponse.next()
+  return nextWithLocale()
 }
 
 export const config = {

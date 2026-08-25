@@ -2,13 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "qtrust-prod",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "q-trust"],
-      "port": 3000
-    },
-    {
-      "name": "qtrust-dev",
+      "name": "q-trust-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "q-trust"],
       "port": 3000

@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import dbConnect from '@/lib/db'
 import BehaviorLog from '@/models/BehaviorLog'
 import { ROLES, BEHAVIOR_TYPE } from '@/lib/constants'
+import { teacherCanAccessStudent } from '@/lib/substitutes'
 
 const createSchema = z.object({
   studentId: z.string().min(1),
@@ -30,6 +31,18 @@ export async function POST(request: NextRequest) {
     }
 
     await dbConnect()
+
+    // A teacher may only log behavior for students in their own halaqa.
+    if (session.user.role === ROLES.TEACHER) {
+      const allowed = await teacherCanAccessStudent(tenantId, session.user.id, parsed.data.studentId)
+      if (!allowed) {
+        return NextResponse.json(
+          { message: 'غير مصرح لك بتسجيل بيانات لهذا الطالب' },
+          { status: 403 }
+        )
+      }
+    }
+
     const log = await BehaviorLog.create({
       tenantId,
       teacherId: session.user.id,

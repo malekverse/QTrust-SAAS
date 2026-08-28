@@ -225,7 +225,8 @@
       "welcomeTenant": "مرحباً بك في {tenantName}",
       "emailOrPhone": "البريد الإلكتروني أو رقم الهاتف",
       "emailPlaceholder": "example@email.com أو +216XXXXXXXX",
-      "copyright": "© {year} جميع الحقوق محفوظة"
+      "copyright": "© {year} جميع الحقوق محفوظة",
+      "unknownTenant": "رابط الجمعية غير معروف. تحقّق من العنوان، أو سجّل الدخول أدناه إن كان لديك حساب على المنصة."
     },
     "onboarding": {
       "title": "مرحباً بك في Q-Trust",
@@ -684,7 +685,8 @@
       "enrollDescription": "اختر الطلاب لتسجيلهم في الحصة ({count} متاح)",
       "addCount": "إضافة {count} طالب",
       "showingStudentCount": "عرض {count} من {total} طالب",
-      "availableSeats": "{available} من {total} مقعد متاح"
+      "availableSeats": "{available} من {total} مقعد متاح",
+      "totalSessions": "إجمالي الحصص"
     },
     "attendance": {
       "title": "سجل الحضور",
@@ -799,7 +801,9 @@
       "addNotesPlaceholder": "أضف ملاحظات على قرارك...",
       "showingCount": "عرض {shown} من {total}",
       "tryDifferentSearch": "جرب بحثاً مختلفاً",
-      "clearSearch": "مسح البحث"
+      "clearSearch": "مسح البحث",
+      "claimDialogDescription": "اعتراض مقدَّم من {name} بخصوص حصة يوم {date}.",
+      "claimReason": "سبب الاعتراض"
     },
     "documents": {
       "title": "المكتبة الرقمية",
@@ -1006,7 +1010,8 @@
       "notEnabled": "غير مفعّل",
       "messagingProviderDisabled": "خدمة الرسائل غير مفعّلة",
       "sendFailed": "فشل الإرسال",
-      "messageSendError": "حدث خطأ أثناء إرسال الرسالة"
+      "messageSendError": "حدث خطأ أثناء إرسال الرسالة",
+      "confirmPaymentDesc": "تسجيل دفعة {month} {year} للطالب {name}."
     },
     "analytics": {
       "title": "التحليلات والإحصائيات",
@@ -1127,7 +1132,7 @@
       "formatShortYearSeq": "سنة مختصرة-تسلسل",
       "formatPrefixSeqContinuous": "بادئة+تسلسل مستمر",
       "formatSeqOnly": "تسلسل فقط",
-      "formatVariablesHint": "المتغيرات: '{YEAR}' = السنة، '{SHORT_YEAR}' = آخر رقمين، '{SEQ}' = التسلسل، '{PREFIX}' = البادئة",
+      "formatVariablesHint": "المتغيرات: {year} = السنة، {shortYear} = آخر رقمين، {seq} = التسلسل، {prefix} = البادئة",
       "prefixLabel": "البادئة",
       "prefixPlaceholder": "مثال: QT",
       "prefixHint": "تُضاف قبل الرقم (اختياري)",
@@ -1196,7 +1201,8 @@
       "generateOccurrencesFailed": "فشل توليد الحصص",
       "generateOccurrencesError": "حدث خطأ أثناء توليد الحصص الفعلية",
       "fetchScannerTokenFailed": "فشل في جلب رمز الماسح",
-      "fetchDevicesFailed": "فشل في جلب قائمة الأجهزة"
+      "fetchDevicesFailed": "فشل في جلب قائمة الأجهزة",
+      "system": "النظام"
     },
     "schedule": {
       "title": "الجدول الزمني",
@@ -1795,7 +1801,9 @@
         "inherit": "افتراضي",
         "unlimited": "غير محدود",
         "custom": "مخصّص"
-      }
+      },
+      "brandLocaleLabel": "اللغة الافتراضية",
+      "demo": "عرض توضيحي"
     },
     "billing": {
       "title": "الفوترة",

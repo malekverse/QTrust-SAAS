@@ -6,6 +6,7 @@ import Student from "@/models/Student"
 import Room from "@/models/Room"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 void SessionTemplate
 void StudentSession
@@ -33,6 +34,8 @@ export async function POST(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const body = await request.json()
     const { studentIds, forceOverCapacity } = body
 
@@ -41,6 +44,11 @@ export async function POST(
         { message: "اختر طالباً واحداً على الأقل" },
         { status: 400 }
       )
+    }
+
+    for (const candidateId of studentIds) {
+      const bad2 = invalidObjectId(candidateId)
+      if (bad2) return bad2
     }
 
     await dbConnect()
@@ -188,6 +196,8 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const { searchParams } = new URL(request.url)
     const studentId = searchParams.get("studentId")
 
@@ -197,6 +207,9 @@ export async function DELETE(
         { status: 400 }
       )
     }
+
+    const bad2 = invalidObjectId(studentId)
+    if (bad2) return bad2
 
     await dbConnect()
 

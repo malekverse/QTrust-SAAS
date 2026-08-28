@@ -5,6 +5,7 @@ import Student from "@/models/Student"
 import { logActivity } from "@/models/ActivityLog"
 import { auth, hashPassword, generateTempPassword } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 // POST /api/admin/student-accounts/[id]/reset-password - Reset student password
 export async function POST(
@@ -27,6 +28,8 @@ export async function POST(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 

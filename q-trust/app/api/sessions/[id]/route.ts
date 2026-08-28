@@ -8,6 +8,7 @@ import User from "@/models/User"
 import { auth } from "@/lib/auth"
 import { updateSessionTemplateSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 void SessionTemplate
 void StudentSession
@@ -49,6 +50,8 @@ export async function GET(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 
@@ -114,6 +117,8 @@ export async function PATCH(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const body = await request.json()
 
     const validationResult = updateSessionTemplateSchema.safeParse(body)
@@ -128,11 +133,18 @@ export async function PATCH(
 
     const updateData = validationResult.data
 
-    // Check room time conflicts if roomId, dayOfWeek, or times are changing
-    if (updateData.roomId || updateData.dayOfWeek !== undefined || updateData.startTime || updateData.endTime) {
+    // Check room/teacher time conflicts if the teacher, room, day or times change
+    if (
+      updateData.roomId ||
+      updateData.teacherId ||
+      updateData.dayOfWeek !== undefined ||
+      updateData.startTime ||
+      updateData.endTime
+    ) {
       const current = await SessionTemplate.findOne({ _id: id, tenantId }).lean()
       if (current) {
         const checkRoomId = updateData.roomId || current.roomId?.toString()
+        const checkTeacherId = updateData.teacherId || current.teacherId?.toString()
         const checkDay = updateData.dayOfWeek ?? current.dayOfWeek
         const checkStart = updateData.startTime || current.startTime
         const checkEnd = updateData.endTime || current.endTime
@@ -151,6 +163,29 @@ export async function PATCH(
               return NextResponse.json(
                 {
                   message: `تعارض في القاعة: الحصة "${existing.name}" تستخدم نفس القاعة في نفس الوقت`,
+                  conflict: { sessionName: existing.name, startTime: existing.startTime, endTime: existing.endTime },
+                },
+                { status: 409 }
+              )
+            }
+          }
+        }
+
+        // A teacher cannot be in two places at once.
+        if (checkTeacherId) {
+          const teacherClashes = await SessionTemplate.find({
+            tenantId,
+            teacherId: checkTeacherId,
+            dayOfWeek: checkDay,
+            isActive: true,
+            _id: { $ne: id },
+          }).lean()
+
+          for (const existing of teacherClashes) {
+            if (hasTimeOverlap(checkStart, checkEnd, existing.startTime, existing.endTime)) {
+              return NextResponse.json(
+                {
+                  message: `تعارض للمعلم: الحصة "${existing.name}" في نفس الوقت`,
                   conflict: { sessionName: existing.name, startTime: existing.startTime, endTime: existing.endTime },
                 },
                 { status: 409 }
@@ -206,6 +241,8 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 

@@ -173,9 +173,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return NextResponse.json(
-        { message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" },
+        { message: "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل" },
         { status: 400 }
       )
     }

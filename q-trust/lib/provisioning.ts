@@ -114,18 +114,67 @@ async function supportsTransactions(): Promise<boolean> {
 // Delete every document belonging to `tenantId`. Idempotent — safe to call
 // on a partially-created tenant. Reused for provisioning rollback and (later)
 // for tenant offboarding. Callers must be authorized.
+// Every tenant-scoped collection, cleared by raw collection name so the list
+// stays complete without importing 30 models here. Anything with a tenantId
+// must appear in this list or deleting a tenant leaves orphaned rows behind
+// (which then surface as ghost counts in platform-wide aggregates).
+const TENANT_SCOPED_COLLECTIONS = [
+  'activitylogs',
+  'admissionapplications',
+  'aiusagelogs',
+  'attendances',
+  'attendanceclaims',
+  'behaviorlogs',
+  'branches',
+  'conversations',
+  'emaillogs',
+  'families',
+  'grades',
+  'hifzlogs',
+  'invoices',
+  'learningdocuments',
+  'messagelogs',
+  'monthlypayments',
+  'notifications',
+  'platformcounters',
+  'rooms',
+  'scannerdevices',
+  'sessionoccurrences',
+  'sessiontemplates',
+  'settings',
+  'students',
+  'studentsessions',
+  'substituteassignments',
+  'teacherfeedbacks',
+]
+
 export async function deleteTenantCascade(tenantId: mongoose.Types.ObjectId | string): Promise<void> {
   const tid = new mongoose.Types.ObjectId(tenantId)
   await dbConnect()
   // Order chosen so a re-run after a mid-cascade failure keeps converging.
   const users = await User.find({ tenantId: tid }).select('_id').lean<{ _id: mongoose.Types.ObjectId }[]>()
   const userIds = users.map((u) => u._id)
+
+  const db = mongoose.connection.db
+  if (db) {
+    await Promise.all(
+      TENANT_SCOPED_COLLECTIONS.map((name) =>
+        db.collection(name).deleteMany({ tenantId: tid })
+      )
+    )
+  }
+
   await Promise.all([
     Invoice.deleteMany({ tenantId: tid }),
     Settings.deleteMany({ tenantId: tid }),
     userIds.length ? ActivationToken.deleteMany({ userId: { $in: userIds } }) : Promise.resolve(),
     User.deleteMany({ tenantId: tid }),
   ])
+
+  // Leads are platform-level, but a converted lead points at this tenant;
+  // clear the dangling reference rather than deleting the sales record.
+  await Lead.updateMany({ convertedTenantId: tid }, { $unset: { convertedTenantId: '' } })
+
   await Tenant.deleteOne({ _id: tid })
 }
 

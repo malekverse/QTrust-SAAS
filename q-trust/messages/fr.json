@@ -225,7 +225,8 @@
       "welcomeTenant": "Bienvenue sur {tenantName}",
       "emailOrPhone": "E-mail ou numéro de téléphone",
       "emailPlaceholder": "example@email.com ou +216XXXXXXXX",
-      "copyright": "© {year} Tous droits réservés"
+      "copyright": "© {year} Tous droits réservés",
+      "unknownTenant": "Ce lien d'association est introuvable. Vérifiez l'adresse, ou connectez-vous ci-dessous si vous avez un compte."
     },
     "onboarding": {
       "title": "Bienvenue sur Q-Trust",
@@ -684,7 +685,8 @@
       "enrollDescription": "Sélectionnez les élèves à inscrire à cette séance ({count} disponibles)",
       "addCount": "Ajouter {count} élèves",
       "showingStudentCount": "Affichage de {count} sur {total} élèves",
-      "availableSeats": "{available} sur {total} places disponibles"
+      "availableSeats": "{available} sur {total} places disponibles",
+      "totalSessions": "Total des séances"
     },
     "attendance": {
       "title": "Registre de présence",
@@ -799,7 +801,9 @@
       "addNotesPlaceholder": "Ajoutez des notes sur votre décision...",
       "showingCount": "Affichage de {shown} sur {total}",
       "tryDifferentSearch": "Essayez une autre recherche",
-      "clearSearch": "Effacer la recherche"
+      "clearSearch": "Effacer la recherche",
+      "claimDialogDescription": "Réclamation soumise par {name} pour la séance du {date}.",
+      "claimReason": "Motif de la réclamation"
     },
     "documents": {
       "title": "Bibliothèque numérique",
@@ -1006,7 +1010,8 @@
       "notEnabled": "Non activé",
       "messagingProviderDisabled": "Le service de messagerie n'est pas activé",
       "sendFailed": "Échec de l'envoi",
-      "messageSendError": "Une erreur est survenue lors de l'envoi du message"
+      "messageSendError": "Une erreur est survenue lors de l'envoi du message",
+      "confirmPaymentDesc": "Enregistrer le paiement de {month} {year} pour {name}."
     },
     "analytics": {
       "title": "Analyses et statistiques",
@@ -1127,7 +1132,7 @@
       "formatShortYearSeq": "Année courte-Séquence",
       "formatPrefixSeqContinuous": "Préfixe+Séquence continue",
       "formatSeqOnly": "Séquence uniquement",
-      "formatVariablesHint": "Variables : '{YEAR}' = Année, '{SHORT_YEAR}' = 2 derniers chiffres, '{SEQ}' = Séquence, '{PREFIX}' = Préfixe",
+      "formatVariablesHint": "Variables : {year} = Année, {shortYear} = 2 derniers chiffres, {seq} = Séquence, {prefix} = Préfixe",
       "prefixLabel": "Préfixe",
       "prefixPlaceholder": "ex. QT",
       "prefixHint": "Ajouté avant le numéro (facultatif)",
@@ -1196,7 +1201,8 @@
       "generateOccurrencesFailed": "Échec de la génération des occurrences",
       "generateOccurrencesError": "Une erreur est survenue lors de la génération des occurrences",
       "fetchScannerTokenFailed": "Échec de la récupération du token scanner",
-      "fetchDevicesFailed": "Échec de la récupération de la liste des appareils"
+      "fetchDevicesFailed": "Échec de la récupération de la liste des appareils",
+      "system": "Système"
     },
     "schedule": {
       "title": "Emploi du temps",
@@ -1795,7 +1801,9 @@
         "inherit": "Défaut",
         "unlimited": "Illimité",
         "custom": "Personnalisé"
-      }
+      },
+      "brandLocaleLabel": "Langue par défaut",
+      "demo": "Démo"
     },
     "billing": {
       "title": "Facturation",

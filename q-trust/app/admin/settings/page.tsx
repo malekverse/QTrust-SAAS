@@ -306,9 +306,12 @@ export default function AdminSettingsPage() {
             <User className="h-4 w-4 ml-2" />
             {t("general")}
           </TabsTrigger>
+          {/* This tab holds enrollment numbering, the QR attendance window and
+              scanner devices — not notifications. It was mislabelled, which hid
+              those panels from anyone looking for them. */}
           <TabsTrigger value="system">
             <Settings2 className="h-4 w-4 ml-2" />
-            {t("notifications")}
+            {t("system")}
           </TabsTrigger>
           <TabsTrigger value="appearance">
             <Palette className="h-4 w-4 ml-2" />
@@ -547,7 +550,12 @@ export default function AdminSettingsPage() {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        {t("formatVariablesHint")}
+                        {t("formatVariablesHint", {
+                          year: "{YEAR}",
+                          shortYear: "{SHORT_YEAR}",
+                          seq: "{SEQ}",
+                          prefix: "{PREFIX}",
+                        })}
                       </p>
                     </div>
 

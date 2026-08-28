@@ -225,7 +225,8 @@
       "welcomeTenant": "Welcome to {tenantName}",
       "emailOrPhone": "Email or phone number",
       "emailPlaceholder": "example@email.com or +216XXXXXXXX",
-      "copyright": "© {year} All rights reserved"
+      "copyright": "© {year} All rights reserved",
+      "unknownTenant": "That association link was not recognised. Check the address, or sign in below if you have a platform account."
     },
     "onboarding": {
       "title": "Welcome to Q-Trust",
@@ -684,7 +685,8 @@
       "enrollDescription": "Select students to enroll in this session ({count} available)",
       "addCount": "Add {count} students",
       "showingStudentCount": "Showing {count} of {total} students",
-      "availableSeats": "{available} of {total} seats available"
+      "availableSeats": "{available} of {total} seats available",
+      "totalSessions": "Total Sessions"
     },
     "attendance": {
       "title": "Attendance Record",
@@ -799,7 +801,9 @@
       "addNotesPlaceholder": "Add notes about your decision...",
       "showingCount": "Showing {shown} of {total}",
       "tryDifferentSearch": "Try a different search",
-      "clearSearch": "Clear search"
+      "clearSearch": "Clear search",
+      "claimDialogDescription": "Claim submitted by {name} for the session on {date}.",
+      "claimReason": "Claim Reason"
     },
     "documents": {
       "title": "Digital Library",
@@ -1006,7 +1010,8 @@
       "notEnabled": "Not enabled",
       "messagingProviderDisabled": "Messaging service is not enabled",
       "sendFailed": "Send failed",
-      "messageSendError": "An error occurred while sending the message"
+      "messageSendError": "An error occurred while sending the message",
+      "confirmPaymentDesc": "Record the {month} {year} payment for {name}."
     },
     "analytics": {
       "title": "Analytics & Statistics",
@@ -1127,7 +1132,7 @@
       "formatShortYearSeq": "Short Year-Sequence",
       "formatPrefixSeqContinuous": "Prefix+Continuous Sequence",
       "formatSeqOnly": "Sequence Only",
-      "formatVariablesHint": "Variables: '{YEAR}' = Year, '{SHORT_YEAR}' = Last 2 digits, '{SEQ}' = Sequence, '{PREFIX}' = Prefix",
+      "formatVariablesHint": "Variables: {year} = Year, {shortYear} = Last 2 digits, {seq} = Sequence, {prefix} = Prefix",
       "prefixLabel": "Prefix",
       "prefixPlaceholder": "e.g. QT",
       "prefixHint": "Added before the number (optional)",
@@ -1196,7 +1201,8 @@
       "generateOccurrencesFailed": "Failed to generate occurrences",
       "generateOccurrencesError": "An error occurred while generating occurrences",
       "fetchScannerTokenFailed": "Failed to fetch scanner token",
-      "fetchDevicesFailed": "Failed to fetch device list"
+      "fetchDevicesFailed": "Failed to fetch device list",
+      "system": "System"
     },
     "schedule": {
       "title": "Schedule",
@@ -1795,7 +1801,9 @@
         "inherit": "Default",
         "unlimited": "Unlimited",
         "custom": "Custom"
-      }
+      },
+      "brandLocaleLabel": "Default language",
+      "demo": "Demo"
     },
     "billing": {
       "title": "Billing",

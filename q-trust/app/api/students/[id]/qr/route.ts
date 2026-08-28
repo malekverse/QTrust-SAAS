@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db"
 import Student from "@/models/Student"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 import QRCode from "qrcode"
 
 // GET /api/students/[id]/qr - Get student QR code
@@ -26,6 +27,8 @@ export async function GET(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 
@@ -52,7 +55,11 @@ export async function GET(
     return NextResponse.json({
       _id: student._id,
       fullName: student.fullName,
-      parentName: student.parentName,
+      // The card reads "son/daughter of", so the father's name is the correct
+      // label; fall back to the guardian when no father is recorded. Using
+      // parentName unconditionally made the card disagree with the profile
+      // page, which shows fatherName.
+      parentName: student.fatherName || student.parentName,
       qrUuid: student.qrUuid,
       qrDataUrl,
     })

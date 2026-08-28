@@ -7,6 +7,7 @@ import Student from "@/models/Student"
 import { auth } from "@/lib/auth"
 import { updateUserSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 // Force model registration (needed for populate in serverless)
 void User
@@ -35,6 +36,8 @@ export async function GET(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 
@@ -102,6 +105,8 @@ export async function PATCH(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const body = await request.json()
 
     // Validate input
@@ -174,6 +179,8 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 

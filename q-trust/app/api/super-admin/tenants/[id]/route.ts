@@ -16,6 +16,7 @@ import {
 import { logPlatformAudit } from '@/models/PlatformAuditLog'
 import { getClientIp } from '@/lib/rate-limit'
 import { getEffectiveLimits } from '@/lib/entitlements'
+import { deleteTenantCascade } from '@/lib/provisioning'
 
 void Tenant
 void Student
@@ -321,5 +322,60 @@ export async function PATCH(
     }
     console.error('Update tenant error:', e)
     return NextResponse.json({ message: 'حدث خطأ أثناء تحديث المؤسسة' }, { status: 500 })
+  }
+}
+
+// DELETE /api/super-admin/tenants/[id] — permanently remove a tenant and every
+// record scoped to it. Irreversible, so the caller must echo back the exact
+// slug in the body ({ confirmSlug }) the way GitHub makes you type a repo name.
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const actor = await requireSuperAdmin()
+    const { id } = await params
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ message: 'معرّف غير صالح' }, { status: 400 })
+    }
+
+    await dbConnect()
+    const tenant = await Tenant.findById(id)
+    if (!tenant) {
+      return NextResponse.json({ message: 'المؤسسة غير موجودة' }, { status: 404 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    if (body?.confirmSlug !== tenant.slug) {
+      return NextResponse.json(
+        { message: `للتأكيد، أرسل confirmSlug مطابقاً للمعرّف: "${tenant.slug}"` },
+        { status: 400 }
+      )
+    }
+
+    // Snapshot identity for the audit row before the document disappears.
+    const snapshot = { slug: tenant.slug, name: tenant.name, plan: tenant.plan, status: tenant.status }
+
+    await deleteTenantCascade(tenant._id)
+    clearTenantStatusCache(id)
+
+    await logPlatformAudit({
+      actorUserId: actor.id,
+      actorEmail: actor.email || 'unknown',
+      targetType: 'Tenant',
+      targetId: new mongoose.Types.ObjectId(id),
+      action: 'TENANT_DELETED',
+      metadata: snapshot,
+      ip: getClientIp(request),
+      userAgent: request.headers.get('user-agent') || undefined,
+    })
+
+    return NextResponse.json({ ok: true, deleted: snapshot })
+  } catch (e) {
+    if (e instanceof TenantAuthError) {
+      return NextResponse.json({ message: e.message }, { status: e.status })
+    }
+    console.error('Delete tenant error:', e)
+    return NextResponse.json({ message: 'حدث خطأ أثناء حذف المؤسسة' }, { status: 500 })
   }
 }

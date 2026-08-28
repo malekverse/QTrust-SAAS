@@ -7,12 +7,44 @@ import Student from '@/models/Student'
 import Tenant from '@/models/Tenant'
 import { logActivity } from '@/models/ActivityLog'
 import { requireTenantSession, TenantAuthError } from '@/lib/tenant'
-import { ROLES, ADMISSION_STATUS } from '@/lib/constants'
+import { ROLES, ADMISSION_STATUS, MESSAGE_TYPE } from '@/lib/constants'
 import { generateQrUuid } from '@/lib/utils'
 import { generateEnrollmentNumber } from '@/lib/enrollment'
+import { sendMessage } from '@/lib/notifications/messaging'
 
 void Student
 void Tenant
+
+// Tell the guardian how their application was decided. sendMessage never
+// throws and always records a MessageLog, so when no provider is configured
+// this is logged as SKIPPED rather than silently doing nothing.
+async function notifyGuardianOfDecision(params: {
+  tenantId: string
+  phone?: string
+  studentName: string
+  status: string
+  studentId?: string
+  userId: string
+}) {
+  if (!params.phone) return
+
+  const messages: Record<string, string> = {
+    [ADMISSION_STATUS.APPROVED]: `تم قبول طلب تسجيل ${params.studentName}. نرحّب بكم، ويرجى مراجعة الإدارة لاستكمال الإجراءات.`,
+    [ADMISSION_STATUS.REJECTED]: `نعتذر، لم يتم قبول طلب تسجيل ${params.studentName} في الوقت الحالي. جزاكم الله خيراً.`,
+    [ADMISSION_STATUS.WAITLISTED]: `تم وضع طلب تسجيل ${params.studentName} على قائمة الانتظار. سنتواصل معكم عند توفر مكان.`,
+  }
+  const body = messages[params.status]
+  if (!body) return
+
+  await sendMessage({
+    tenantId: params.tenantId,
+    to: params.phone,
+    body,
+    type: MESSAGE_TYPE.ADMISSION_RESULT,
+    studentId: params.studentId,
+    createdByUserId: params.userId,
+  })
+}
 
 const patchSchema = z.object({
   status: z.enum([
@@ -114,6 +146,15 @@ export async function PATCH(
         userId: ctx.userId,
       })
 
+      await notifyGuardianOfDecision({
+        tenantId: ctx.tenantId,
+        phone: application.parentPhone,
+        studentName: `${student.firstName} ${student.lastName}`,
+        status: ADMISSION_STATUS.APPROVED,
+        studentId: student._id.toString(),
+        userId: ctx.userId,
+      })
+
       return NextResponse.json({ application, studentId: student._id })
     }
 
@@ -123,6 +164,14 @@ export async function PATCH(
     application.reviewedByUserId = mongoose.Types.ObjectId.createFromHexString(ctx.userId)
     application.reviewedAt = new Date()
     await application.save()
+
+    await notifyGuardianOfDecision({
+      tenantId: ctx.tenantId,
+      phone: application.parentPhone,
+      studentName: `${application.firstName} ${application.lastName}`,
+      status,
+      userId: ctx.userId,
+    })
 
     return NextResponse.json({ application })
   } catch (e) {

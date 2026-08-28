@@ -35,7 +35,7 @@ export const createUserSchema = z.object({
     .email('البريد الإلكتروني غير صالح'),
   password: z
     .string()
-    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+    .min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
     .max(100, 'كلمة المرور طويلة جداً'),
   role: z.enum([ROLES.ADMIN, ROLES.TEACHER])
 })
@@ -60,7 +60,7 @@ export const changePasswordSchema = z.object({
     .min(1, 'كلمة المرور الحالية مطلوبة'),
   newPassword: z
     .string()
-    .min(6, 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل')
+    .min(8, 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل')
     .max(100, 'كلمة المرور طويلة جداً'),
   confirmPassword: z
     .string()

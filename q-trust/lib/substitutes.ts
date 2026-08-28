@@ -1,6 +1,10 @@
 import SubstituteAssignment from '@/models/SubstituteAssignment'
+import SessionTemplate from '@/models/SessionTemplate'
+import StudentSession from '@/models/StudentSession'
 
 void SubstituteAssignment
+void SessionTemplate
+void StudentSession
 
 // Session-template ids the given user may currently access as a substitute
 // (i.e. has an assignment whose [validFrom, validTo] window contains now).
@@ -35,4 +39,33 @@ export async function isActiveSubstituteFor(
     validTo: { $gte: now },
   })
   return !!found
+}
+
+// Whether a teacher may record data (hifz, behavior, grades, feedback) about a
+// student: true when the student is enrolled in at least one session the
+// teacher owns, or one they currently substitute for. Admins bypass this — call
+// it only for ROLES.TEACHER. Mirrors the ownership rule that
+// /api/sessions/[id]/attendance already enforces, so a teacher can never write
+// records for a student outside their own halaqa.
+export async function teacherCanAccessStudent(
+  tenantId: string,
+  userId: string,
+  studentId: string
+): Promise<boolean> {
+  // Templates the teacher owns outright, plus any they substitute for now.
+  const owned = await SessionTemplate.find({ tenantId, teacherId: userId })
+    .select('_id')
+    .lean<{ _id: { toString(): string } }[]>()
+  const templateIds = owned.map((t) => t._id.toString())
+  templateIds.push(...(await getActiveSubstituteTemplateIds(tenantId, userId)))
+
+  if (templateIds.length === 0) return false
+
+  const enrolled = await StudentSession.exists({
+    tenantId,
+    studentId,
+    sessionTemplateId: { $in: templateIds },
+    isActive: true,
+  })
+  return !!enrolled
 }

@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import dbConnect from '@/lib/db'
 import HifzLog from '@/models/HifzLog'
 import { ROLES, HIFZ_TYPE, HIFZ_QUALITY } from '@/lib/constants'
+import { teacherCanAccessStudent } from '@/lib/substitutes'
 
 const createSchema = z.object({
   studentId: z.string().min(1),
@@ -35,6 +36,18 @@ export async function POST(request: NextRequest) {
     }
 
     await dbConnect()
+
+    // A teacher may only log memorization for students in their own halaqa.
+    if (session.user.role === ROLES.TEACHER) {
+      const allowed = await teacherCanAccessStudent(tenantId, session.user.id, parsed.data.studentId)
+      if (!allowed) {
+        return NextResponse.json(
+          { message: 'غير مصرح لك بتسجيل بيانات لهذا الطالب' },
+          { status: 403 }
+        )
+      }
+    }
+
     const log = await HifzLog.create({
       tenantId,
       teacherId: session.user.id,

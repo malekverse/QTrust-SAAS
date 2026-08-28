@@ -5,6 +5,7 @@ import SessionTemplate from "@/models/SessionTemplate"
 import StudentSession from "@/models/StudentSession"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 void Room
 void SessionTemplate
@@ -26,6 +27,8 @@ export async function GET(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     await dbConnect()
 
     const room = await Room.findOne({ _id: id, tenantId }).lean()

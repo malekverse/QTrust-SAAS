@@ -11,6 +11,7 @@ import { auth } from "@/lib/auth"
 import { updateAttendanceSchema } from "@/lib/validations"
 import { ATTENDANCE_STATUS, ATTENDANCE_CREATOR, SESSION_STATUS, DEFAULT_QR_SETTINGS, ROLES } from "@/lib/constants"
 import { isActiveSubstituteFor } from "@/lib/substitutes"
+import { invalidObjectId } from "@/lib/object-id"
 
 void SessionTemplate
 void SessionOccurrence
@@ -48,6 +49,8 @@ export async function GET(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const { searchParams } = new URL(request.url)
     const dateParam = searchParams.get("date")
 
@@ -204,8 +207,16 @@ export async function PATCH(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const body = await request.json()
     const { studentId, occurrenceId, status, notes } = body
+
+    const bad2 = invalidObjectId(studentId)
+    if (bad2) return bad2
+
+    const bad3 = invalidObjectId(occurrenceId)
+    if (bad3) return bad3
 
     // Validate
     const validationResult = updateAttendanceSchema.safeParse({ status, notes })

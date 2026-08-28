@@ -671,7 +671,7 @@ export default function SessionsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">{t("title")}</p>
+              <p className="text-xs text-muted-foreground">{t("totalSessions")}</p>
             </div>
           </CardContent>
         </Card>

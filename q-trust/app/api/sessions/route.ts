@@ -256,6 +256,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // A teacher cannot be in two places at once. Checked here as well as in
+    // /api/schedule/conflicts so the clash surfaces at creation time instead of
+    // only in a later audit.
+    const teacherSessions = await SessionTemplate.find({
+      tenantId,
+      teacherId: data.teacherId,
+      dayOfWeek: data.dayOfWeek,
+      isActive: true,
+    }).lean()
+
+    for (const existing of teacherSessions) {
+      if (hasTimeOverlap(data.startTime, data.endTime, existing.startTime, existing.endTime)) {
+        return NextResponse.json(
+          {
+            message: `تعارض للمعلم: الحصة "${existing.name}" في نفس الوقت`,
+            conflict: { sessionName: existing.name, startTime: existing.startTime, endTime: existing.endTime },
+          },
+          { status: 409 }
+        )
+      }
+    }
+
     // Create session template
     const sessionTemplate = await SessionTemplate.create({
       ...data,

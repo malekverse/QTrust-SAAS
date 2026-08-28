@@ -70,8 +70,11 @@ export default async function TenantsPage() {
                     >
                       {tn.name}
                     </Link>
+                    {/* isDemo marks a sample/demo tenant — distinct from the
+                        TRIAL lifecycle status shown in the Status column, so it
+                        must not borrow the "trial" label. */}
                     {tn.isDemo && (
-                      <Badge variant="secondary" className="mr-2 text-xs">{t("tenants.trial")}</Badge>
+                      <Badge variant="secondary" className="mr-2 text-xs">{t("tenants.demo")}</Badge>
                     )}
                   </td>
                   <td className="p-3 text-muted-foreground" dir="ltr">{tn.slug}</td>

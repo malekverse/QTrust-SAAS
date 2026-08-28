@@ -283,7 +283,7 @@ export function EditProfileDialog({ tenant }: { tenant: TenantForEdit }) {
               </div>
             </div>
             <div>
-              <Label htmlFor="b-locale">{t("brandLocale")}</Label>
+              <Label htmlFor="b-locale">{t("brandLocaleLabel")}</Label>
               <select
                 id="b-locale"
                 value={branding.locale}

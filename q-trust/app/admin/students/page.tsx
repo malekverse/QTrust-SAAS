@@ -164,6 +164,7 @@ interface Student {
 interface StudentsResponse {
   data: Student[]
   pagination: { page: number; limit: number; total: number; pages: number }
+  counts?: { all: number; active: number; inactive: number }
 }
 
 async function fetchStudents(params: { page?: number; limit?: number; search?: string; status?: string } = {}): Promise<StudentsResponse> {
@@ -381,6 +382,9 @@ export default function StudentsPage() {
 
   const filteredStudents = students || []
   const total = pagination?.total ?? 0
+  // Status totals come from the API so every summary card shows a real number,
+  // not just whichever tab happens to be selected.
+  const counts = studentsRes?.counts
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
@@ -861,7 +865,7 @@ export default function StudentsPage() {
               <Users className="h-5 w-5 text-blue-700 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{activeTab === 'all' ? total : '—'}</p>
+              <p className="text-2xl font-bold">{counts?.all ?? (activeTab === 'all' ? total : '—')}</p>
               <p className="text-xs text-muted-foreground">{t("totalStudents")}</p>
             </div>
           </CardContent>
@@ -875,7 +879,7 @@ export default function StudentsPage() {
               <UserCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{activeTab === 'active' ? total : '—'}</p>
+              <p className="text-2xl font-bold">{counts?.active ?? (activeTab === 'active' ? total : '—')}</p>
               <p className="text-xs text-muted-foreground">{t("activeCount")}</p>
             </div>
           </CardContent>
@@ -889,7 +893,7 @@ export default function StudentsPage() {
               <UserX className="h-5 w-5 text-red-700 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{activeTab === 'inactive' ? total : '—'}</p>
+              <p className="text-2xl font-bold">{counts?.inactive ?? (activeTab === 'inactive' ? total : '—')}</p>
               <p className="text-xs text-muted-foreground">{t("inactiveCount")}</p>
             </div>
           </CardContent>

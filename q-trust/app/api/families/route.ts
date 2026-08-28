@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import { z } from 'zod'
 import dbConnect from '@/lib/db'
 import Family from '@/models/Family'
@@ -21,6 +22,9 @@ const createSchema = z.object({
   primaryGuardianEmail: z.string().trim().email('البريد الإلكتروني غير صالح').optional().or(z.literal('')),
   monthlyFeePerChildTND: z.number().min(0).optional(),
   siblingDiscountPercent: z.number().min(0).max(100).optional(),
+  // Optional initial membership, mirroring PATCH. Previously accepted and
+  // silently dropped, so callers had to make a second request to link siblings.
+  studentIds: z.array(z.string()).optional(),
 })
 
 // GET /api/families?page=&limit= — list families (paginated)
@@ -104,6 +108,18 @@ export async function POST(request: NextRequest) {
       monthlyFeePerChildTND: d.monthlyFeePerChildTND ?? 0,
       siblingDiscountPercent: d.siblingDiscountPercent ?? 0,
     })
+
+    // Link the initial members, tenant-scoped so a caller cannot attach
+    // students belonging to another association.
+    if (d.studentIds?.length) {
+      const validIds = d.studentIds.filter((sid) => mongoose.Types.ObjectId.isValid(sid))
+      if (validIds.length > 0) {
+        await Student.updateMany(
+          { tenantId: ctx.tenantId, _id: { $in: validIds } },
+          { $set: { familyId: family._id } }
+        )
+      }
+    }
 
     return NextResponse.json(family, { status: 201 })
   } catch (e) {

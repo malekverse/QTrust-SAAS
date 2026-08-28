@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db"
 import LearningDocument from "@/models/LearningDocument"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 // DELETE /api/documents/[id] - Delete a document
 export async function DELETE(
@@ -32,6 +33,9 @@ export async function DELETE(
         { status: 400 }
       )
     }
+
+    const bad = invalidObjectId(id)
+    if (bad) return bad
 
     await dbConnect()
 

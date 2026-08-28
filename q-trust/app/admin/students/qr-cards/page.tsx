@@ -15,9 +15,16 @@ import { useTranslations } from "next-intl"
 interface Student {
   _id: string
   fullName: string
+  fatherName?: string
   parentName?: string
   qrUuid: string
   isActive: boolean
+}
+
+// The card reads "son/daughter of", so prefer the father's name and fall back
+// to the guardian. Keeps the printed card consistent with the student profile.
+function guardianName(student: Student): string | undefined {
+  return student.fatherName || student.parentName
 }
 
 async function fetchStudents(): Promise<Student[]> {
@@ -48,8 +55,8 @@ function QRCard({ student, qrDataUrl, orgName }: { student: Student; qrDataUrl: 
       {/* Student Name */}
       <div className="text-center">
         <h4 className="font-bold text-lg">{student.fullName}</h4>
-        {student.parentName && (
-          <p className="text-sm text-gray-600">{t("childOf")} {student.parentName}</p>
+        {guardianName(student) && (
+          <p className="text-sm text-gray-600">{t("childOf")} {guardianName(student)}</p>
         )}
       </div>
 
@@ -212,9 +219,9 @@ export default function BulkQRCardsPage() {
                 />
                 <div>
                   <p className="font-medium">{student.fullName}</p>
-                  {student.parentName && (
+                  {guardianName(student) && (
                     <p className="text-xs text-muted-foreground">
-                      {student.parentName}
+                      {guardianName(student)}
                     </p>
                   )}
                 </div>

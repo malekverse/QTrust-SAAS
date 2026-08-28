@@ -43,7 +43,7 @@
 
 - Node.js 18+
 - MongoDB (محلي أو Atlas)
-- pnpm (مستحسن)
+- npm
 
 ### التثبيت
 
@@ -53,17 +53,17 @@ git clone <repository-url>
 cd q-trust
 
 # تثبيت الحزم
-pnpm install
+npm install
 
 # إعداد ملف البيئة
 cp .env.example .env.local
 # عدّل .env.local بإعداداتك
 
 # تهيئة البيانات التجريبية
-pnpm seed
+npm run seed
 
 # تشغيل خادم التطوير
-pnpm dev
+npm run dev
 ```
 
 ### متغيرات البيئة
@@ -103,14 +103,20 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## 👤 بيانات الدخول التجريبية
 
-بعد تشغيل `pnpm seed`:
+بعد تشغيل `npm run seed`:
 
 | الدور | البريد | كلمة المرور |
 |-------|--------|-------------|
 | مدير | admin@demo.q-trust.tn | admin123 |
-| معلم | ahmed@demo.q-trust.tn | teacher123 |
-| معلم | fatima@demo.q-trust.tn | teacher123 |
-| معلم | omar@demo.q-trust.tn | teacher123 |
+| معلم | teacher1@demo.q-trust.tn (…7) | teacher123 |
+| طالب | student1@demo.q-trust.tn (…10) | student123 |
+
+لإنشاء حساب مدير المنصة (Super Admin):
+
+```bash
+npm run create-super-admin
+# → super@qtrust.local / ChangeMe-123!
+```
 
 ## 📱 استخدام الماسح
 
@@ -177,17 +183,18 @@ q-trust/
 ## 🔧 الأوامر المتاحة
 
 ```bash
-pnpm dev          # تشغيل خادم التطوير
-pnpm build        # بناء للإنتاج
-pnpm start        # تشغيل خادم الإنتاج
-pnpm lint         # فحص الكود
-pnpm seed         # تهيئة البيانات التجريبية
-pnpm test-db      # اختبار اتصال قاعدة البيانات
+npm run dev              # تشغيل خادم التطوير
+npm run build            # بناء للإنتاج
+npm start                # تشغيل خادم الإنتاج
+npm run lint             # فحص الكود
+npm run seed             # تهيئة البيانات التجريبية
+npm run test-db          # اختبار اتصال قاعدة البيانات
+npm run create-super-admin  # إنشاء حساب مدير المنصة
 ```
 
 ## 📊 البيانات التجريبية
 
-عند تشغيل `pnpm seed` يتم إنشاء:
+عند تشغيل `npm run seed` يتم إنشاء:
 
 - **3 معلمين** مع بيانات كاملة
 - **10 طلاب** مع رموز QR

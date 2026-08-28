@@ -195,7 +195,7 @@ export const AI_TOOLS: ToolDef[] = [
           fullName: { type: 'string', description: 'الاسم الكامل' },
           email: { type: 'string', description: 'البريد الإلكتروني' },
           phone: { type: 'string', description: 'رقم الهاتف (+216XXXXXXXX)' },
-          password: { type: 'string', description: 'كلمة المرور (6 أحرف على الأقل)' },
+          password: { type: 'string', description: 'كلمة المرور (8 أحرف على الأقل)' },
         },
         required: ['fullName', 'email'],
       },

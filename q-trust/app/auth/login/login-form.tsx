@@ -18,9 +18,11 @@ import { BrandLogo } from "@/components/brand-logo"
 export function LoginForm({
   tenantSlug,
   tenantName,
+  tenantNotFound,
 }: {
   tenantSlug?: string
   tenantName?: string
+  tenantNotFound?: boolean
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -110,6 +112,11 @@ export function LoginForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {tenantNotFound && (
+              <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-sm text-center">
+                {t("unknownTenant")}
+              </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {error && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center">

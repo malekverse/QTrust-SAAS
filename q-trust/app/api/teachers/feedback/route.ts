@@ -5,6 +5,7 @@ import Student from "@/models/Student"
 import User from "@/models/User"
 import { auth } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { teacherCanAccessStudent } from "@/lib/substitutes"
 
 // Force model registration
 void TeacherFeedback; void Student; void User
@@ -99,6 +100,17 @@ export async function POST(request: NextRequest) {
         { message: "الطالب غير موجود" },
         { status: 404 }
       )
+    }
+
+    // A teacher may only leave feedback for students in their own halaqa.
+    if (session.user.role === ROLES.TEACHER) {
+      const allowed = await teacherCanAccessStudent(tenantId, session.user.id, studentId)
+      if (!allowed) {
+        return NextResponse.json(
+          { message: "غير مصرح لك بتسجيل بيانات لهذا الطالب" },
+          { status: 403 }
+        )
+      }
     }
 
     const feedback = await TeacherFeedback.create({

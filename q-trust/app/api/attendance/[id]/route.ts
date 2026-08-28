@@ -8,6 +8,7 @@ import Student from "@/models/Student"
 import StudentSession from "@/models/StudentSession"
 import { auth } from "@/lib/auth"
 import { ROLES, ATTENDANCE_STATUS, ATTENDANCE_CREATOR, SESSION_STATUS, DEFAULT_QR_SETTINGS } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 // Force model registration (needed for populate in serverless)
 void Attendance
@@ -102,6 +103,8 @@ export async function PATCH(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const body = await request.json()
     const { status, notes } = body
 
@@ -164,6 +167,8 @@ export async function POST(
     }
 
     const { id: sessionTemplateId } = await params
+    const bad = invalidObjectId(sessionTemplateId)
+    if (bad) return bad
     const body = await request.json()
     const { studentId, date, status, notes } = body
 
@@ -173,6 +178,9 @@ export async function POST(
         { status: 400 }
       )
     }
+
+    const bad2 = invalidObjectId(studentId)
+    if (bad2) return bad2
 
     if (!Object.values(ATTENDANCE_STATUS).includes(status)) {
       return NextResponse.json(

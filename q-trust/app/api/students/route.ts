@@ -49,9 +49,17 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    const [students, total] = await Promise.all([
+    // Status counts ignore the active tab (but still honour the search) so the
+    // summary cards can show all three totals at once instead of blanking out
+    // the two tabs that aren't selected.
+    const countFilter: Record<string, unknown> = { tenantId }
+    if (filter.$or) countFilter.$or = filter.$or
+
+    const [students, total, activeCount, inactiveCount] = await Promise.all([
       Student.find(filter).sort({ createdAt: -1 }).skip(pg.skip).limit(pg.limit).lean(),
       Student.countDocuments(filter),
+      Student.countDocuments({ ...countFilter, isActive: true }),
+      Student.countDocuments({ ...countFilter, isActive: false }),
     ])
 
     const data = students.map(student => ({
@@ -61,7 +69,14 @@ export async function GET(request: NextRequest) {
         : student.fullName || '',
     }))
 
-    return NextResponse.json(buildPaginatedResponse(data, total, pg))
+    return NextResponse.json({
+      ...buildPaginatedResponse(data, total, pg),
+      counts: {
+        all: activeCount + inactiveCount,
+        active: activeCount,
+        inactive: inactiveCount,
+      },
+    })
   } catch (error) {
     console.error("Error fetching students:", error)
     return NextResponse.json(

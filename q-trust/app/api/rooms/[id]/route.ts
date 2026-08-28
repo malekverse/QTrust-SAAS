@@ -6,6 +6,7 @@ import StudentSession from "@/models/StudentSession"
 import { auth } from "@/lib/auth"
 import { updateRoomSchema } from "@/lib/validations"
 import { ROLES } from "@/lib/constants"
+import { invalidObjectId } from "@/lib/object-id"
 
 void Room
 void SessionTemplate
@@ -27,6 +28,8 @@ export async function GET(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     await dbConnect()
 
     const room = await Room.findOne({ _id: id, tenantId }).lean()
@@ -73,6 +76,8 @@ export async function PATCH(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     const body = await request.json()
     const validationResult = updateRoomSchema.safeParse(body)
 
@@ -124,6 +129,8 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const bad = invalidObjectId(id)
+    if (bad) return bad
     await dbConnect()
 
     const activeSessions = await SessionTemplate.countDocuments({

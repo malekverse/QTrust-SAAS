@@ -4,7 +4,8 @@
     {
       "name": "q-trust-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "q-trust"],
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "q-trust",
       "port": 3000
     }
   ]

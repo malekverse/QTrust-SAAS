@@ -4,3 +4,6 @@ q-trust-saas/
 
 # Safety net (each sub-app also declares its own .gitignore)
 node_modules/
+
+# Generated knowledge graph (~7MB, rebuilt by /graphify) — derived data, not source
+graphify-out/
